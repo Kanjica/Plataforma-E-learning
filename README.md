@@ -1,63 +1,24 @@
-# 🎓 Plataforma de E-learning: E-studo
+# 📚 Plataforma E-learning - Backend (Spring Boot/JPA)
 
-## 💡 Sobre o Projeto
+Este é o repositório do backend para a Plataforma E-learning, construído com **Spring Boot 3** e **PostgreSQL** via Docker.
 
-Plataforma completa de E-learning (LMS) para gerenciamento de cursos online, alunos e controle de progresso. O foco é em uma aplicação robusta, com arquitetura em camadas e uma interface rápida e responsiva.
+## 🚀 1. Requisitos de Desenvolvimento
 
----
+Para rodar o projeto localmente, você precisa ter instalado:
 
-## 🛠️ Stack Tecnológico
-
-| Categoria | Tecnologia | Uso |
-| :--- | :--- | :--- |
-| **Back-end** | **Java** (Spring Boot) | Desenvolvimento da API RESTful e Lógica de Negócio (Arquitetura MVC/Service Layer). |
-| **Front-end** | **Angular** | Interface de usuário (UI) responsiva e interativa. |
-| **Banco de Dados** | **PostgreSQL** | Persistência de dados para desenvolvimento (JPA/Hibernate). |
+* **Java 21+** (Versão utilizada no projeto).
+* **Maven** (Para build e gerenciamento de dependências).
+* **Docker** e **Docker Compose** (Para subir o banco de dados).
 
 ---
 
-## ✨ Principais Funcionalidades
+## ⚙️ 2. Configuração do Ambiente
 
-O sistema suporta dois perfis principais (Aluno e Instrutor) e oferece:
+O banco de dados PostgreSQL e a ferramenta de gerenciamento pgAdmin são inicializados via Docker Compose.
 
-* **Gestão de Conteúdo:** Cadastro de Cursos, Módulos e Aulas (com links de vídeo).
-* **Controle de Usuários:** Autenticação e Matrícula de Alunos em Cursos.
-* **Acompanhamento de Progresso:** Marcação de aulas concluídas e cálculo automático do **percentual de conclusão**.
-* **Certificação:** Emissão de **Certificado de Conclusão** ao finalizar 100% do curso.
-* **Interatividade:** Fórum de Dúvidas por curso e Sistema de Avaliação.
-* **Painéis Dedicados:** Dashboard do Aluno e Painel de Gerenciamento do Instrutor.
+### A. Inicializar o Banco de Dados
 
----
+Navegue até a raiz do projeto (onde está o arquivo `docker-compose.yml`) e execute o comando:
 
-## ⚙️ Arquitetura e Padrões
-
-O projeto segue boas práticas de engenharia de software:
-
-1.  **Arquitetura em Camadas:** Separação estrita em **Controller**, **Service** (Lógica de Negócio) e **Repository** (Acesso a Dados).
-2.  **API RESTful:** Endpoints padronizados para todas as operações **CRUD** (`/cursos`, `/alunos`, etc.).
-3.  **Qualidade:** Validação dupla (Front-end e Back-end - Bean Validation) e tratamento centralizado de erros (Exception Handler).
-4.  **Responsividade:** Interface totalmente adaptável a dispositivos mobile.
-
----
-
-## 🚀 Como Executar
-
-*(**Ajuste estes passos para o seu ambiente exato**)*
-
-### Back-end (Java/Spring Boot)
-1.  Clone o repositório.
-2.  Navegue até a pasta `elearning`.
-3.  Execute o comando:
-    ```bash
-    docker compose up -d
-    ``
-4.  Execute o projeto via IDE (IntelliJ, VS Code) ou pelo terminal:
-    ```bash
-    ./mvnw spring-boot:run
-    ``
-
----
-
-<!--## 🧑‍💻 Autor
-
-<!--[Seu Nome / Equipe]
+```bash
+docker compose up -d
