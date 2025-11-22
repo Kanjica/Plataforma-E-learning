@@ -1,70 +1,74 @@
-# 🎓 Plataforma de E-learning: E-studo
+# 📚 Plataforma E-learning - Backend (Spring Boot/JPA)
 
-## 💡 Sobre o Projeto
+Este é o repositório do backend para a Plataforma E-learning, construído com **Spring Boot 3** e **PostgreSQL** via Docker.
 
-Plataforma completa de E-learning (LMS) para gerenciamento de cursos online, alunos e controle de progresso. O foco é em uma aplicação robusta, com arquitetura em camadas e uma interface rápida e responsiva.
+## 🚀 1. Requisitos de Desenvolvimento
+
+Para rodar o projeto localmente, você precisa ter instalado:
+
+* **Java 21+** (Versão utilizada no projeto).
+* **Maven** (Para build e gerenciamento de dependências).
+* **Docker** e **Docker Compose** (Para subir o banco de dados).
 
 ---
 
-## 🛠️ Stack Tecnológico
+## ⚙️ 2. Configuração do Ambiente
 
-| Categoria | Tecnologia | Uso |
+O banco de dados PostgreSQL e a ferramenta de gerenciamento pgAdmin são inicializados via Docker Compose.
+
+### A. Inicializar o Banco de Dados
+
+Navegue até a raiz do projeto (onde está o arquivo `docker-compose.yml`) e execute o comando:
+
+```bash
+docker compose up -d
+````
+
+| Serviço | Porta Local | Credenciais |
 | :--- | :--- | :--- |
-| **Back-end** | **Java** (Spring Boot) | Desenvolvimento da API RESTful e Lógica de Negócio (Arquitetura MVC/Service Layer). |
-| **Front-end** | **Angular** | Interface de usuário (UI) responsiva e interativa. |
-| **Banco de Dados** | **H2 Database** | Persistência de dados em memória para desenvolvimento (JPA/Hibernate). |
+| **PostgreSQL** | `5433` | Veja `docker-compose.yml` (`POSTGRES_USER`, `POSTGRES_PASSWORD`) |
+| **pgAdmin** | `8088` | Veja `docker-compose.yml` (`PGADMIN_DEFAULT_EMAIL`, `PGADMIN_DEFAULT_PASSWORD`) |
 
----
+### B. Porta do Spring Boot
 
-## ✨ Principais Funcionalidades
+A aplicação Spring Boot rodará na porta padrão:
 
-O sistema suporta dois perfis principais (Aluno e Instrutor) e oferece:
+  * **API:** `http://localhost:8080`
 
-* **Gestão de Conteúdo:** Cadastro de Cursos, Módulos e Aulas (com links de vídeo).
-* **Controle de Usuários:** Autenticação e Matrícula de Alunos em Cursos.
-* **Acompanhamento de Progresso:** Marcação de aulas concluídas e cálculo automático do **percentual de conclusão**.
-* **Certificação:** Emissão de **Certificado de Conclusão** ao finalizar 100% do curso.
-* **Interatividade:** Fórum de Dúvidas por curso e Sistema de Avaliação.
-* **Painéis Dedicados:** Dashboard do Aluno e Painel de Gerenciamento do Instrutor.
+-----
 
----
+## 🛠️ 3. Como Rodar a Aplicação
 
-## ⚙️ Arquitetura e Padrões
+### A. Via IDE (IntelliJ, VS Code, etc.)
 
-O projeto segue boas práticas de engenharia de software:
+1.  Verifique se o Docker está rodando.
+2.  Importe o projeto como um projeto Maven.
+3.  Execute a classe principal `ElearningApplication.java`.
 
-1.  **Arquitetura em Camadas:** Separação estrita em **Controller**, **Service** (Lógica de Negócio) e **Repository** (Acesso a Dados).
-2.  **API RESTful:** Endpoints padronizados para todas as operações **CRUD** (`/cursos`, `/alunos`, etc.).
-3.  **Qualidade:** Validação dupla (Front-end e Back-end - Bean Validation) e tratamento centralizado de erros (Exception Handler).
-4.  **Responsividade:** Interface totalmente adaptável a dispositivos mobile.
+### B. Via Terminal
 
----
-
-## 🚀 Como Executar
-
-*(**Ajuste estes passos para o seu ambiente exato**)*
-
-### Back-end (Java/Spring Boot)
-1.  Clone o repositório.
-2.  Navegue até a pasta `backend`.
-3.  Execute o projeto via IDE (IntelliJ, VS Code) ou pelo terminal:
+1.  Compile o projeto (isso também resolve as dependências):
     ```bash
-    ./mvnw spring-boot:run
+    ./mvnw clean install
     ```
-
-### Front-end (Angular)
-1.  Navegue até a pasta `frontend`.
-2.  Instale as dependências:
+2.  Execute a aplicação:
     ```bash
-    npm install
+    java -jar target/elearning-0.0.1-SNAPSHOT.jar
     ```
-3.  Inicie o servidor de desenvolvimento:
-    ```bash
-    ng serve --open
-    ```
+    *(A versão do JAR pode variar.)*
 
----
+-----
 
-<!--## 🧑‍💻 Autor
+## 📦 4. Estrutura do Projeto 
 
-<!--[Seu Nome / Equipe]
+O projeto segue a arquitetura de **Camadas (MVC)** com a separação clara de responsabilidades:
+
+  * **`com.lp3.elearning.entities`**: Classes de Mapeamento JPA (`@Entity`).
+  * **`com.lp3.elearning.dtos`**: Classes de Transferência de Dados (Entrada/Saída da API).
+  * **`com.lp3.elearning.repositories`**: Interfaces de acesso a dados (`JpaRepository`).
+  * **`com.lp3.elearning.services`**: **Lógica de Negócio** central da aplicação.
+  * **`com.lp3.elearning.controllers`**: *Endpoints* REST que recebem requisições HTTP.
+  * **`src/main/resources/application.properties`**: Configurações da aplicação.
+  * **`src/main/resources/db/migration`**: Scripts **Flyway** (Para evoluir o schema do BD).
+
+
