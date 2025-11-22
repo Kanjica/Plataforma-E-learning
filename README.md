@@ -12,7 +12,7 @@ Plataforma completa de E-learning (LMS) para gerenciamento de cursos online, alu
 | :--- | :--- | :--- |
 | **Back-end** | **Java** (Spring Boot) | Desenvolvimento da API RESTful e Lógica de Negócio (Arquitetura MVC/Service Layer). |
 | **Front-end** | **Angular** | Interface de usuário (UI) responsiva e interativa. |
-| **Banco de Dados** | **H2 Database** | Persistência de dados em memória para desenvolvimento (JPA/Hibernate). |
+| **Banco de Dados** | **PostgreSQL** | Persistência de dados para desenvolvimento (JPA/Hibernate). |
 
 ---
 
@@ -46,22 +46,15 @@ O projeto segue boas práticas de engenharia de software:
 
 ### Back-end (Java/Spring Boot)
 1.  Clone o repositório.
-2.  Navegue até a pasta `backend`.
-3.  Execute o projeto via IDE (IntelliJ, VS Code) ou pelo terminal:
+2.  Navegue até a pasta `elearning`.
+3.  Execute o comando:
+    ```bash
+    docker compose up -d
+    ``
+4.  Execute o projeto via IDE (IntelliJ, VS Code) ou pelo terminal:
     ```bash
     ./mvnw spring-boot:run
-    ```
-
-### Front-end (Angular)
-1.  Navegue até a pasta `frontend`.
-2.  Instale as dependências:
-    ```bash
-    npm install
-    ```
-3.  Inicie o servidor de desenvolvimento:
-    ```bash
-    ng serve --open
-    ```
+    ``
 
 ---
 
