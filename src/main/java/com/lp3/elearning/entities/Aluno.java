@@ -35,4 +35,5 @@ public class Aluno {
 
     @OneToMany(mappedBy = "aluno")
     private Set<Matricula> matriculas;
+
 }

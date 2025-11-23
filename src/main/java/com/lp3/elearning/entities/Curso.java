@@ -48,7 +48,7 @@ public class Curso {
     private String titulo;
 
     @NotBlank(message = "A descrição do curso não pode ser vazia.")
-    @Size(min = 100)
+    @Size(min = 20)
     @Column(columnDefinition = "TEXT", nullable = false)
     private String descricao;
 
