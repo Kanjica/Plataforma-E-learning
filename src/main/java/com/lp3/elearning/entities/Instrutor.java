@@ -8,7 +8,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -17,7 +21,7 @@ import java.util.Set;
 @Entity
 @Table(name = "instrutores")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Instrutor {
+public class Instrutor implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,4 +43,19 @@ public class Instrutor {
 
     @ManyToMany(mappedBy = "instrutores") // Mapeado pelo campo 'instrutores' na classe Curso
     private Set<Curso> cursos;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("ROLE_INSTRUTOR"));
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public String getPassword() {
+        return senha;
+    }
 }
