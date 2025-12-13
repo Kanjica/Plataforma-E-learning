@@ -1,23 +1,36 @@
 -- --------------------------------------------------------
--- Tabela de Alunos
--- Mapeada de: com.lp3.elearning.entities.Aluno
+-- Tabela de Usuários (Superclasse para Autenticação)
 -- --------------------------------------------------------
-CREATE TABLE alunos (
+CREATE TABLE usuarios (
     id BIGSERIAL PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    senha VARCHAR(255) NOT NULL
+    senha VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL -- Campo para armazenar ROLE_ALUNO, ROLE_INSTRUTOR, etc.
+    -- Outros campos de segurança, como 'ativo', 'data_criacao'
 );
-
+-- --------------------------------------------------------
+-- Tabela de Alunos
+-- Mapeada de: com.lp3.elearning.entities.Aluno
+-- --------------------------------------------------------
+-- --------------------------------------------------------
+-- Tabela de Alunos (Subclasse)
+-- Não contém colunas de login/senha, usa a PK como FK
+-- --------------------------------------------------------
+CREATE TABLE alunos (
+    id BIGINT PRIMARY KEY, -- PK e FK para usuarios(id)
+    
+    CONSTRAINT fk_aluno_usuario FOREIGN KEY (id) REFERENCES usuarios(id) ON DELETE CASCADE
+);
 -- --------------------------------------------------------
 -- Tabela de Instrutores
 -- Mapeada de: com.lp3.elearning.entities.Instrutor
 -- --------------------------------------------------------
 CREATE TABLE instrutores (
-    id BIGSERIAL PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    senha VARCHAR(255) NOT NULL
+    id BIGINT PRIMARY KEY, -- PK e FK para usuarios(id)
+    -- Adicione campos específicos do Instrutor, se houver
+
+    CONSTRAINT fk_instrutor_usuario FOREIGN KEY (id) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
 -- --------------------------------------------------------
