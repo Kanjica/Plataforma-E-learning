@@ -3,7 +3,6 @@ package com.lp3.elearning.service;
 import com.lp3.elearning.repository.InstructorRepository;
 import com.lp3.elearning.repository.StudentRepository;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -12,11 +11,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthorizationService implements UserDetailsService {
 
-    @Autowired
     private StudentRepository studentRepository;
-
-    @Autowired
     private InstructorRepository instructorRepository;
+
+    public AuthorizationService(StudentRepository studentRepository, InstructorRepository instructorRepository) {
+        this.studentRepository = studentRepository;
+        this.instructorRepository = instructorRepository;
+    }
 
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {

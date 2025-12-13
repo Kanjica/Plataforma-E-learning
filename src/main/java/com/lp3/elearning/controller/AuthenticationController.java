@@ -23,20 +23,19 @@ import jakarta.validation.Valid;
 @RequestMapping("/auth")
 public class AuthenticationController {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
+    private final StudentRepository studentRepository;
+    private final InstructorRepository instructorRepository;
+    private final TokenService tokenService;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    @Autowired
-    private StudentRepository studentRepository;
-
-    @Autowired
-    private InstructorRepository instructorRepository;
-
-    @Autowired  
-    private TokenService tokenService;
-
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    public AuthenticationController(AuthenticationManager authenticationManager, StudentRepository studentRepository, InstructorRepository instructorRepository, TokenService tokenService) {
+        this.authenticationManager = authenticationManager;
+        this.studentRepository = studentRepository;
+        this.instructorRepository = instructorRepository;
+        this.tokenService = tokenService;
+        this.passwordEncoder = new BCryptPasswordEncoder();
+    }
     
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid AuthenticationDTO data) {
