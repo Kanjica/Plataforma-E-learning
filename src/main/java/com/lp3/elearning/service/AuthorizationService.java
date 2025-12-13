@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthorizationService implements UserDetailsService {
 
-    // Injete os repositórios reais (AlunoRepository e InstrutorRepository)
     @Autowired
     private AlunoRepository alunoRepository;
 
@@ -20,18 +19,11 @@ public class AuthorizationService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
-        // Tenta encontrar como ALUNO (assumindo que o login é o email)
-        UserDetails aluno = alunoRepository.findByEmail(login);
-
-        if (aluno != null) {
-            return aluno;
-        }
-
-        UserDetails instrutor = instrutorRepository.findByEmail(login);
-
-        if (instrutor != null) {
-            return instrutor;
-        }
+        UserDetails user = alunoRepository.findByEmail(login);
+        if (user != null) return user;
+        
+        user = instrutorRepository.findByEmail(login);
+        if (user != null) return user;
 
         throw new UsernameNotFoundException("Usuário não encontrado.");
     }

@@ -39,9 +39,10 @@ public class AuthenticationController {
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
+    
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid AuthenticationDTO data) {
-        var usernamePassword = new UsernamePasswordAuthenticationToken(data.login() , data.password());
+        var usernamePassword = new UsernamePasswordAuthenticationToken(data.login(), data.password());
         var auth = authenticationManager.authenticate(usernamePassword);
 
         var token = tokenService.generateToken((UserDetails) auth.getPrincipal());
@@ -50,12 +51,17 @@ public class AuthenticationController {
 
     @PostMapping("/register/aluno")
     public ResponseEntity<Void> registerAluno(@RequestBody @Valid RegisterDTO data){
-        if(alunoRepository.findByEmail(data.login()) != null) return ResponseEntity.badRequest().build();
+        if(alunoRepository.findByEmail(data.login()) != null) return ResponseEntity.badRequest().build(); 
 
         String encryptedPassword = passwordEncoder.encode(data.password());
 
-        Aluno newAluno = new Aluno(0, data.login(), data.login(), encryptedPassword, null);
-        this.alunoRepository.save(newAluno);
+        this.alunoRepository.save(
+            Aluno.builder()
+                .nome(data.name())
+                .email(data.login())
+                .senha(encryptedPassword)
+                .build()
+        );
 
         return ResponseEntity.ok().build();
     }
@@ -66,15 +72,20 @@ public class AuthenticationController {
 
         String encryptedPassword = passwordEncoder.encode(data.password());
 
-        // Cuidado: Instrutor pode ter mais validações ou regras
-        Instrutor newInstrutor = new Instrutor(0, data.login(), data.login(), encryptedPassword, null);
-        this.instrutorRepository.save(newInstrutor);
+        this.instrutorRepository.save(
+            Instrutor.builder()
+                .nome(data.name())
+                .email(data.login())
+                .senha(encryptedPassword)
+                .build()
+        );
 
         return ResponseEntity.ok().build();
     }
 
     @GetMapping
-    public String teste(){
-        return "Deu bom";
+    public ResponseEntity<String> teste(){
+        return ResponseEntity.ok("Deu bom");
     }
+
 }

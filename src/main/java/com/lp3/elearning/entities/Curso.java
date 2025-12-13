@@ -8,9 +8,9 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -26,7 +26,7 @@ import java.util.Set;
 * @Entity diz que a classe é uma Entidade no db
 * @Table(name = "cursos" ta dizendo que o nome da tabela vai ser "cursos"
 * */
-@Data @AllArgsConstructor
+@Data @AllArgsConstructor @NoArgsConstructor
 @Entity
 @Table(name = "cursos")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)

@@ -1,4 +1,6 @@
 package com.lp3.elearning.dto;
 
-public record LoginResponseDTO(String token) {
+public record LoginResponseDTO(
+    String token
+    ) {
 }

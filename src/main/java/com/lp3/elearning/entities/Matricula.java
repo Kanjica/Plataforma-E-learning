@@ -5,14 +5,13 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.apache.catalina.manager.StatusManagerServlet;
 
 import java.time.LocalDate;
 import java.util.Set;
 
 @Entity
 @Table(name = "matriculas")
-@Data @AllArgsConstructor
+@Data @AllArgsConstructor @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Matricula {
 
