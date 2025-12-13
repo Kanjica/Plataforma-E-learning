@@ -176,3 +176,23 @@ INSERT INTO reviews (id, rating, comment, review_date, student_id, course_id) OV
 (11, 2, 'The React course is outdated. It needs an update to modern hooks and context API.', NOW() - INTERVAL '1 day', 12, 2); -- Giovana (Aluno 12), Course 2
 
 SELECT setval('reviews_id_seq', (SELECT MAX(id) FROM reviews));
+
+INSERT INTO categories (id, name) VALUES
+(1, 'Desenvolvimento Web'),
+(2, 'Ciência de Dados'),
+(3, 'Design Gráfico'),
+(4, 'Marketing Digital'),
+(5, 'Idiomas'),
+(6, 'Negócios e Finanças'),
+(7, 'Desenvolvimento Mobile'),
+(8, 'Saúde e Bem-Estar'),
+(9, 'Arte e Música'),
+(10, 'Produtividade');
+
+INSERT INTO course_category (course_id, category_id) VALUES
+(1, 1),
+(2, 1),
+(3, 6),
+(4, 6),
+(5, 3),
+(6, 2);

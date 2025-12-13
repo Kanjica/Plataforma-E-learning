@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -30,6 +31,7 @@ import java.util.Set;
 @Entity
 @Table(name = "courses")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Builder
 public class Course {
 
     @Id
@@ -69,5 +71,13 @@ public class Course {
     * CascadeType.ALL Significa que se você deletar o curso, os módulos associados a ele também serão deletados junto
     * */
     private List<Module> modules;
+
+    @ManyToMany
+    @JoinTable(
+            name = "course_category",
+            joinColumns = @JoinColumn(name = "course_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    private Set<Category> categories;
 
 }

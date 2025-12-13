@@ -24,7 +24,6 @@ import java.util.Set;
 @Setter 
 @Getter 
 @EqualsAndHashCode(callSuper = true) 
-@PrimaryKeyJoinColumn(name = "user_id")
 public class Instructor extends User {
 
     @Builder.Default

@@ -146,3 +146,18 @@ CREATE TABLE reviews (
     UNIQUE (student_id, course_id)
 );
 CREATE INDEX idx_reviews_course_id ON reviews (course_id);
+
+CREATE TABLE categories (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+-- --------------------------------------------------------
+-- Tabela de Junção Many-to-Many: Course-Category
+-- --------------------------------------------------------
+CREATE TABLE course_category (
+    course_id BIGINT NOT NULL,
+    category_id BIGINT NOT NULL,
+    PRIMARY KEY (course_id, category_id),
+    CONSTRAINT fk_cc_course FOREIGN KEY (course_id) REFERENCES courses(id),
+    CONSTRAINT fk_cc_category FOREIGN KEY (category_id) REFERENCES categories(id)
+);

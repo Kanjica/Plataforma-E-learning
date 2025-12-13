@@ -13,6 +13,7 @@ import java.util.Set;
 @Table(name = "enrollments")
 @Data @AllArgsConstructor @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Builder
 public class Enrollment {
 
     @Id

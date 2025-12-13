@@ -22,7 +22,6 @@ import java.util.Set;
 @SuperBuilder 
 @Getter @Setter 
 @EqualsAndHashCode(callSuper = true)
-@PrimaryKeyJoinColumn(name = "user_id")
 public class Student extends User {
 
     @Builder.Default
