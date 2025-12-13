@@ -11,11 +11,11 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "aulas")
+@Table(name = "lessons")
 @Data @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Aula {
+public class Lesson {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
@@ -24,17 +24,18 @@ public class Aula {
     @NotBlank(message = "O título da aula não pode ser vazio")
     @Size(min = 5, max = 150)
     @Column(nullable = false, length = 150)
-    private String titulo;
+    private String title;
 
     @NotBlank(message = "URL não pode estár vazia")
-    @Column(name = "url_video",nullable = false)
-    private String urlVideo;
+    @Column(name = "video_url",nullable = false)
+    private String videoUrl;
 
     @ManyToOne
-    @JoinColumn(name = "modulo_id", nullable = false)
-    private Modulo modulo;
+    @JoinColumn(name = "module_id", nullable = false)
+    private Module module;
 
     @NotNull
     @Min(1)
-    private Integer ordem;
+    @Column(name = "lesson_order", nullable = false)
+    private Integer lessonOrder;
 }

@@ -15,10 +15,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 // para garantir que um Aluno só avalie o Curso uma vez
-@Table(name = "avaliacoes", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"aluno_id", "curso_id"})
+@Table(name = "reviews", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"student_id", "course_id"})
 })
-public class Avaliacao {
+public class Review {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,23 +27,23 @@ public class Avaliacao {
     @Min(0)
     @Max(5)
     @Column(nullable = false)
-    private Integer nota;
+    private Integer rating;
 
     @Column(columnDefinition = "TEXT")
-    private String comentario;
+    private String comment;
 
-    @Column(nullable = false)
+    @Column(name = "review_date", nullable = false)
     @Builder.Default
-    private LocalDateTime dataAvaliacao = LocalDateTime.now();
+    private LocalDateTime reviewDate = LocalDateTime.now();
 
     // Relação N:1 com o Aluno que fez a avaliação
     // (Assumindo que apenas Alunos avaliam, não Instrutores)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "aluno_id", nullable = false)
-    private Aluno aluno; 
+    @JoinColumn(name = "student_id", nullable = false)
+    private Student student; 
 
     // Relação N:1 com o Curso que foi avaliado
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "curso_id", nullable = false)
-    private Curso curso;
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course;
 }

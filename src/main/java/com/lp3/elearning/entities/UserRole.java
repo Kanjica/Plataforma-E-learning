@@ -1,12 +1,12 @@
 package com.lp3.elearning.entities;
 
-public enum RoleUsuario {
-    INSTRUTOR("instrutor"),
-    ALUNO("aluno");
+public enum UserRole {
+    INSTRUCTOR("instructor"), // MUDANÇA AQUI
+    STUDENT("student"); // MUDANÇA AQUI
 
     private String role;
 
-    RoleUsuario(String role){
+    UserRole(String role){
         this.role = role;
     }
 

@@ -28,9 +28,9 @@ import java.util.Set;
 * */
 @Data @AllArgsConstructor @NoArgsConstructor
 @Entity
-@Table(name = "cursos")
+@Table(name = "courses")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Curso {
+public class Course {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,30 +45,29 @@ public class Curso {
     * Além das validações com as tags (@NotBlank, @Size, etc.) tá setando no db tambem, com (nullable = false, length = 100)
     * é uma validação dupla basicamente
     * */
-    private String titulo;
+    private String title;
 
     @NotBlank(message = "A descrição do curso não pode ser vazia.")
     @Size(min = 20)
     @Column(columnDefinition = "TEXT", nullable = false)
-    private String descricao;
+    private String description;
 
     @NotNull(message = "O campo é obrigatório.")
     @Min(value = 10, message = "A carga horária mínima para um curso é de 10 horas.")
-    @Column(name = "carga_horaria", nullable = false)
-    private Integer cargaHoraria;
+    @Column(nullable = false)
+    private Integer workload;
 
     @ManyToMany
     @JoinTable(
-            name = "curso_instrutor", // nome da tabela de junção
-            joinColumns = @JoinColumn(name = "curso_id"), // FK que referencia esta tabela
-            inverseJoinColumns = @JoinColumn(name = "instrutor_id") // FK que referencia a tabela instrutores
+            name = "course_instructor", // nome da tabela de junção
+            joinColumns = @JoinColumn(name = "course_id"), // FK que referencia esta tabela
+            inverseJoinColumns = @JoinColumn(name = "instructor_id") // FK que referencia a tabela instrutores
     )
-    private Set<Instrutor> instrutores;
-
-    @OneToMany(mappedBy = "curso", cascade = CascadeType.ALL)
+    private Set<Instructor> instructors;
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     /*
     * CascadeType.ALL Significa que se você deletar o curso, os módulos associados a ele também serão deletados junto
     * */
-    private List<Modulo> modulos;
+    private List<Module> modules;
 
 }

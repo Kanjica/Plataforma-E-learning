@@ -1,7 +1,5 @@
 package com.lp3.elearning.dto;
 
-import com.lp3.elearning.entities.RoleUsuario;
-
 import io.micrometer.common.lang.NonNull;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

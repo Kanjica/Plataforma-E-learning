@@ -1,119 +1,148 @@
+-- V1__Create_All_Schema.sql
+-- Contém todas as instruções CREATE TABLE para a aplicação Elearning.
+
 -- --------------------------------------------------------
 -- Tabela de Usuários (Superclasse para Autenticação)
 -- --------------------------------------------------------
-CREATE TABLE usuarios (
+CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
+    name VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    senha VARCHAR(255) NOT NULL,
-    role VARCHAR(50) NOT NULL -- Campo para armazenar ROLE_ALUNO, ROLE_INSTRUTOR, etc.
-    -- Outros campos de segurança, como 'ativo', 'data_criacao'
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL
 );
--- --------------------------------------------------------
--- Tabela de Alunos
--- Mapeada de: com.lp3.elearning.entities.Aluno
--- --------------------------------------------------------
+
 -- --------------------------------------------------------
 -- Tabela de Alunos (Subclasse)
--- Não contém colunas de login/senha, usa a PK como FK
 -- --------------------------------------------------------
-CREATE TABLE alunos (
-    id BIGINT PRIMARY KEY, -- PK e FK para usuarios(id)
-    
-    CONSTRAINT fk_aluno_usuario FOREIGN KEY (id) REFERENCES usuarios(id) ON DELETE CASCADE
+CREATE TABLE students (
+    id BIGINT PRIMARY KEY,
+    CONSTRAINT fk_student_user FOREIGN KEY (id) REFERENCES users(id) ON DELETE CASCADE
 );
+
 -- --------------------------------------------------------
 -- Tabela de Instrutores
--- Mapeada de: com.lp3.elearning.entities.Instrutor
 -- --------------------------------------------------------
-CREATE TABLE instrutores (
-    id BIGINT PRIMARY KEY, -- PK e FK para usuarios(id)
-    -- Adicione campos específicos do Instrutor, se houver
-
-    CONSTRAINT fk_instrutor_usuario FOREIGN KEY (id) REFERENCES usuarios(id) ON DELETE CASCADE
+CREATE TABLE instructors (
+    id BIGINT PRIMARY KEY,
+    CONSTRAINT fk_instructor_user FOREIGN KEY (id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- --------------------------------------------------------
 -- Tabela de Cursos
--- Mapeada de: com.lp3.elearning.entities.Curso
 -- --------------------------------------------------------
-CREATE TABLE cursos (
+CREATE TABLE courses (
     id BIGSERIAL PRIMARY KEY,
-    titulo VARCHAR(150) NOT NULL,
-    descricao TEXT NOT NULL,
-    carga_horaria INTEGER NOT NULL
+    title VARCHAR(150) NOT NULL,
+    description TEXT NOT NULL,
+    workload INTEGER NOT NULL
 );
 
 -- --------------------------------------------------------
 -- Tabela de Módulos
--- Mapeada de: com.lp3.elearning.entities.Modulo
 -- --------------------------------------------------------
-CREATE TABLE modulos (
+CREATE TABLE modules (
     id BIGSERIAL PRIMARY KEY,
-    titulo VARCHAR(100) NOT NULL,
-    ordem INTEGER NOT NULL,
-    curso_id BIGINT NOT NULL,
-
-    CONSTRAINT fk_modulo_curso FOREIGN KEY (curso_id) REFERENCES cursos(id)
+    title VARCHAR(100) NOT NULL,
+    module_order INTEGER NOT NULL,
+    course_id BIGINT NOT NULL,
+    CONSTRAINT fk_module_course FOREIGN KEY (course_id) REFERENCES courses(id)
 );
 
 -- --------------------------------------------------------
 -- Tabela de Aulas
--- Mapeada de: com.lp3.elearning.entities.Aula
 -- --------------------------------------------------------
-CREATE TABLE aulas (
+CREATE TABLE lessons (
     id BIGSERIAL PRIMARY KEY,
-    titulo VARCHAR(150) NOT NULL,
-    url_video VARCHAR(255) NOT NULL,
-    ordem INTEGER NOT NULL,
-    modulo_id BIGINT NOT NULL,
-
-    CONSTRAINT fk_aula_modulo FOREIGN KEY (modulo_id) REFERENCES modulos(id)
+    title VARCHAR(150) NOT NULL,
+    video_url VARCHAR(255) NOT NULL,
+    lesson_order INTEGER NOT NULL,
+    module_id BIGINT NOT NULL,
+    CONSTRAINT fk_lesson_module FOREIGN KEY (module_id) REFERENCES modules(id)
 );
 
 -- --------------------------------------------------------
--- Tabela de Matrículas (Tabela de Relacionamento Aluno-Curso)
--- Mapeada de: com.lp3.elearning.entities.Matricula
+-- Tabela de Matrículas (Aluno-Curso)
 -- --------------------------------------------------------
-CREATE TABLE matriculas (
+CREATE TABLE enrollments (
     id BIGSERIAL PRIMARY KEY,
-    data_matricula DATE NOT NULL,
-    progresso_geral DOUBLE PRECISION NOT NULL,
+    enrollment_date DATE NOT NULL,
+    overall_progress DOUBLE PRECISION NOT NULL,
     status VARCHAR(50) NOT NULL,
-    aluno_id BIGINT NOT NULL,
-    curso_id BIGINT NOT NULL,
-
-    CONSTRAINT fk_matricula_aluno FOREIGN KEY (aluno_id) REFERENCES alunos(id),
-    CONSTRAINT fk_matricula_curso FOREIGN KEY (curso_id) REFERENCES cursos(id),
-
-    CONSTRAINT unq_aluno_curso UNIQUE (aluno_id, curso_id)
+    student_id BIGINT NOT NULL,
+    course_id BIGINT NOT NULL,
+    CONSTRAINT fk_enrollment_student FOREIGN KEY (student_id) REFERENCES students(id),
+    CONSTRAINT fk_enrollment_course FOREIGN KEY (course_id) REFERENCES courses(id),
+    CONSTRAINT unq_student_course UNIQUE (student_id, course_id)
 );
 
 -- --------------------------------------------------------
 -- Tabela de Aulas Concluídas
--- Mapeada de: com.lp3.elearning.entities.AulaConcluida
 -- --------------------------------------------------------
-CREATE TABLE aulas_concluidas (
+CREATE TABLE completed_lessons (
     id BIGSERIAL PRIMARY KEY,
-    data_conclusao TIMESTAMP WITHOUT TIME ZONE NOT NULL, -- Mapeado de LocalDateTime
-    matricula_id BIGINT NOT NULL,
-    aula_id BIGINT NOT NULL,
-
-    CONSTRAINT fk_concluida_matricula FOREIGN KEY (matricula_id) REFERENCES matriculas(id),
-    CONSTRAINT fk_concluida_aula FOREIGN KEY (aula_id) REFERENCES aulas(id),
-
-    CONSTRAINT unq_matricula_aula UNIQUE (matricula_id, aula_id)
+    completion_date TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    enrollment_id BIGINT NOT NULL,
+    lesson_id BIGINT NOT NULL,
+    CONSTRAINT fk_completed_enrollment FOREIGN KEY (enrollment_id) REFERENCES enrollments(id),
+    CONSTRAINT fk_completed_lesson FOREIGN KEY (lesson_id) REFERENCES lessons(id),
+    CONSTRAINT unq_enrollment_lesson UNIQUE (enrollment_id, lesson_id)
 );
 
 -- --------------------------------------------------------
--- Tabela de Junção Many-to-Many: Curso-Instrutor
--- Mapeada de: curso_instrutor
+-- Tabela de Junção Many-to-Many: Course-Instructor
 -- --------------------------------------------------------
-CREATE TABLE curso_instrutor (
-    curso_id BIGINT NOT NULL,
-    instrutor_id BIGINT NOT NULL,
-
-    PRIMARY KEY (curso_id, instrutor_id),
-    CONSTRAINT fk_ci_curso FOREIGN KEY (curso_id) REFERENCES cursos(id),
-    CONSTRAINT fk_ci_instrutor FOREIGN KEY (instrutor_id) REFERENCES instrutores(id)
+CREATE TABLE course_instructor (
+    course_id BIGINT NOT NULL,
+    instructor_id BIGINT NOT NULL,
+    PRIMARY KEY (course_id, instructor_id),
+    CONSTRAINT fk_ci_course FOREIGN KEY (course_id) REFERENCES courses(id),
+    CONSTRAINT fk_ci_instructor FOREIGN KEY (instructor_id) REFERENCES instructors(id)
 );
+
+-- --------------------------------------------------------
+-- Tabela de Tópicos do Fórum
+-- --------------------------------------------------------
+CREATE TABLE topics (
+    id BIGSERIAL PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    content TEXT NOT NULL,
+    creation_date TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    course_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE INDEX idx_topics_course_id ON topics (course_id);
+CREATE INDEX idx_topics_user_id ON topics (user_id);
+
+-- --------------------------------------------------------
+-- Tabela de Respostas do Fórum
+-- --------------------------------------------------------
+CREATE TABLE responses (
+    id BIGSERIAL PRIMARY KEY,
+    content TEXT NOT NULL,
+    creation_date TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    topic_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    response_parent_id BIGINT,
+    FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (response_parent_id) REFERENCES responses(id) ON DELETE CASCADE
+);
+
+-- --------------------------------------------------------
+-- Tabela de Avaliações de Curso
+-- --------------------------------------------------------
+CREATE TABLE reviews (
+    id BIGSERIAL PRIMARY KEY,
+    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+    review_date TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    student_id BIGINT NOT NULL,
+    course_id BIGINT NOT NULL,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    UNIQUE (student_id, course_id)
+);
+CREATE INDEX idx_reviews_course_id ON reviews (course_id);

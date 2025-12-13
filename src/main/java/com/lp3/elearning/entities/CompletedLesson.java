@@ -10,24 +10,24 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "aulas_concluidas")
+@Table(name = "completed_lessons")
 @Data @AllArgsConstructor @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class AulaConcluida {
+public class CompletedLesson {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private long id;
 
     @ManyToOne
-    @JoinColumn(name = "matricula_id")
-    private Matricula matricula;
+    @JoinColumn(name = "enrollment_id")
+    private Enrollment enrollment;
 
     @ManyToOne
-    @JoinColumn(name = "aula_id")
-    private Aula aula;
+    @JoinColumn(name = "lesson_id")
+    private Lesson lesson;
 
     @NotNull
-    @Column(name = "data_conclusao", nullable = false)
-    private LocalDateTime dataConclusao;
+    @Column(name = "completion_date", nullable = false)
+    private LocalDateTime completionDate;
 }

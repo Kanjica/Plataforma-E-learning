@@ -1,7 +1,6 @@
 package com.lp3.elearning.entities;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,12 +10,12 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
-@Table(name = "respostas")
+@Table(name = "responses")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Resposta {
+public class Response {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,26 +23,26 @@ public class Resposta {
 
     @NotNull
     @Column(nullable = false, columnDefinition = "TEXT")
-    private String conteudo;
+    private String content;
 
     @NotNull
     @Builder.Default
-    @Column(nullable = false)
-    private LocalDateTime dataCriacao = LocalDateTime.now();
+    @Column(name = "creation_date", nullable = false)
+    private LocalDateTime creationDate = LocalDateTime.now();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "topico_id", nullable = false)
-    private Topico topico;
+    @JoinColumn(name = "topic_id", nullable = false)
+    private Topic topic;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id", nullable = false)
-    private Usuario usuario;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "resposta_pai_id")
-    private Resposta respostaPai; // Referência para a resposta que ela está respondendo
+    @JoinColumn(name = "response_parent_id")
+    private Response responseParent; // Referência para a resposta que ela está respondendo
 
     // Relação 1:N com as Respostas-Filhas (para buscar o thread)
-    @OneToMany(mappedBy = "respostaPai", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Resposta> respostasFilhas;
+    @OneToMany(mappedBy = "responseParent", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Response> childResponses;
 }

@@ -12,7 +12,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
-import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -25,12 +24,12 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "usuarios")
+@Table(name = "users")
 @Getter @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor @SuperBuilder
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Usuario implements UserDetails {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,7 +40,7 @@ public class Usuario implements UserDetails {
     @NotBlank(message = "Nome do usuario não pode estar vazio")
     @Size(max=100)
     @Column(nullable = false, length = 100)
-    private String nome;
+    private String name;
 
     @NonNull
     @Email
@@ -51,7 +50,7 @@ public class Usuario implements UserDetails {
 
     @NonNull
     @NotBlank(message = "Senha do usuario não pode estar vazia")
-    private String senha;
+    private String password;
 
     @NonNull
     private String role; 
@@ -62,7 +61,7 @@ public class Usuario implements UserDetails {
 
     @Override
     public String getPassword() {
-        return this.senha;
+        return this.password;
     }
 
     @Override

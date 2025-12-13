@@ -13,10 +13,10 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Entity
-@Table(name = "modulos")
+@Table(name = "modules")
 @Data @AllArgsConstructor @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Modulo {
+public class Module {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,16 +26,17 @@ public class Modulo {
     @NotBlank(message = "O título do módulo não pode ser vazio.")
     @Size(min = 5, max = 100)
     @Column(nullable = false, length = 100)
-    private String titulo;
+    private String title;
 
     @ManyToOne
-    @JoinColumn(name = "curso_id", nullable = false)
-    private Curso curso;
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course;
 
-    @OneToMany(mappedBy = "modulo", cascade = CascadeType.ALL)
-    private List<Aula> aulas;
+    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL)
+    private List<Lesson> lessons;
 
     @NotNull
     @Min(1)
-    private Integer ordem;
+    @Column(name = "module_order", nullable = false)
+    private Integer moduleOrder;
 }

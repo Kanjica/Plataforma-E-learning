@@ -1,7 +1,6 @@
 package com.lp3.elearning.entities;
 
 import jakarta.persistence.*;
-
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -18,21 +17,21 @@ import java.util.List;
 import java.util.Set;
 
 @Entity
-@Table(name = "instrutores")
-@NoArgsConstructor 
+@Table(name = "students")
+@NoArgsConstructor
 @SuperBuilder 
-@Setter 
-@Getter 
-@EqualsAndHashCode(callSuper = true) 
-public class Instrutor extends Usuario {
+@Getter @Setter 
+@EqualsAndHashCode(callSuper = true)
+@PrimaryKeyJoinColumn(name = "user_id")
+public class Student extends User {
 
     @Builder.Default
-    @ManyToMany(mappedBy = "instrutores") 
-    private Set<Curso> cursos = new HashSet<>();
-    
+    @OneToMany(mappedBy = "student")
+    private Set<Enrollment> enrollments = new HashSet<>();
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_INSTRUTOR"));
+        return List.of(new SimpleGrantedAuthority("ROLE_STUDENT"));
     }
 
 }

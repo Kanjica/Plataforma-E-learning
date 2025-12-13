@@ -1,5 +1,6 @@
 package com.lp3.elearning.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -10,10 +11,10 @@ import org.springframework.web.bind.annotation.*;
 import com.lp3.elearning.dto.AuthenticationDTO;
 import com.lp3.elearning.dto.LoginResponseDTO;
 import com.lp3.elearning.dto.RegisterDTO;
-import com.lp3.elearning.repository.AlunoRepository;
-import com.lp3.elearning.repository.InstrutorRepository;
-import com.lp3.elearning.entities.Aluno;
-import com.lp3.elearning.entities.Instrutor;
+import com.lp3.elearning.entities.Instructor;
+import com.lp3.elearning.entities.Student;
+import com.lp3.elearning.repository.InstructorRepository;
+import com.lp3.elearning.repository.StudentRepository;
 import com.lp3.elearning.service.TokenService;
 
 import jakarta.validation.Valid;
@@ -22,23 +23,20 @@ import jakarta.validation.Valid;
 @RequestMapping("/auth")
 public class AuthenticationController {
 
-    private final AuthenticationManager authenticationManager;
-    private final AlunoRepository alunoRepository;
-    private final InstrutorRepository instrutorRepository;
-    private final TokenService tokenService;
-    private final BCryptPasswordEncoder passwordEncoder;
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
-    public AuthenticationController(AuthenticationManager authenticationManager,
-                                    AlunoRepository alunoRepository,
-                                    InstrutorRepository instrutorRepository,
-                                    TokenService tokenService) {
-        this.authenticationManager = authenticationManager;
-        this.alunoRepository = alunoRepository;
-        this.instrutorRepository = instrutorRepository;
-        this.tokenService = tokenService;
-        this.passwordEncoder = new BCryptPasswordEncoder();
-    }
+    @Autowired
+    private StudentRepository studentRepository;
 
+    @Autowired
+    private InstructorRepository instructorRepository;
+
+    @Autowired  
+    private TokenService tokenService;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid AuthenticationDTO data) {
@@ -51,15 +49,15 @@ public class AuthenticationController {
 
     @PostMapping("/register/aluno")
     public ResponseEntity<Void> registerAluno(@RequestBody @Valid RegisterDTO data){
-        if(alunoRepository.findByEmail(data.login()) != null) return ResponseEntity.badRequest().build(); 
+        if(studentRepository.findByEmail(data.login()) != null) return ResponseEntity.badRequest().build(); 
 
         String encryptedPassword = passwordEncoder.encode(data.password());
 
-        this.alunoRepository.save(
-            Aluno.builder()
-                .nome(data.name())
+        this.studentRepository.save(
+            Student.builder()
+                .name(data.name())
                 .email(data.login())
-                .senha(encryptedPassword)
+                .password(encryptedPassword)
                 .build()
         );
 
@@ -68,15 +66,15 @@ public class AuthenticationController {
 
     @PostMapping("/register/instrutor")
     public ResponseEntity<Void> registerInstrutor(@RequestBody @Valid RegisterDTO data){
-        if(instrutorRepository.findByEmail(data.login()) != null) return ResponseEntity.badRequest().build();
+        if(instructorRepository.findByEmail(data.login()) != null) return ResponseEntity.badRequest().build();
 
         String encryptedPassword = passwordEncoder.encode(data.password());
 
-        this.instrutorRepository.save(
-            Instrutor.builder()
-                .nome(data.name())
+        this.instructorRepository.save(
+            Instructor.builder()
+                .name(data.name())
                 .email(data.login())
-                .senha(encryptedPassword)
+                .password(encryptedPassword)
                 .build()
         );
 
