@@ -47,6 +47,33 @@ public class CourseService {
         return toResponseDTO(courseRepository.save(course));
     }
 
+    public CourseResponseDTO updateCourse(Long id, CourseRequestDTO request) {
+        Course existingCourse = courseRepository.findById(id)
+                .orElseThrow(() -> new BusinessRuleException("Curso com ID " + id + " não encontrado."));
+
+        if(!existingCourse.getTitle().equals(request.title()) && alreadyExists(request)){
+            throw new ConflictException("Já existe um curso com o título: " + request.title());
+        }
+
+        Set<Category> categories = categoriesService.getCategoriesByValidIds(request.categoryIds());
+        Set<Instructor> instructors = instructorService.getInstructorsByValidIds(request.instructorIds());
+
+        if(!verifyCategoriesAndInstructors(categories, instructors)){
+            throw new BusinessRuleException("O curso deve ser associado a pelo menos uma categoria válida e ter pelo menos um instrutor válido.");
+        }
+
+        existingCourse.setTitle(request.title());
+        existingCourse.setDescription(request.description());
+        existingCourse.setWorkload(request.workload());
+        existingCourse.setCategories(categories);
+        existingCourse.setInstructors(instructors);
+
+        return toResponseDTO(courseRepository.save(existingCourse));
+    }
+
+    public boolean verifyCategoriesAndInstructors(Set<Category> categories, Set<Instructor> instructors) {
+        return !categories.isEmpty() && !instructors.isEmpty();
+    }
     public CourseResponseDTO toResponseDTO(Course course) {
         return new CourseResponseDTO(
             course.getId(),
@@ -83,6 +110,11 @@ public class CourseService {
 
     public boolean alreadyExists(CourseRequestDTO request) {
         return courseRepository.existsByTitle(request.title());
+    }
+
+    public Course getCourseById(Long courseId) {
+        return courseRepository.findById(courseId)
+                .orElseThrow(() -> new BusinessRuleException("Curso com ID " + courseId + " não encontrado."));
     }
 }
 

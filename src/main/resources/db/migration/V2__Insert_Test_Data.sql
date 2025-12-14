@@ -56,16 +56,16 @@ INSERT INTO course_instructor (course_id, instructor_id) VALUES
 -- --------------------------------------------------------
 -- 6. MODULES (Módulos)
 -- --------------------------------------------------------
-INSERT INTO modules (id, title, course_id, module_order) OVERRIDING SYSTEM VALUE VALUES
-(1, 'Fundamentos do Spring Boot', 1, 1),
-(2, 'Desenvolvimento com Controllers', 1, 2),
-(3, 'Testes de Integração e Unitários', 1, 3),
-(4, 'Introdução ao React', 2, 1),
-(5, 'Hooks e Gerenciamento de Estado', 2, 2),
-(6, 'Otimização de Queries', 3, 1),
-(7, 'Padrões de Comunicação', 4, 1),
-(8, 'Design System', 5, 1),
-(9, 'Básico de Sintaxe Python', 6, 1);
+INSERT INTO modules (id, title, description, course_id, module_order) OVERRIDING SYSTEM VALUE VALUES
+(1, 'Fundamentos do Spring Boot', 'Introdução aos conceitos básicos do Spring Boot.', 1, 1),
+(2, 'Desenvolvimento com Controllers', 'Criação de endpoints REST com controllers.', 1, 2),
+(3, 'Testes de Integração e Unitários', 'Implementação de testes para APIs Spring Boot.', 1, 3),
+(4, 'Introdução ao React', 'Primeiros passos com a biblioteca React.', 2, 1),
+(5, 'Hooks e Gerenciamento de Estado', 'Uso de hooks e gerenciamento de estado no React.', 2, 2),
+(6, 'Otimização de Queries', 'Técnicas para otimizar consultas em PostgreSQL.', 3, 1),
+(7, 'Padrões de Comunicação', 'Padrões de comunicação em sistemas distribuídos.', 4, 1),
+(8, 'Design System', 'Criação e manutenção de sistemas de design.', 5, 1),
+(9, 'Básico de Sintaxe Python', 'Primeiros passos com a linguagem Python.', 6, 1);
 
 SELECT setval('modules_id_seq', (SELECT MAX(id) FROM modules));
 

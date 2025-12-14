@@ -30,6 +30,10 @@ public class Module {
     @Column(nullable = false, length = 100)
     private String title;
 
+    @Size(max = 500)
+    @Column(length = 500)
+    private String description;
+
     @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;

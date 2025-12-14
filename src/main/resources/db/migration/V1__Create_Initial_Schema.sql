@@ -44,6 +44,7 @@ CREATE TABLE courses (
 CREATE TABLE modules (
     id BIGSERIAL PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
+    description VARCHAR(500),
     module_order INTEGER NOT NULL,
     course_id BIGINT NOT NULL,
     CONSTRAINT fk_module_course FOREIGN KEY (course_id) REFERENCES courses(id)

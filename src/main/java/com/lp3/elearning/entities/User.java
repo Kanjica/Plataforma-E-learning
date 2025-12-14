@@ -54,6 +54,7 @@ public class User implements UserDetails {
 
     @NonNull
     private String role; 
+    
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return null;
