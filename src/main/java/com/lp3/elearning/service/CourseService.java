@@ -1,16 +1,18 @@
 package com.lp3.elearning.service;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.lp3.elearning.dto.CourseRequestDTO;
 import com.lp3.elearning.dto.CourseResponseDTO;
 import com.lp3.elearning.entities.Category;
 import com.lp3.elearning.entities.Course;
 import com.lp3.elearning.entities.Instructor;
+import com.lp3.elearning.entities.User;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.exception.ConflictException;
 import com.lp3.elearning.repository.CourseRepository;
@@ -28,26 +30,43 @@ public class CourseService {
         this.instructorService = instructorService;
     }
 
+    @Transactional
     public CourseResponseDTO createCourse(CourseRequestDTO request) {
         if(alreadyExists(request)){
             throw new ConflictException("Já existe um curso com o título: " + request.title());
         }
 
+        // Busca as categorias e instrutores usando os Services auxiliares
         Set<Category> categories = categoriesService.getCategoriesByValidIds(request.categoryIds());
         Set<Instructor> instructors = instructorService.getInstructorsByValidIds(request.instructorIds());
 
+        // Validação básica
         if(categories.isEmpty()){
             throw new BusinessRuleException("O curso deve ser associado a pelo menos uma categoria válida.");
         }
         
+        // Se a lista de instrutores vier vazia no JSON, tentamos pegar o usuário logado
         if(instructors.isEmpty()){
-            throw new BusinessRuleException("O curso deve ter pelo menos um instrutor válido.");
+            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            if (user instanceof Instructor instructor) {
+                instructors.add(instructor);
+            } else {
+                throw new BusinessRuleException("O curso deve ter pelo menos um instrutor válido.");
+            }
         }
 
-        Course course = toEntity(request, categories, instructors);
+        Course course = Course.builder()
+                .title(request.title())
+                .description(request.description())
+                .workload(request.workload())
+                .categories(categories)
+                .instructors(instructors)
+                .build();
+
         return toResponseDTO(courseRepository.save(course));
     }
 
+    @Transactional
     public CourseResponseDTO updateCourse(Long id, CourseRequestDTO request) {
         Course existingCourse = courseRepository.findById(id)
                 .orElseThrow(() -> new BusinessRuleException("Curso com ID " + id + " não encontrado."));
@@ -82,45 +101,18 @@ public class CourseService {
             course.getTitle(),
             course.getDescription(),
             course.getWorkload(),
-            course.getCategories().stream().map(categoriesService::toResponseDTO).collect(Collectors.toSet()),
-            course.getInstructors().stream().map(instructorService::toResponseDTO).collect(Collectors.toSet())
+            categoriesService.toResponseDTOs(course.getCategories()),
+            instructorService.toResponseDTOs(course.getInstructors())
         );
-    }
-
-    public Course toEntity(CourseRequestDTO request) {
-        Set<Category> categories = categoriesService.getCategoriesByValidIds(request.categoryIds());
-        Set<Instructor> instructors = instructorService.getInstructorsByValidIds(request.instructorIds());
-
-        return Course.builder()
-                .title(request.title())
-                .description(request.description())
-                .workload(request.workload())
-                .categories(categories)
-                .instructors(instructors)
-                .build();
-    }
-    
-    public Course toEntity(CourseRequestDTO request, Set<Category> categories, Set<Instructor> instructors) {
-        return Course.builder()
-                .title(request.title())
-                .description(request.description())
-                .workload(request.workload())
-                .categories(categories)
-                .instructors(instructors)
-                .build();
     }
 
     public boolean alreadyExists(CourseRequestDTO request) {
         return courseRepository.existsByTitle(request.title());
     }
 
-    public Course getCourseById(Long courseId) {
-        return courseRepository.findById(courseId)
-                .orElseThrow(() -> new BusinessRuleException("Curso com ID " + courseId + " não encontrado."));
-    }
-
     public CourseResponseDTO getCourseByIdResponseDTO(Long id) {
-        Course course = getCourseById(id);
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new BusinessRuleException("Curso com ID " + id + " não encontrado."));
         return toResponseDTO(course);
     }
 
@@ -131,24 +123,10 @@ public class CourseService {
     }
 
     public void deleteCourse(Long id) {
-        Course course = getCourseById(id);
-        if (course != null) {
-            courseRepository.delete(course);
+        if (courseRepository.existsById(id)) {
+            courseRepository.deleteById(id);
+        } else {
+            throw new BusinessRuleException("Curso não encontrado para deleção.");
         }
     }
-
-    public Boolean existsById(Long courseId) {
-        return courseRepository.existsById(courseId);
-    }
-
-    public Course findById(Long courseId) {
-        return courseRepository.findById(courseId)
-                .orElseThrow(() -> new BusinessRuleException("Curso com ID " + courseId + " não encontrado."));
-    }
-
-    public CourseResponseDTO findByIdResponseDTO(Long courseId) {
-        Course course = findById(courseId);
-        return toResponseDTO(course);
-    }
-
 }
