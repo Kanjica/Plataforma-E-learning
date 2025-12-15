@@ -21,7 +21,7 @@ public class LessonController {
     
     private final LessonService lessonService;
 
-    public LessonController(LessonService lessonService) {
+    public LessonController(LessonService lessonService){
         this.lessonService = lessonService;
     }
 
@@ -29,16 +29,16 @@ public class LessonController {
     public ResponseEntity<LessonResponseDTO> createLesson(
         @PathVariable Long courseId,
         @PathVariable Long moduleId,
-        @RequestBody LessonRequestDTO lessonRequest) {
+        @RequestBody LessonRequestDTO lessonRequest){
         lessonService.create(lessonRequest);
         return ResponseEntity.ok(lessonService.create(lessonRequest));
     }
 
     @PutMapping("/reorder")
     public ResponseEntity<List<LessonResponseDTO>> reorderLessons(
-        @PathVariable Long courseId, // Opcional, para validação de segurança/propriedade
+        @PathVariable Long courseId, 
         @PathVariable Long moduleId,
-        @RequestBody List<LessonReorderRequestDTO> requests) {
+        @RequestBody List<LessonReorderRequestDTO> requests){
         
         List<LessonResponseDTO> updatedLessons = lessonService.reorder(moduleId, requests);
         return ResponseEntity.ok(updatedLessons);

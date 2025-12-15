@@ -113,6 +113,20 @@ public class ModuleService {
         return moduleRepository.findById(moduleId)
                 .orElseThrow(() -> new BusinessRuleException("Módulo com ID " + moduleId + " não encontrado."));
     }
+    
+    public ModuleResponseDTO getById(Long moduleId, Long courseId) {
+        Module module = moduleRepository.findByIdAndCourseId(moduleId, courseId)
+                .orElseThrow(() -> new BusinessRuleException("Módulo com ID " + moduleId + " não encontrado no curso com ID " + courseId + "."));
+        return toResponseDTO(module);
+    }
+
+    public List<ModuleResponseDTO> getAllByCourseId(Long courseId) {
+        List<Module> modules = moduleRepository.findByCourseId(courseId);
+        return modules.stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+    
     public ModuleResponseDTO toResponseDTO(Module module) {
         return new ModuleResponseDTO(
                 module.getId(),

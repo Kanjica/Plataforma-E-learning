@@ -13,4 +13,5 @@ public interface ModuleRepository extends JpaRepository<Module, Long>{
     List<Module> findByCourseId(Long courseId);
     Optional<Module> findByTitleAndCourseId(String title, Long courseId);
     Optional<Module> findByModuleOrderAndCourseId(Integer moduleOrder, Long courseId);
+    Optional<Module> findByIdAndCourseId(Long moduleId, Long courseId);
 }
