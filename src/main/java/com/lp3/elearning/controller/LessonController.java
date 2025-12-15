@@ -3,6 +3,7 @@ package com.lp3.elearning.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.lp3.elearning.dto.LessonReorderRequestDTO;
 import com.lp3.elearning.dto.LessonRequestDTO;
 import com.lp3.elearning.dto.LessonResponseDTO;
+import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.service.LessonService;
 
 @RestController
@@ -39,8 +41,13 @@ public class LessonController {
     public ResponseEntity<LessonResponseDTO> getById(
         @PathVariable Long courseId,
         @PathVariable Long moduleId,
-        @PathVariable Long lessonId){
-        return ResponseEntity.ok(lessonService.getById(lessonId, moduleId));
+        @PathVariable Long lessonId,
+        // AQUI: Injeta o objeto Student autenticado
+        @AuthenticationPrincipal Student student ){
+        
+        // Altera a chamada para o LessonService para usar o studentId e o courseId.
+        // O LessonService agora fará a ponte entre Student e Enrollment.
+        return ResponseEntity.ok(lessonService.getLessonByIdForUser(lessonId, student.getId(), courseId));
     }
 
     @GetMapping

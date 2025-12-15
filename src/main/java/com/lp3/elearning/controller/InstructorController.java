@@ -1,0 +1,34 @@
+package com.lp3.elearning.controller;
+
+import java.util.Set;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.lp3.elearning.dto.CourseResponseDTO;
+import com.lp3.elearning.dto.InstructorResponseDTO;
+import com.lp3.elearning.service.InstructorService;
+
+@RestController
+@RequestMapping("/instructors")
+public class InstructorController {
+
+    private final InstructorService instructorService;
+
+    public InstructorController(InstructorService instructorService) {
+        this.instructorService = instructorService;
+    }
+
+    @GetMapping("/{instructorId}")
+    public ResponseEntity<InstructorResponseDTO> getInstructorById(@PathVariable Long instructorId) {
+        return ResponseEntity.ok(instructorService.findById(instructorId));
+    }
+
+    @GetMapping("/{instructorId}/my-courses")
+    public ResponseEntity<Set<CourseResponseDTO>> getInstructorCourses(@PathVariable Long instructorId) {
+        return ResponseEntity.ok(instructorService.findCoursesByInstructorId(instructorId));
+    }
+}
