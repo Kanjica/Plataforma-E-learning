@@ -135,5 +135,9 @@ public class CourseService {
             courseRepository.delete(course);
         }
     }
+
+    public Boolean existsById(Long courseId) {
+        return courseRepository.existsById(courseId);
+    }
 }
 

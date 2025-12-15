@@ -1,16 +1,19 @@
 package com.lp3.elearning.controller;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.lp3.elearning.dto.ModuleReorderRequestDTO;
 import com.lp3.elearning.dto.ModuleRequestDTO;
 import com.lp3.elearning.dto.ModuleResponseDTO;
 import com.lp3.elearning.service.ModuleService;
 
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 
@@ -27,6 +30,15 @@ public class ModuleController {
     @PostMapping("/create")
     public ResponseEntity<ModuleResponseDTO> create(@PathVariable Long courseId, @RequestBody ModuleRequestDTO request) {
         return ResponseEntity.ok(moduleService.create(request, courseId));
+    }
+
+    @PutMapping("/reorder")
+    public ResponseEntity<List<ModuleResponseDTO>> reorderModules(
+        @PathVariable Long courseId, 
+        @RequestBody List<ModuleReorderRequestDTO> requests) {
+        
+        List<ModuleResponseDTO> updatedModules = moduleService.reorder(courseId, requests);
+        return ResponseEntity.ok(updatedModules);
     }
     
 }

@@ -6,4 +6,5 @@ import com.lp3.elearning.entities.Course;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
     boolean existsByTitle(String title);
+    boolean existsById(Long id);
 }
