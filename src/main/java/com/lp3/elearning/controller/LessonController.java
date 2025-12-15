@@ -3,6 +3,7 @@ package com.lp3.elearning.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -32,6 +33,22 @@ public class LessonController {
         @RequestBody LessonRequestDTO lessonRequest){
         lessonService.create(lessonRequest);
         return ResponseEntity.ok(lessonService.create(lessonRequest));
+    }
+
+    @GetMapping("/{lessonId}")
+    public ResponseEntity<LessonResponseDTO> getById(
+        @PathVariable Long courseId,
+        @PathVariable Long moduleId,
+        @PathVariable Long lessonId){
+        return ResponseEntity.ok(lessonService.getById(lessonId, moduleId));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<LessonResponseDTO>> getAllByModuleId(
+        @PathVariable Long courseId,
+        @PathVariable Long moduleId){
+        List<LessonResponseDTO> lessons = lessonService.getAllByModuleId(moduleId);
+        return ResponseEntity.ok(lessons);
     }
 
     @PutMapping("/reorder")

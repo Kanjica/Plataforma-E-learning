@@ -38,6 +38,20 @@ public class LessonService {
         return toResponseDTO(lessonRepository.save(lesson));
     }
 
+    public LessonResponseDTO getById(Long lessonId, Long moduleId) {
+        Lesson lesson = lessonRepository.findByIdAndModuleId(lessonId, moduleId)
+            .orElseThrow(() -> new BusinessRuleException("Aula com ID " + lessonId + " não encontrada no módulo " + moduleId)); 
+        return toResponseDTO(lesson);
+    }   
+    
+    public List<LessonResponseDTO> getAllByModuleId(Long moduleId) {
+        List<Lesson> lessons = lessonRepository.findByModuleId(moduleId);
+        return lessons.stream()
+                .sorted(Comparator.comparing(Lesson::getLessonOrder))
+                .map(this::toResponseDTO)
+                .toList();
+    }
+    
     @Transactional
     public List<LessonResponseDTO> reorder(Long moduleId, List<LessonReorderRequestDTO> requests) {
         
