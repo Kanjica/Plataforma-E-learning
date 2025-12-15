@@ -74,6 +74,7 @@ public class CourseService {
     public boolean verifyCategoriesAndInstructors(Set<Category> categories, Set<Instructor> instructors) {
         return !categories.isEmpty() && !instructors.isEmpty();
     }
+    
     public CourseResponseDTO toResponseDTO(Course course) {
         return new CourseResponseDTO(
             course.getId(),
@@ -115,6 +116,24 @@ public class CourseService {
     public Course getCourseById(Long courseId) {
         return courseRepository.findById(courseId)
                 .orElseThrow(() -> new BusinessRuleException("Curso com ID " + courseId + " não encontrado."));
+    }
+
+    public CourseResponseDTO getCourseByIdResponseDTO(Long id) {
+        Course course = getCourseById(id);
+        return toResponseDTO(course);
+    }
+
+    public java.util.List<CourseResponseDTO> getAllCourses() {
+        return courseRepository.findAll().stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    public void deleteCourse(Long id) {
+        Course course = getCourseById(id);
+        if (course != null) {
+            courseRepository.delete(course);
+        }
     }
 }
 

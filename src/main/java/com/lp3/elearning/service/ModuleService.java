@@ -7,6 +7,7 @@ import com.lp3.elearning.dto.ModuleResponseDTO;
 import com.lp3.elearning.entities.Course;
 import com.lp3.elearning.repository.ModuleRepository;
 import com.lp3.elearning.entities.Module;
+import com.lp3.elearning.exception.ConflictException;
 
 @Service
 public class ModuleService {
@@ -24,7 +25,12 @@ public class ModuleService {
 
         Course course = courseService.getCourseById(courseId);
 
-        // VERIFICAR SE JÁ EXISTE MODULO COM MESMO TÍTULO NO CURSO E SE TEM MODULO COM MESMO ORDEM
+        if(moduleRepository.existsByTitleAndCourseId(request.title(), courseId)){
+            throw new ConflictException("Modulo com o titulo '" + request.title() + "' já existe nesse curso.");
+        }
+        if(moduleRepository.existsByModuleOrderAndCourseId(request.moduleOrder(), courseId)){
+            throw new ConflictException("Modulo com a ordem '" + request.moduleOrder() +  "' já existe nesse curso.");
+        }
         Module module = toEntity(request, course);
 
         return toResponseDTO(moduleRepository.save(module));
