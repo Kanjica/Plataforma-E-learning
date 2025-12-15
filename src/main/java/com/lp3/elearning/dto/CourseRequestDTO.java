@@ -20,7 +20,12 @@ public record CourseRequestDTO(
     @Min(value = 10, message = "A carga horária mínima para um curso é de 10 horas.")
     Integer workload, 
     
+    @NotNull(message = "O campo de categorias é obrigatório.")
     Set<Long> categoryIds,
-    Set<Long> instructorIds) {
-    
-}
+
+    @NotNull(message = "O campo de instrutores é obrigatório.")
+    Set<Long> instructorIds,
+
+    @NotBlank(message = "A URL da imagem do curso não pode ser vazia.")
+    String imageUrl
+) {}

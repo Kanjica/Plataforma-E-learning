@@ -83,7 +83,8 @@ public class CourseService {
             course.getDescription(),
             course.getWorkload(),
             course.getCategories().stream().map(categoriesService::toResponseDTO).collect(Collectors.toSet()),
-            course.getInstructors().stream().map(instructorService::toResponseDTO).collect(Collectors.toSet())
+            course.getInstructors().stream().map(instructorService::toResponseDTO).collect(Collectors.toSet()),
+            course.getImageUrl()
         );
     }
 

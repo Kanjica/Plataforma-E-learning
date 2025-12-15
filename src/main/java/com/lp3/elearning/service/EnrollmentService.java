@@ -16,12 +16,14 @@ public class EnrollmentService {
     private final StudentService studentService;
     private final CourseService courseService;
     private final CompletedLessonsService completedLessonsService;
+    private final LessonService lessonService;
 
-    public EnrollmentService(EnrollmentRepository enrollmentRepository, StudentService studentService, CourseService courseService, CompletedLessonsService completedLessonsService) {
+    public EnrollmentService(EnrollmentRepository enrollmentRepository, StudentService studentService, CourseService courseService, CompletedLessonsService completedLessonsService, LessonService lessonService) {
         this.enrollmentRepository = enrollmentRepository;
         this.studentService = studentService;
         this.courseService = courseService;
         this.completedLessonsService = completedLessonsService;
+        this.lessonService = lessonService;
     }
 
     public EnrollmentResponseDTO create(EnrollmentRequestDTO request){
@@ -32,6 +34,18 @@ public class EnrollmentService {
         Enrollment enrollment = toEntity(request);
 
         return toResponseDTO(enrollmentRepository.save(enrollment));
+    }
+
+
+    public Double calculateOverallProgress(Enrollment enrollment){
+        Integer totalLessons = lessonService.countLessonsInCourse(enrollment.getCourse().getId());
+        Integer completedLessons = completedLessonsService.countByEnrollment(enrollment);
+
+        if (totalLessons == 0){
+            return 0.0;
+        }
+
+        return (double) completedLessons / totalLessons;
     }
 
     public Enrollment toEntity(EnrollmentRequestDTO request){
