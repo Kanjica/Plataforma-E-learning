@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.lp3.elearning.dto.EnrollmentRequestDTO;
 import com.lp3.elearning.dto.EnrollmentResponseDTO;
-import com.lp3.elearning.entities.Enrollment;
 import com.lp3.elearning.service.EnrollmentService;
 
 import jakarta.validation.Valid;

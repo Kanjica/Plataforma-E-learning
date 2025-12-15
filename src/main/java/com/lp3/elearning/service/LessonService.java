@@ -105,4 +105,20 @@ public class LessonService {
                 .module(module)
                 .build();
     }
+
+    public Integer countLessonsInModule(Long moduleId) {
+        return lessonRepository.findByModuleId(moduleId).size();
+    }
+
+    public Integer countLessonsInCourse(Long courseId) {
+        List<Object[]> results = lessonRepository.countLessonsPerModuleInCourse(courseId);
+        return results.stream()
+            .mapToInt(obj -> ((Long) obj[1]).intValue())
+            .sum();
+    }
+
+    public Lesson findById(Long lessonId) {
+        return lessonRepository.findById(lessonId)
+            .orElseThrow(() -> new BusinessRuleException("Aula com ID " + lessonId + " não encontrada."));
+    }
 }

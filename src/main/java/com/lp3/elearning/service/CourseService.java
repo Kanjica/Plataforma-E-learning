@@ -1,5 +1,6 @@
 package com.lp3.elearning.service;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -7,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.lp3.elearning.dto.CourseRequestDTO;
 import com.lp3.elearning.dto.CourseResponseDTO;
+import com.lp3.elearning.dto.ModuleLessonCountDTO;
 import com.lp3.elearning.entities.Category;
 import com.lp3.elearning.entities.Course;
 import com.lp3.elearning.entities.Instructor;
@@ -20,11 +22,15 @@ public class CourseService {
     private final CourseRepository courseRepository;
     private final CategoriesService categoriesService;
     private final InstructorService instructorService;
+    private final ModuleService moduleService;
+    private final LessonService lessonService;
 
-    public CourseService(CourseRepository courseRepository, CategoriesService categoriesService, InstructorService instructorService) {
+    public CourseService(CourseRepository courseRepository, CategoriesService categoriesService, InstructorService instructorService, ModuleService moduleService, LessonService lessonService) {
         this.courseRepository = courseRepository;
         this.categoriesService = categoriesService;
         this.instructorService = instructorService;
+        this.moduleService = moduleService;
+        this.lessonService = lessonService;
     }
 
     public CourseResponseDTO createCourse(CourseRequestDTO request) {
@@ -149,5 +155,8 @@ public class CourseService {
         Course course = findById(courseId);
         return toResponseDTO(course);
     }
-}
 
+    public Integer countLessonsInCourse(Long courseId) {
+        return lessonService.countLessonsInCourse(courseId);
+    }
+}

@@ -8,10 +8,12 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.lp3.elearning.dto.ModuleLessonCountDTO;
 import com.lp3.elearning.dto.ModuleReorderRequestDTO;
 import com.lp3.elearning.dto.ModuleRequestDTO;
 import com.lp3.elearning.dto.ModuleResponseDTO;
 import com.lp3.elearning.entities.Course;
+import com.lp3.elearning.repository.LessonRepository;
 import com.lp3.elearning.repository.ModuleRepository;
 
 import jakarta.transaction.Transactional;
@@ -25,10 +27,12 @@ public class ModuleService {
 
     private final CourseService courseService;
     private final ModuleRepository moduleRepository;
+    private final LessonRepository lessonRepository;
 
-    public ModuleService(CourseService courseService, ModuleRepository moduleRepository) {
+    public ModuleService(CourseService courseService, ModuleRepository moduleRepository, LessonRepository lessonRepository) {
         this.courseService = courseService;
         this.moduleRepository = moduleRepository;
+        this.lessonRepository = lessonRepository;
     }
     
 
@@ -136,5 +140,14 @@ public class ModuleService {
                 module.getCourse().getId(),
                 module.getCourse().getTitle()
         );
+    }
+
+    public List<ModuleLessonCountDTO> getLessonCountsByModule(Long courseId) {
+    
+        List<Object[]> results = lessonRepository.countLessonsPerModuleInCourse(courseId);
+        
+        return results.stream()
+            .map(obj -> new ModuleLessonCountDTO((Long) obj[0], (Long) obj[1]))
+            .toList();
     }
 }

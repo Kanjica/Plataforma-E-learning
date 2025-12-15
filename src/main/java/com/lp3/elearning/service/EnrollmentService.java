@@ -48,7 +48,10 @@ public class EnrollmentService {
         return new EnrollmentResponseDTO(
             enrollment.getId(),
             studentService.findByIdResponseDTO(enrollment.getStudent().getId()),
-            courseService.findByIdResponseDTO(enrollment.getCourse().getId())
+            courseService.findByIdResponseDTO(enrollment.getCourse().getId()),
+            completedLessonsService.calculateOverallProgress(enrollment),
+            enrollment.getStatus(),
+            completedLessonsService.findByCompletedLessonsByEnrollment(enrollment)
         );
     }
 }
