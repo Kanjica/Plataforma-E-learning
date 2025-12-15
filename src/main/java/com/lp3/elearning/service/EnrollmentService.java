@@ -48,6 +48,17 @@ public class EnrollmentService {
         return (double) completedLessons / totalLessons;
     }
 
+    public Enrollment findById(Long enrollmentId){
+        return enrollmentRepository.findById(enrollmentId)
+            .orElseThrow(() -> new RuntimeException("Matrícula com ID " + enrollmentId + " não encontrada."));
+    }
+
+
+    public Enrollment findByStudentIdAndCourseId(Long studentId, Long courseId) {
+        return enrollmentRepository.findByStudentIdAndCourseId(studentId, courseId)
+            .orElseThrow(() -> new RuntimeException("Estudante não está matriculado neste curso."));
+    }
+
     public Enrollment toEntity(EnrollmentRequestDTO request){
         Student student = studentService.findById(request.studentId());
         Course course = courseService.findById(request.courseId());
@@ -63,7 +74,7 @@ public class EnrollmentService {
             enrollment.getId(),
             studentService.findByIdResponseDTO(enrollment.getStudent().getId()),
             courseService.findByIdResponseDTO(enrollment.getCourse().getId()),
-            completedLessonsService.calculateOverallProgress(enrollment),
+            calculateOverallProgress(enrollment),
             enrollment.getStatus(),
             completedLessonsService.findByEnrollment(enrollment)
 

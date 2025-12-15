@@ -5,11 +5,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import com.lp3.elearning.dto.LessonReorderRequestDTO;
 import com.lp3.elearning.dto.LessonRequestDTO;
 import com.lp3.elearning.dto.LessonResponseDTO;
+import com.lp3.elearning.entities.Enrollment;
 import com.lp3.elearning.entities.Lesson;
 import com.lp3.elearning.repository.LessonRepository;
 import com.lp3.elearning.entities.Module;
@@ -22,10 +24,18 @@ public class LessonService {
     
     private final LessonRepository lessonRepository;
     private final ModuleService moduleService;
+    private final CompletedLessonsService completedLessonsService;
+    private final EnrollmentService enrollmentService;
 
-    public LessonService(LessonRepository lessonRepository, ModuleService moduleService) {
+
+    public LessonService(LessonRepository lessonRepository, 
+            ModuleService moduleService, 
+            @Lazy CompletedLessonsService completedLessonsService,
+            @Lazy EnrollmentService enrollmentService) {
         this.lessonRepository = lessonRepository;
         this.moduleService = moduleService;
+        this.completedLessonsService = completedLessonsService;
+        this.enrollmentService = enrollmentService;
     }
 
     public LessonResponseDTO create(LessonRequestDTO lessonRequest) {
@@ -38,11 +48,53 @@ public class LessonService {
         return toResponseDTO(lessonRepository.save(lesson));
     }
 
-    public LessonResponseDTO getById(Long lessonId, Long moduleId) {
+    public LessonResponseDTO getById(Long lessonId, Long moduleId){
         Lesson lesson = lessonRepository.findByIdAndModuleId(lessonId, moduleId)
             .orElseThrow(() -> new BusinessRuleException("Aula com ID " + lessonId + " não encontrada no módulo " + moduleId)); 
         return toResponseDTO(lesson);
     }   
+    
+    public LessonResponseDTO getLessonByIdForUser(Long lessonId, Long studentId, Long courseId){
+    
+        // 1. OBTEM A MATRÍCULA (Enrollment) pelo ID do Estudante e ID do Curso
+        Enrollment enrollment = enrollmentService.findByStudentIdAndCourseId(studentId, courseId);
+        
+        // 2. Continua a lógica de validação
+        
+        Lesson currentLesson = findById(lessonId);
+        
+        // Validação do Curso (redundante se o findByStudentIdAndCourseId já for feito, mas bom para garantir)
+        if (!enrollment.getCourse().getId().equals(currentLesson.getModule().getCourse().getId())) {
+            throw new BusinessRuleException("Erro de dados. A matrícula não corresponde ao curso desta aula.");
+        }
+            
+        // 3. Verificar a Ordem e Progresso (Se a aula anterior foi concluída)
+        
+        // Aulas são ordenadas por lessonOrder dentro do Módulo.
+        Integer currentLessonOrder = currentLesson.getLessonOrder();
+        
+        if (currentLessonOrder > 1) {
+            // Não é a primeira aula do módulo, precisamos verificar a anterior.
+            
+            // 3.1. Encontrar a aula anterior no mesmo módulo
+            Lesson previousLesson = lessonRepository
+                .findByModuleIdAndLessonOrder(currentLesson.getModule().getId(), currentLessonOrder - 1)
+                .orElse(null); // Caso haja falha na ordenação (não deve ocorrer)
+            
+            if (previousLesson == null) {
+                // Isso pode acontecer se houver um erro de dados onde a ordem não é sequencial (e.g., 1, 3, 4).
+                throw new BusinessRuleException("Erro na ordem da aula. Aula anterior não encontrada.");
+            }
+            
+            // 3.2. Verificar se a aula anterior foi concluída
+            if (!completedLessonsService.isLessonCompleted(enrollment, previousLesson)) {
+                throw new BusinessRuleException("Acesso negado. A aula anterior (Ordem " + (currentLessonOrder - 1) + ") precisa ser concluída primeiro.");
+            }
+        }
+        
+        // Se todas as validações passarem
+        return toResponseDTO(currentLesson);
+    }
     
     public List<LessonResponseDTO> getAllByModuleId(Long moduleId) {
         List<Lesson> lessons = lessonRepository.findByModuleId(moduleId);
@@ -51,6 +103,7 @@ public class LessonService {
                 .map(this::toResponseDTO)
                 .toList();
     }
+    
     
     @Transactional
     public List<LessonResponseDTO> reorder(Long moduleId, List<LessonReorderRequestDTO> requests) {

@@ -38,7 +38,7 @@ public class Course {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     //Chave gerada automaticamente
-    private long id;
+    private Long id;
 
     @NotBlank(message = "O título do curso não pode ser vazio.")
     @Size(min = 5, max = 150)

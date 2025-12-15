@@ -20,7 +20,7 @@ public class Enrollment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
-    private long id;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "student_id")

@@ -11,6 +11,7 @@ import com.lp3.elearning.dto.CompletedLessonResponseDTO;
 import com.lp3.elearning.dto.EnrollmentRequestDTO;
 import com.lp3.elearning.entities.CompletedLesson;
 import com.lp3.elearning.entities.Enrollment;
+import com.lp3.elearning.entities.Lesson;
 import com.lp3.elearning.repository.CompletedLessonRepository;
 
 @Service
@@ -38,15 +39,10 @@ public class CompletedLessonsService {
         return toResponseDTO(completedLessonRepository.save(completedLesson));
     }
 
-    public Double calculateOverallProgress(Enrollment enrollment){
-        Integer totalLessons = lessonService.countLessonsInCourse(enrollment.getCourse().getId());
-        Integer completedLessons = countByEnrollment(enrollment);
-
-        if (totalLessons == 0){
-            return 0.0;
-        }
-
-        return (double) completedLessons / totalLessons;
+    public boolean isLessonCompleted(Enrollment enrollment, Lesson lesson) {
+        // Delega para o Repositório verificar a existência do registro.
+        // É necessário ter o método existsByEnrollmentAndLesson no CompletedLessonRepository.
+        return completedLessonRepository.existsByEnrollmentAndLesson(enrollment, lesson);
     }
 
     public Integer countByEnrollment(Enrollment enrollment) {
