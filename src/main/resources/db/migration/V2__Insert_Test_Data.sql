@@ -72,17 +72,16 @@ SELECT setval('modules_id_seq', (SELECT MAX(id) FROM modules));
 -- --------------------------------------------------------
 -- 7. LESSONS (Aulas)
 -- --------------------------------------------------------
-INSERT INTO lessons (id, title, video_url, module_id, lesson_order) OVERRIDING SYSTEM VALUE VALUES
-(1, 'Configurando o Ambiente', 'http://video.teste/sb/01', 1, 1),
-(2, 'Endpoints REST e Verbos HTTP', 'http://video.teste/sb/02', 1, 2),
-(3, 'Injeção de Dependência', 'http://video.teste/sb/03', 1, 3),
-(4, 'Criando Componentes Funcionais', 'http://video.teste/react/01', 4, 1),
-(5, 'Usando useEffect', 'http://video.teste/react/02', 5, 1),
-(6, 'Usando Índices com Eficiência', 'http://video.teste/pg/01', 6, 1),
-(7, 'REST vs. gRPC', 'http://video.teste/ms/01', 7, 1),
-(8, 'Atomic Design', 'http://video.teste/ux/01', 8, 1),
-(9, 'Variáveis e Tipos de Dados', 'http://video.teste/py/01', 9, 1);
-
+INSERT INTO lessons (id, title, content, video_url, module_id, lesson_order) OVERRIDING SYSTEM VALUE VALUES
+(1, 'Configurando o Ambiente', 'Configuração inicial do ambiente de desenvolvimento.', 'http://video.teste/sb/01', 1, 1),
+(2, 'Endpoints REST e Verbos HTTP', 'Criação de endpoints REST com verbos HTTP.', 'http://video.teste/sb/02', 1, 2),
+(3, 'Injeção de Dependência', 'Injeção de dependência no Spring Boot.', 'http://video.teste/sb/03', 1, 3),
+(4, 'Criando Componentes Funcionais', 'Criação de componentes funcionais no React.', 'http://video.teste/react/01', 4, 1),
+(5, 'Usando useEffect', 'Uso do hook useEffect no React.', 'http://video.teste/react/02', 5, 1),
+(6, 'Usando Índices com Eficiência', 'Técnicas para otimizar consultas em PostgreSQL.', 'http://video.teste/pg/01', 6, 1),
+(7, 'REST vs. gRPC', 'Padrões de comunicação em sistemas distribuídos.', 'http://video.teste/ms/01', 7, 1),
+(8, 'Atomic Design', 'Criação e manutenção de sistemas de design.', 'http://video.teste/ux/01', 8, 1),
+(9, 'Variáveis e Tipos de Dados', 'Primeiros passos com a linguagem Python.', 'http://video.teste/py/01', 9, 1);
 SELECT setval('lessons_id_seq', (SELECT MAX(id) FROM lessons));
 
 -- --------------------------------------------------------

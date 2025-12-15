@@ -28,6 +28,11 @@ public class Lesson {
     @Column(nullable = false, length = 150)
     private String title;
 
+    @NotBlank(message = "O conteúdo da aula não pode ser vazio")
+    @Lob
+    @Column(nullable = false)   
+    private String content;
+
     @NotBlank(message = "URL não pode estár vazia")
     @Column(name = "video_url",nullable = false)
     private String videoUrl;

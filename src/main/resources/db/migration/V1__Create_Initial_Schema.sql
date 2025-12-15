@@ -56,6 +56,7 @@ CREATE TABLE modules (
 CREATE TABLE lessons (
     id BIGSERIAL PRIMARY KEY,
     title VARCHAR(150) NOT NULL,
+    content TEXT NOT NULL,
     video_url VARCHAR(255) NOT NULL,
     lesson_order INTEGER NOT NULL,
     module_id BIGINT NOT NULL,

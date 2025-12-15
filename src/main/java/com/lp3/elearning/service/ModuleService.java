@@ -34,7 +34,6 @@ public class ModuleService {
 
     public ModuleResponseDTO create(ModuleRequestDTO request, Long courseId){
     
-        // 1. Busca o curso (pode lançar 404 se não existir)
         Course course = courseService.getCourseById(courseId);
 
         Optional<Module> existingModuleByTitle = moduleRepository.findByTitleAndCourseId(request.title(), courseId);
@@ -91,6 +90,7 @@ public class ModuleService {
             .map(this::toResponseDTO)
             .toList();
     }
+    
     public Module toEntity(ModuleRequestDTO request, Course course) {
         return Module.builder()
                 .title(request.title())
@@ -100,6 +100,19 @@ public class ModuleService {
                 .build();
     }
 
+    public Module getModuleById(Long moduleId) {
+        return moduleRepository.findById(moduleId)
+                .orElseThrow(() -> new BusinessRuleException("Módulo com ID " + moduleId + " não encontrado."));
+    }
+    
+    public boolean existsById(Long id) {
+        return moduleRepository.existsById(id);
+    }
+    
+    public Module findById(Long moduleId) {
+        return moduleRepository.findById(moduleId)
+                .orElseThrow(() -> new BusinessRuleException("Módulo com ID " + moduleId + " não encontrado."));
+    }
     public ModuleResponseDTO toResponseDTO(Module module) {
         return new ModuleResponseDTO(
                 module.getId(),
