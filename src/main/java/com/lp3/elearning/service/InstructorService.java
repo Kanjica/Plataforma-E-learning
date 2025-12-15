@@ -7,7 +7,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.lp3.elearning.dto.CourseResponseDTO;
 import com.lp3.elearning.dto.InstructorResponseDTO;
+import com.lp3.elearning.entities.Course;
 import com.lp3.elearning.entities.Instructor;
 import com.lp3.elearning.exception.ResourceNotFoundException;
 import com.lp3.elearning.repository.InstructorRepository;
@@ -16,11 +18,24 @@ import com.lp3.elearning.repository.InstructorRepository;
 public class InstructorService {
 
     private final InstructorRepository instructorRepository;
+    private final CourseService courseService;
 
-    public InstructorService(InstructorRepository instructorRepository) {
+    public InstructorService(InstructorRepository instructorRepository, CourseService courseService) {
         this.instructorRepository = instructorRepository;
+        this.courseService = courseService;
     }
 
+    public InstructorResponseDTO findById(Long id) {
+        Instructor instructor = findInstructorEntityById(id);
+        return toResponseDTO(instructor);
+    }
+
+    public Set<CourseResponseDTO> findCoursesByInstructorId(Long instructorId) {
+        Instructor instructor = findInstructorEntityById(instructorId);
+        return instructor.getCourses().stream()
+            .map(course -> courseService.toResponseDTO(course))
+            .collect(Collectors.toSet());
+    }
     public Instructor findInstructorEntityById(Long id) {
         return instructorRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Instrutor não encontrado com o ID: " + id));
