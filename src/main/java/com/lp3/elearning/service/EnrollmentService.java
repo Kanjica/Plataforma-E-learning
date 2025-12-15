@@ -51,7 +51,8 @@ public class EnrollmentService {
             courseService.findByIdResponseDTO(enrollment.getCourse().getId()),
             completedLessonsService.calculateOverallProgress(enrollment),
             enrollment.getStatus(),
-            completedLessonsService.findByCompletedLessonsByEnrollment(enrollment)
+            completedLessonsService.findByEnrollment(enrollment)
+
         );
     }
 }

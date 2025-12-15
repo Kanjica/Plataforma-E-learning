@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import com.lp3.elearning.dto.CourseRequestDTO;
 import com.lp3.elearning.dto.CourseResponseDTO;
-import com.lp3.elearning.dto.ModuleLessonCountDTO;
 import com.lp3.elearning.entities.Category;
 import com.lp3.elearning.entities.Course;
 import com.lp3.elearning.entities.Instructor;
@@ -22,15 +21,11 @@ public class CourseService {
     private final CourseRepository courseRepository;
     private final CategoriesService categoriesService;
     private final InstructorService instructorService;
-    private final ModuleService moduleService;
-    private final LessonService lessonService;
 
-    public CourseService(CourseRepository courseRepository, CategoriesService categoriesService, InstructorService instructorService, ModuleService moduleService, LessonService lessonService) {
+    public CourseService(CourseRepository courseRepository, CategoriesService categoriesService, InstructorService instructorService) {
         this.courseRepository = courseRepository;
         this.categoriesService = categoriesService;
         this.instructorService = instructorService;
-        this.moduleService = moduleService;
-        this.lessonService = lessonService;
     }
 
     public CourseResponseDTO createCourse(CourseRequestDTO request) {
@@ -156,7 +151,4 @@ public class CourseService {
         return toResponseDTO(course);
     }
 
-    public Integer countLessonsInCourse(Long courseId) {
-        return lessonService.countLessonsInCourse(courseId);
-    }
 }

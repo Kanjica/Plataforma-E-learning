@@ -9,5 +9,5 @@ import com.lp3.elearning.entities.Enrollment;
 
 public interface CompletedLessonRepository extends JpaRepository<CompletedLesson, Long> {
     public Integer countByEnrollment(Enrollment enrollment);
-    public List<CompletedLesson> findByCompletedLessonsByEnrollment(Enrollment enrollment);
+    public List<CompletedLesson> findByEnrollment(Enrollment enrollment);
 }

@@ -29,7 +29,6 @@ public class Lesson {
     private String title;
 
     @NotBlank(message = "O conteúdo da aula não pode ser vazio")
-    @Lob
     @Column(nullable = false)   
     private String content;
 

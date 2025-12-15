@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import com.lp3.elearning.dto.CompletedLessonResponseDTO;
@@ -19,7 +20,10 @@ public class CompletedLessonsService {
     private final EnrollmentService enrollmentService;
     private final LessonService lessonService;
 
-    public CompletedLessonsService(CompletedLessonRepository completedLessonRepository, LessonService lessonService, EnrollmentService enrollmentService) {
+    public CompletedLessonsService(
+            CompletedLessonRepository completedLessonRepository, 
+            LessonService lessonService, 
+            @Lazy EnrollmentService enrollmentService) {
         this.completedLessonRepository = completedLessonRepository;
         this.lessonService = lessonService;
         this.enrollmentService = enrollmentService;
@@ -49,8 +53,8 @@ public class CompletedLessonsService {
         return completedLessonRepository.countByEnrollment(enrollment);
     }
 
-    public Set<CompletedLessonResponseDTO> findByCompletedLessonsByEnrollment(Enrollment enrollment) {
-        return toResponseDTOs(completedLessonRepository.findByCompletedLessonsByEnrollment(enrollment));
+    public Set<CompletedLessonResponseDTO> findByEnrollment(Enrollment enrollment) {
+        return toResponseDTOs(completedLessonRepository.findByEnrollment(enrollment));
     }
 
     public Set<CompletedLessonResponseDTO> toResponseDTOs(List<CompletedLesson> completedLessons){
