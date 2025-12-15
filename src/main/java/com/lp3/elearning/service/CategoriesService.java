@@ -51,12 +51,6 @@ public class CategoriesService {
             .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada com o ID: " + id));
     }
 
-
-    // public CategoryResponse findCategoryById(@NonNull Long id) {
-    //     Category category = findCategoryEntityById(id);
-    //     return new CategoryResponse(category.getId(), category.getName());
-    // }
-
     public Set<Category> getCategoriesByValidIds(Set<Long> ids) {
             if (ids == null || ids.isEmpty()) {
                 return new HashSet<>();

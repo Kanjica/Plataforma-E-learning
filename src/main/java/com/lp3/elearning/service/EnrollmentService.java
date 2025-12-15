@@ -7,7 +7,9 @@ import com.lp3.elearning.dto.EnrollmentResponseDTO;
 import com.lp3.elearning.entities.Course;
 import com.lp3.elearning.entities.Enrollment;
 import com.lp3.elearning.entities.Student;
+import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.repository.EnrollmentRepository;
+
 
 @Service
 public class EnrollmentService {
@@ -34,6 +36,11 @@ public class EnrollmentService {
         Enrollment enrollment = toEntity(request);
 
         return toResponseDTO(enrollmentRepository.save(enrollment));
+    }
+
+    public Enrollment findById(Long id) {
+        return enrollmentRepository.findById(id)
+                .orElseThrow(() -> new BusinessRuleException("Matrícula não encontrada com o ID: " + id));
     }
 
 

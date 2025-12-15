@@ -94,16 +94,11 @@ public class CourseService {
     public boolean verifyCategoriesAndInstructors(Set<Category> categories, Set<Instructor> instructors) {
         return !categories.isEmpty() && !instructors.isEmpty();
     }
+// Adicione no CourseService.java
     
-    public CourseResponseDTO toResponseDTO(Course course) {
-        return new CourseResponseDTO(
-            course.getId(),
-            course.getTitle(),
-            course.getDescription(),
-            course.getWorkload(),
-            categoriesService.toResponseDTOs(course.getCategories()),
-            instructorService.toResponseDTOs(course.getInstructors())
-        );
+    public CourseResponseDTO findByIdResponseDTO(Long id) {
+        Course course = findById(id);
+        return toResponseDTO(course);
     }
 
     public boolean alreadyExists(CourseRequestDTO request) {
@@ -129,4 +124,11 @@ public class CourseService {
             throw new BusinessRuleException("Curso não encontrado para deleção.");
         }
     }
+
+    // Adicione este método para permitir que outros Services busquem a Entidade Curso
+    public Course findById(Long id) {
+        return courseRepository.findById(id)
+                .orElseThrow(() -> new BusinessRuleException("Curso não encontrado com o ID: " + id));
+    }
+
 }
