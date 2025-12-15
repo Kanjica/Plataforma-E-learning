@@ -12,7 +12,7 @@ import com.lp3.elearning.dto.EnrollmentRequestDTO;
 import com.lp3.elearning.service.CompletedLessonsService;
 
 @RestController
-@RequestMapping("/courses/{courseId}/modules/{moduleId}/lessons/completed-lessons")
+@RequestMapping("/courses/{courseId}/modules/{moduleId}/lessons/{lessonId}/completed")
 public class CompletedLessonController {
 
     private final CompletedLessonsService completedLessonsService;
@@ -21,7 +21,7 @@ public class CompletedLessonController {
         this.completedLessonsService = completedLessonsService;
     }
     
-    @PostMapping("/complete")
+    @PostMapping
     public ResponseEntity<CompletedLessonResponseDTO> completeLesson(
         @PathVariable Long courseId,
         @PathVariable Long moduleId,

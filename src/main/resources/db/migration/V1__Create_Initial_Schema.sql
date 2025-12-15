@@ -35,7 +35,8 @@ CREATE TABLE courses (
     id BIGSERIAL PRIMARY KEY,
     title VARCHAR(150) NOT NULL,
     description TEXT NOT NULL,
-    workload INTEGER NOT NULL
+    workload INTEGER NOT NULL,
+    image_url VARCHAR(500) NOT NULL
 );
 
 -- --------------------------------------------------------

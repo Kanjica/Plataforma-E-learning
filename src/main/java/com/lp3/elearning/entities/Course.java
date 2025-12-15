@@ -80,4 +80,8 @@ public class Course {
     )
     private Set<Category> categories;
 
+    @NotBlank(message = "A URL da imagem do curso não pode ser vazia.")
+    @Column(name = "image_url", nullable = false)
+    private String imageUrl;
+
 }

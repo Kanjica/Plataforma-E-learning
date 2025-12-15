@@ -37,13 +37,13 @@ INSERT INTO instructors (id) VALUES
 -- --------------------------------------------------------
 -- 4. COURSES (Cursos)
 -- --------------------------------------------------------
-INSERT INTO courses (id, title, description, workload) OVERRIDING SYSTEM VALUE VALUES
-(1, 'Introdução ao Spring Boot', 'Curso completo de introdução ao desenvolvimento de APIs com Spring Boot e Java.', 40),
-(2, 'Desenvolvimento Web com React', 'Aprenda a criar interfaces de usuário modernas e reativas usando a biblioteca React e seus principais hooks.', 60),
-(3, 'Banco de Dados PostgreSQL Avançado', 'Domine consultas complexas, otimização e administração de bancos de dados PostgreSQL.', 30),
-(4, 'Arquitetura de Microsserviços', 'Projete e implemente sistemas escaláveis usando o padrão de microsserviços.', 50),
-(5, 'Design Thinking e UX/UI', 'Entenda o processo de Design Thinking e crie experiências de usuário intuitivas e eficientes.', 20),
-(6, 'Introdução ao Python e Ciência de Dados', 'Primeiros passos em Python para análise de dados e machine learning.', 75);
+INSERT INTO courses (id, title, description, workload, image_url) OVERRIDING SYSTEM VALUE VALUES
+(1, 'Introdução ao Spring Boot', 'Curso completo de introdução ao desenvolvimento de APIs com Spring Boot e Java.', 40, 'http://image.teste/springboot'),
+(2, 'Desenvolvimento Web com React', 'Aprenda a criar interfaces de usuário modernas e reativas usando a biblioteca React e seus principais hooks.', 60, 'http://image.teste/react'),
+(3, 'Banco de Dados PostgreSQL Avançado', 'Domine consultas complexas, otimização e administração de bancos de dados PostgreSQL.', 30, 'http://image.teste/postgresql'),
+(4, 'Arquitetura de Microsserviços', 'Projete e implemente sistemas escaláveis usando o padrão de microsserviços.', 50, 'http://image.teste/microservices'),
+(5, 'Design Thinking e UX/UI', 'Entenda o processo de Design Thinking e crie experiências de usuário intuitivas e eficientes.', 20, 'http://image.teste/designthinking'),
+(6, 'Introdução ao Python e Ciência de Dados', 'Primeiros passos em Python para análise de dados e machine learning.', 75, 'http://image.teste/python');
 
 SELECT setval('courses_id_seq', (SELECT MAX(id) FROM courses));
 
