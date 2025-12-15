@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -28,17 +29,22 @@ public class Enrollment {
     @ManyToOne
     @JoinColumn(name = "course_id")
     private Course course;
+
     @NotNull
+    @Builder.Default
     @Column(name = "enrollment_date", nullable = false)
-    private LocalDate enrollmentDate;
+    private LocalDate enrollmentDate = LocalDate.now();
 
     @Min(0) @Max(100)
+    @Builder.Default
     @Column(name = "overall_progress", nullable = false)
-    private Double overallProgress;
+    private Double overallProgress = 0.0;
 
     @Enumerated(EnumType.STRING)
-    private StatusEnrollment status;
+    @Builder.Default
+    private StatusEnrollment status = StatusEnrollment.IN_PROGRESS;
 
+    @Builder.Default
     @OneToMany(mappedBy = "enrollment", cascade = CascadeType.ALL)
-    private Set<CompletedLesson> completedLessons;
+    private Set<CompletedLesson> completedLessons = new HashSet<>();
 }

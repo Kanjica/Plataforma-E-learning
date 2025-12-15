@@ -139,5 +139,15 @@ public class CourseService {
     public Boolean existsById(Long courseId) {
         return courseRepository.existsById(courseId);
     }
+
+    public Course findById(Long courseId) {
+        return courseRepository.findById(courseId)
+                .orElseThrow(() -> new BusinessRuleException("Curso com ID " + courseId + " não encontrado."));
+    }
+
+    public CourseResponseDTO findByIdResponseDTO(Long courseId) {
+        Course course = findById(courseId);
+        return toResponseDTO(course);
+    }
 }
 
