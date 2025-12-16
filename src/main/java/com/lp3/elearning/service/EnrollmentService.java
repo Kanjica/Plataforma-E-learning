@@ -1,5 +1,7 @@
 package com.lp3.elearning.service;
 
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 
 import com.lp3.elearning.dto.EnrollmentRequestDTO;
@@ -9,6 +11,8 @@ import com.lp3.elearning.entities.Enrollment;
 import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.repository.EnrollmentRepository;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -60,6 +64,15 @@ public class EnrollmentService {
             .orElseThrow(() -> new RuntimeException("Estudante não está matriculado neste curso."));
     }
 
+    public List<EnrollmentResponseDTO> getMyEnrollments(Long studentId) {
+        List<Enrollment> enrollments = enrollmentRepository.findByStudentIdOrderByEnrollmentDateDesc(studentId);
+        
+        return enrollments.stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    
     public Enrollment toEntity(EnrollmentRequestDTO request){
         Student student = studentService.findById(request.studentId());
         Course course = courseService.findById(request.courseId());
