@@ -35,17 +35,26 @@ public class EnrollmentController {
     }
 
     // ENDPOINT DE DOWNLOAD 
-    @GetMapping("/{id}/certificate")
-    public ResponseEntity<byte[]> getCertificate(@PathVariable Long id) {
-        byte[] pdfBytes = certificateService.generateCertificatePdf(id);
+    @GetMapping("/{enrollmentId}/certificate")
+    public ResponseEntity<byte[]> getCertificate(@PathVariable Long enrollmentId) {
+        byte[] pdfBytes = certificateService.generateCertificatePdf(enrollmentId);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
         // Define o nome do arquivo para download
-        headers.setContentDispositionFormData("attachment", "certificado_" + id + ".pdf");
+        headers.setContentDispositionFormData("attachment", "certificado_" + enrollmentId + ".pdf");
+
+        String filename = "certificado_matricula_" + enrollmentId + ".pdf";
 
         return ResponseEntity.ok()
-                .headers(headers)
+                .contentType(MediaType.APPLICATION_PDF)
+                // Define o cabeçalho para forçar o download (attachment) e sugere o nome do arquivo
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                // Define o tamanho do conteúdo
+                .contentLength(pdfBytes.length)
+                // Retorna o corpo do arquivo (byte array)
                 .body(pdfBytes);
     }
+
+    
 }
