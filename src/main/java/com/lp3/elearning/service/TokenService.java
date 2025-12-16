@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.lp3.elearning.entities.User;
 
 @Service
 public class TokenService {
@@ -17,18 +18,24 @@ public class TokenService {
     @Value("${api.security.token.secret}")
     private String secret;
 
-    public String generateToken(UserDetails user) {
+    public String generateToken(UserDetails userDetails) {
+        User user = (User) userDetails;
+
         Algorithm algorithm = Algorithm.HMAC256(secret);
 
         return JWT.create()
-                .withSubject(user.getUsername())
-                .withExpiresAt(Date.from(Instant.now().plus(2, ChronoUnit.HOURS)))
                 .withIssuer("elearning-api")
+                .withSubject(user.getUsername()) // email
+                .withClaim("userId", user.getId())
+                .withClaim("name", user.getName())
+                .withClaim("role", user.getRole().name())
+                .withExpiresAt(Date.from(Instant.now().plus(2, ChronoUnit.HOURS)))
                 .sign(algorithm);
     }
 
-    public String validateToken(String token){
+    public String validateToken(String token) {
         Algorithm algorithm = Algorithm.HMAC256(secret);
+
         return JWT.require(algorithm)
                 .withIssuer("elearning-api")
                 .build()

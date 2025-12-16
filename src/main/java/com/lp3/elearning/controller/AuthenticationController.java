@@ -27,6 +27,10 @@ import com.lp3.elearning.service.TokenService;
 import jakarta.validation.Valid;
 import java.util.Map;
 
+import org.springframework.security.core.Authentication;
+import com.lp3.elearning.entities.User;
+
+
 @RestController
 @RequestMapping("/auth")
 @CrossOrigin(origins = "http://localhost:4200") // Backup CORS no controller
@@ -47,12 +51,27 @@ public class AuthenticationController {
     }
     
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid AuthenticationDTO data) {
-        var usernamePassword = new UsernamePasswordAuthenticationToken(data.login(), data.password());
-        var auth = authenticationManager.authenticate(usernamePassword);
+    public ResponseEntity<LoginResponseDTO> login(
+            @RequestBody @Valid AuthenticationDTO data
+    ) {
+        Authentication auth = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        data.login(),
+                        data.password()
+                )
+        );
 
-        var token = tokenService.generateToken((UserDetails) auth.getPrincipal());
-        return ResponseEntity.ok(new LoginResponseDTO(token));
+        User user = (User) auth.getPrincipal();
+        String token = tokenService.generateToken(user);
+
+        return ResponseEntity.ok(
+                new LoginResponseDTO(
+                        token,
+                        user.getRole().name(),
+                        user.getId(),
+                        user.getName()
+                )
+        );
     }
 
         // NOVO: Endpoint unificado de registro
