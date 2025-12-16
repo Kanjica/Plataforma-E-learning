@@ -7,6 +7,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -50,10 +52,13 @@ public class User implements UserDetails {
 
     @NonNull
     @NotBlank(message = "Senha do usuario não pode estar vazia")
+    @Column(nullable = false)
     private String password;
 
     @NonNull
-    private String role; 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserRole role; 
     
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

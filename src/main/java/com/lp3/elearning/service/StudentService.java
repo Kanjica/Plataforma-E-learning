@@ -20,9 +20,16 @@ public class StudentService {
             .orElseThrow(() -> new RuntimeException("Student not found with id: " + id));
     }
 
-
     public StudentResponseDTO findByIdResponseDTO(Long id) {
         Student student = findById(id);
+        return new StudentResponseDTO(
+            student.getId(),
+            student.getName(),
+            student.getEmail()
+        );
+    }
+
+    public StudentResponseDTO toResponseDTO(Student student){
         return new StudentResponseDTO(
             student.getId(),
             student.getName(),

@@ -20,13 +20,11 @@ import com.lp3.elearning.dto.RegisterDTO;
 import com.lp3.elearning.entities.UserRole;
 import com.lp3.elearning.entities.Instructor;
 import com.lp3.elearning.entities.Student;
-import com.lp3.elearning.entities.UserRole;
 import com.lp3.elearning.repository.InstructorRepository;
 import com.lp3.elearning.repository.StudentRepository;
 import com.lp3.elearning.service.TokenService;
 
 import jakarta.validation.Valid;
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -87,7 +85,7 @@ public class AuthenticationController {
                     .name(data.name())
                     .email(data.login())
                     .password(encryptedPassword)
-                    .role(userRole.getRole())
+                    .role(userRole)
                     .build()
             );
             response.put("message", "Aluno cadastrado com sucesso!");
@@ -97,7 +95,7 @@ public class AuthenticationController {
                     .name(data.name())
                     .email(data.login())
                     .password(encryptedPassword)
-                    .role(userRole.getRole())
+                    .role(userRole)
                     .build()
             );
             response.put("message", "Instrutor cadastrado com sucesso!");
@@ -117,7 +115,7 @@ public class AuthenticationController {
                 .name(data.name())
                 .email(data.login())
                 .password(encryptedPassword)
-                .role(UserRole.STUDENT.getRole())
+                .role(UserRole.STUDENT)
                 .build()
         );
 
@@ -135,7 +133,7 @@ public class AuthenticationController {
                 .name(data.name())
                 .email(data.login())
                 .password(encryptedPassword)
-                .role(UserRole.INSTRUCTOR.getRole())
+                .role(UserRole.INSTRUCTOR)
                 .build()
         );
 
