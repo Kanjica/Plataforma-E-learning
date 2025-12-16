@@ -79,7 +79,7 @@ public class AuthenticationController {
         }
 
         // Registra baseado no role
-        if(userRole == UserRole.STUDENT) {
+        if(userRole == UserRole.ROLE_STUDENT) {
             studentRepository.save(
                 Student.builder()
                     .name(data.name())
@@ -89,7 +89,7 @@ public class AuthenticationController {
                     .build()
             );
             response.put("message", "Aluno cadastrado com sucesso!");
-        } else if(userRole == UserRole.INSTRUCTOR) {
+        } else if(userRole == UserRole.ROLE_INSTRUCTOR) {
             instructorRepository.save(
                 Instructor.builder()
                     .name(data.name())
@@ -115,7 +115,7 @@ public class AuthenticationController {
                 .name(data.name())
                 .email(data.login())
                 .password(encryptedPassword)
-                .role(UserRole.STUDENT)
+                .role(UserRole.ROLE_STUDENT)
                 .build()
         );
 
@@ -133,7 +133,7 @@ public class AuthenticationController {
                 .name(data.name())
                 .email(data.login())
                 .password(encryptedPassword)
-                .role(UserRole.INSTRUCTOR)
+                .role(UserRole.ROLE_INSTRUCTOR)
                 .build()
         );
 
