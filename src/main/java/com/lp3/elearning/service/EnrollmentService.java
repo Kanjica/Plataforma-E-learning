@@ -55,7 +55,6 @@ public class EnrollmentService {
         return (double) completedLessons / totalLessons;
     }
 
-
     public Enrollment findByStudentIdAndCourseId(Long studentId, Long courseId) {
         return enrollmentRepository.findByStudentIdAndCourseId(studentId, courseId)
             .orElseThrow(() -> new RuntimeException("Estudante não está matriculado neste curso."));

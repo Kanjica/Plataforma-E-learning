@@ -61,7 +61,8 @@ public class CompletedLessonsService {
         return new CompletedLessonResponseDTO(
             completedLesson.getId(),
             lessonService.toResponseDTO(completedLesson.getLesson()),
-            completedLesson.getCompletionDate().toString()
+            completedLesson.getCompletionDate().toString(),
+            enrollmentService.calculateOverallProgress(completedLesson.getEnrollment())
         );
     }
 }
