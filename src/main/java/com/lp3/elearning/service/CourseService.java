@@ -1,5 +1,7 @@
 package com.lp3.elearning.service;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -9,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.lp3.elearning.dto.CourseFilterDTO;
 import com.lp3.elearning.dto.CourseRequestDTO;
 import com.lp3.elearning.dto.CourseResponseDTO;
 import com.lp3.elearning.entities.Category;
@@ -17,10 +20,13 @@ import com.lp3.elearning.entities.Instructor;
 import com.lp3.elearning.entities.User;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.exception.ConflictException;
+import com.lp3.elearning.repository.CategoriesRepository;
 import com.lp3.elearning.repository.CourseRepository;
 
 @Service
 public class CourseService {
+
+    private final CategoriesRepository categoriesRepository;
 
     private final ModuleService moduleService;
 
@@ -32,11 +38,12 @@ public class CourseService {
         CategoriesService categoriesService, 
         @Lazy InstructorService instructorService, 
         @Lazy ModuleService moduleService, 
-        @Lazy LessonService lessonService) {
+        @Lazy LessonService lessonService, CategoriesRepository categoriesRepository) {
         this.courseRepository = courseRepository;
         this.categoriesService = categoriesService;
         this.instructorService = instructorService;
         this.moduleService = moduleService;
+        this.categoriesRepository = categoriesRepository;
     }
 
     @Transactional
@@ -73,6 +80,26 @@ public class CourseService {
                 .build();
 
         return toResponseDTO(courseRepository.save(course));
+    }
+
+    public Set<CourseResponseDTO> filterCourses(CourseFilterDTO request){
+        
+        String title = request.title() != null ? request.title() : "";
+        Set<Long> categoryIds = request.categoryIds() != null ? request.categoryIds() : Collections.emptySet();
+        
+        List<Course> courses;
+
+        if(categoryIds.isEmpty()){
+            courses = courseRepository.findByTitleContainingIgnoreCase(title);
+        }else if (title.isEmpty()){
+            courses = courseRepository.findByCategories_IdIn(categoryIds);
+        }else{
+            courses = courseRepository.findByTitleContainingIgnoreCaseAndCategories_IdIn(title, categoryIds);
+        }
+        
+        return courses.stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toSet());
     }
 
     @Transactional
