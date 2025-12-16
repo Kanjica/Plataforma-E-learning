@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.stereotype.Service;
 
 import com.lp3.elearning.dto.ModuleLessonCountDTO;
@@ -13,6 +14,7 @@ import com.lp3.elearning.dto.ModuleReorderRequestDTO;
 import com.lp3.elearning.dto.ModuleRequestDTO;
 import com.lp3.elearning.dto.ModuleResponseDTO;
 import com.lp3.elearning.entities.Course;
+import com.lp3.elearning.repository.CourseRepository;
 import com.lp3.elearning.repository.LessonRepository;
 import com.lp3.elearning.repository.ModuleRepository;
 
@@ -25,20 +27,31 @@ import com.lp3.elearning.exception.ConflictException;
 @Service
 public class ModuleService {
 
+    private final LessonService lessonService;
+
+    private final CourseRepository courseRepository;
+
     private final CourseService courseService;
     private final ModuleRepository moduleRepository;
     private final LessonRepository lessonRepository;
 
-    public ModuleService(CourseService courseService, ModuleRepository moduleRepository, LessonRepository lessonRepository) {
+    public ModuleService(
+        CourseService courseService, 
+        ModuleRepository moduleRepository, 
+        LessonRepository lessonRepository, 
+        CourseRepository courseRepository, 
+        @org.springframework.context.annotation.Lazy LessonService lessonService) {
         this.courseService = courseService;
         this.moduleRepository = moduleRepository;
         this.lessonRepository = lessonRepository;
+        this.courseRepository = courseRepository;
+        this.lessonService = lessonService;
     }
     
 
     public ModuleResponseDTO create(ModuleRequestDTO request, Long courseId){
     
-        Course course = courseService.getCourseById(courseId);
+        Course course = courseService.findById(courseId);
 
         Optional<Module> existingModuleByTitle = moduleRepository.findByTitleAndCourseId(request.title(), courseId);
         
@@ -64,7 +77,7 @@ public class ModuleService {
     @Transactional
     public List<ModuleResponseDTO> reorder(Long courseId, List<ModuleReorderRequestDTO> requests) {
         
-        if(!courseService.existsById(courseId)){
+        if(!courseRepository.existsById(courseId)){
             throw new BusinessRuleException("Curso com ID " + courseId + " não encontrado.");
         }
 
@@ -138,7 +151,8 @@ public class ModuleService {
                 module.getDescription(),
                 module.getModuleOrder(),
                 module.getCourse().getId(),
-                module.getCourse().getTitle()
+                module.getCourse().getTitle(),
+                module.getLessons().stream().map(lessonService::toResponseDTO).collect(Collectors.toSet())
         );
     }
 

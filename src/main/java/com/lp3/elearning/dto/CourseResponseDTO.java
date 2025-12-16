@@ -9,7 +9,8 @@ public record CourseResponseDTO(
     Integer workload,
     Set<CategoryResponseDTO> categories,
     Set<InstructorResponseDTO> instructors,
-    String imageUrl
+    String imageUrl,
+    Set<ModuleResponseDTO> modules
 ) {
     
 }

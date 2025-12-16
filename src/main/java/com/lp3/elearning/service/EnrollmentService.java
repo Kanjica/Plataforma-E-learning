@@ -55,11 +55,6 @@ public class EnrollmentService {
         return (double) completedLessons / totalLessons;
     }
 
-    public Enrollment findById(Long enrollmentId){
-        return enrollmentRepository.findById(enrollmentId)
-            .orElseThrow(() -> new RuntimeException("Matrícula com ID " + enrollmentId + " não encontrada."));
-    }
-
 
     public Enrollment findByStudentIdAndCourseId(Long studentId, Long courseId) {
         return enrollmentRepository.findByStudentIdAndCourseId(studentId, courseId)
@@ -80,7 +75,7 @@ public class EnrollmentService {
         return new EnrollmentResponseDTO(
             enrollment.getId(),
             studentService.findByIdResponseDTO(enrollment.getStudent().getId()),
-            courseService.findByIdResponseDTO(enrollment.getCourse().getId()),
+            courseService.getCourseByIdResponseDTO(enrollment.getCourse().getId()),
             calculateOverallProgress(enrollment),
             enrollment.getStatus(),
             completedLessonsService.findByEnrollment(enrollment)
