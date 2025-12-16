@@ -140,7 +140,10 @@ public class CourseService {
             course.getCategories().stream().map(categoriesService::toResponseDTO).collect(Collectors.toSet()),
             course.getInstructors().stream().map(instructorService::toResponseDTO).collect(Collectors.toSet()),
             course.getImageUrl(),
-            course.getModules().stream().map(moduleService::toResponseDTO).collect(Collectors.toSet())
+            course.getModules().stream().map(moduleService::toResponseDTO).collect(Collectors.toSet()),
+            course.getPrice(),
+            course.getOldPrice(),
+            course.getIsBestSeller()
         );
     }
 

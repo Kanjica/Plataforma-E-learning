@@ -1,5 +1,6 @@
 package com.lp3.elearning.dto;
 
+import java.math.BigDecimal;
 import java.util.Set;
 
 import jakarta.validation.constraints.Min;
@@ -27,5 +28,14 @@ public record CourseRequestDTO(
     Set<Long> instructorIds,
 
     @NotBlank(message = "A URL da imagem do curso não pode ser vazia.")
-    String imageUrl
+    String imageUrl,
+
+    @NotBlank(message = "O preço é obrigatório.")
+    BigDecimal price,
+
+    BigDecimal oldPrice,
+
+    @NotBlank
+    Boolean isBestSeller
+
 ) {}

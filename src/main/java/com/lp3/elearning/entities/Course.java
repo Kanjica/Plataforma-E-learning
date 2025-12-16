@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,6 +12,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
@@ -81,7 +83,21 @@ public class Course {
     private Set<Category> categories;
 
     @NotBlank(message = "A URL da imagem do curso não pode ser vazia.")
-    @Column(name = "image_url", nullable = false)
+    @Column(name = "image_url",columnDefinition = "TEXT", nullable = false)
     private String imageUrl;
+
+    @NotNull
+    @PositiveOrZero
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal price;
+    
+    @NotNull
+    @PositiveOrZero
+    @Column(name = "old_price", nullable = false, precision = 10, scale = 2)
+    private BigDecimal oldPrice;
+
+    @NotNull
+    @Column(name = "is_best_seller", nullable = false)
+    private Boolean isBestSeller;
 
 }

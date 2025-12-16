@@ -36,9 +36,15 @@ CREATE TABLE courses (
     title VARCHAR(150) NOT NULL,
     description TEXT NOT NULL,
     workload INTEGER NOT NULL,
-    image_url VARCHAR(500) NOT NULL
+    image_url TEXT NOT NULL,
+    
+    price NUMERIC(10, 2) NOT NULL,
+    old_price NUMERIC(10, 2) NOT NULL,
+    is_best_seller BOOLEAN NOT NULL,
+    
+    CONSTRAINT chk_courses_price_positive CHECK (price >= 0.00),
+    CONSTRAINT chk_courses_old_price_positive CHECK (old_price >= 0.00)
 );
-
 -- --------------------------------------------------------
 -- Tabela de Módulos
 -- --------------------------------------------------------
