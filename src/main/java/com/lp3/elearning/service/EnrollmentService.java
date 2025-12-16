@@ -42,11 +42,13 @@ public class EnrollmentService {
         return toResponseDTO(enrollmentRepository.save(enrollment));
     }
 
+    public Enrollment saveProgress(Enrollment enrollment){
+        return enrollmentRepository.save(enrollment);
+    }
     public Enrollment findById(Long id) {
         return enrollmentRepository.findById(id)
                 .orElseThrow(() -> new BusinessRuleException("Matrícula não encontrada com o ID: " + id));
     }
-
 
     public Double calculateOverallProgress(Enrollment enrollment){
         Integer totalLessons = lessonService.countLessonsInCourse(enrollment.getCourse().getId());

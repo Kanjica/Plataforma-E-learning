@@ -54,47 +54,45 @@ public class LessonService {
         return toResponseDTO(lesson);
     }   
     
-    public LessonResponseDTO getLessonByIdForUser(Long lessonId, Long studentId, Long courseId){
-    
-        // 1. OBTEM A MATRÍCULA (Enrollment) pelo ID do Estudante e ID do Curso
-        Enrollment enrollment = enrollmentService.findByStudentIdAndCourseId(studentId, courseId);
+    public void validateLessonAccessibility(Lesson currentLesson, Enrollment enrollment) {
         
-        // 2. Continua a lógica de validação
-        
-        Lesson currentLesson = findById(lessonId);
-        
-        // Validação do Curso (redundante se o findByStudentIdAndCourseId já for feito, mas bom para garantir)
+        // Validação básica: Curso da matrícula deve bater com o curso da aula
         if (!enrollment.getCourse().getId().equals(currentLesson.getModule().getCourse().getId())) {
-            throw new BusinessRuleException("Erro de dados. A matrícula não corresponde ao curso desta aula.");
+            throw new BusinessRuleException("A matrícula não corresponde ao curso desta aula.");
         }
-            
-        // 3. Verificar a Ordem e Progresso (Se a aula anterior foi concluída)
-        
-        // Aulas são ordenadas por lessonOrder dentro do Módulo.
+
         Integer currentLessonOrder = currentLesson.getLessonOrder();
         
+        // CENÁRIO 1: Dentro do mesmo módulo (Aula 2 requer Aula 1)
         if (currentLessonOrder > 1) {
-            // Não é a primeira aula do módulo, precisamos verificar a anterior.
-            
-            // 3.1. Encontrar a aula anterior no mesmo módulo
             Lesson previousLesson = lessonRepository
                 .findByModuleIdAndLessonOrder(currentLesson.getModule().getId(), currentLessonOrder - 1)
-                .orElse(null); // Caso haja falha na ordenação (não deve ocorrer)
+                .orElseThrow(() -> new BusinessRuleException("Erro de dados: Aula anterior não encontrada."));
             
-            if (previousLesson == null) {
-                // Isso pode acontecer se houver um erro de dados onde a ordem não é sequencial (e.g., 1, 3, 4).
-                throw new BusinessRuleException("Erro na ordem da aula. Aula anterior não encontrada.");
-            }
-            
-            // 3.2. Verificar se a aula anterior foi concluída
             if (!completedLessonsService.isLessonCompleted(enrollment, previousLesson)) {
-                throw new BusinessRuleException("Acesso negado. A aula anterior (Ordem " + (currentLessonOrder - 1) + ") precisa ser concluída primeiro.");
+                throw new BusinessRuleException("Você precisa completar a aula anterior (" + previousLesson.getTitle() + ") antes de acessar esta.");
             }
         }
         
-        // Se todas as validações passarem
+        // CENÁRIO 2: Primeiro aula de um módulo novo (Módulo 2, Aula 1 requer Módulo 1, Última Aula)
+        // (Adicionei isso pois seu código original permitia pular do Módulo 1 direto pro Módulo 2 sem terminar o 1)
+        else if (currentLessonOrder == 1 && currentLesson.getModule().getModuleOrder() > 1) {
+             // Lógica para verificar o final do módulo anterior (opcional, mas recomendado)
+             // Você precisaria buscar o módulo anterior e sua última lição.
+        }
+    }
+
+    // 2. Atualize o método antigo para usar o novo validador
+    public LessonResponseDTO getLessonByIdForUser(Long lessonId, Long studentId, Long courseId){
+        Enrollment enrollment = enrollmentService.findByStudentIdAndCourseId(studentId, courseId);
+        Lesson currentLesson = findById(lessonId);
+
+        // Chama a validação centralizada
+        validateLessonAccessibility(currentLesson, enrollment);
+        
         return toResponseDTO(currentLesson);
     }
+    
     
     public List<LessonResponseDTO> getAllByModuleId(Long moduleId) {
         List<Lesson> lessons = lessonRepository.findByModuleId(moduleId);

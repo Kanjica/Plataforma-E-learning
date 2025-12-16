@@ -30,6 +30,7 @@ public class CompletedLesson {
     private Lesson lesson;
 
     @NotNull
+    @Builder.Default
     @Column(name = "completion_date", nullable = false)
-    private LocalDateTime completionDate;
+    private LocalDateTime completionDate = LocalDateTime.now();
 }
