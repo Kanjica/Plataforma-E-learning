@@ -14,6 +14,7 @@ import com.lp3.elearning.entities.CompletedLesson;
 import com.lp3.elearning.entities.Enrollment;
 import com.lp3.elearning.entities.Lesson;
 import com.lp3.elearning.entities.StatusEnrollment;
+import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.repository.CompletedLessonRepository;
 
@@ -36,10 +37,10 @@ public class CompletedLessonsService {
     }
 
     @Transactional
-    public CompletedLessonResponseDTO completeLesson(EnrollmentRequestDTO request, Long lessonId){
+    public CompletedLessonResponseDTO completeLesson(Long studentId, Long courseId,Long lessonId){
         Enrollment existingEnrollment = enrollmentService.findByStudentIdAndCourseId(
-            request.studentId(), 
-            request.courseId()
+            studentId, 
+            courseId
         );
 
         Lesson lesson = lessonService.findById(lessonId);
