@@ -26,8 +26,6 @@ import com.lp3.elearning.repository.CourseRepository;
 @Service
 public class CourseService {
 
-    private final CategoriesRepository categoriesRepository;
-
     private final ModuleService moduleService;
 
     private final CourseRepository courseRepository;
@@ -38,12 +36,11 @@ public class CourseService {
         CategoriesService categoriesService, 
         @Lazy InstructorService instructorService, 
         @Lazy ModuleService moduleService, 
-        @Lazy LessonService lessonService, CategoriesRepository categoriesRepository) {
+        @Lazy LessonService lessonService) {
         this.courseRepository = courseRepository;
         this.categoriesService = categoriesService;
         this.instructorService = instructorService;
         this.moduleService = moduleService;
-        this.categoriesRepository = categoriesRepository;
     }
 
     @Transactional

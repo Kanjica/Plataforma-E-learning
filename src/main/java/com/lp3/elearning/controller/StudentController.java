@@ -28,7 +28,6 @@ public class StudentController {
     @GetMapping("/dashboard")
     public ResponseEntity<List<EnrollmentResponseDTO>> getMyDashboard(@AuthenticationPrincipal User user) {
         
-        // Verifica se o usuário logado é realmente um aluno
         if (!(user instanceof Student)) {
             throw new BusinessRuleException("Apenas alunos podem acessar o dashboard de cursos.");
         }

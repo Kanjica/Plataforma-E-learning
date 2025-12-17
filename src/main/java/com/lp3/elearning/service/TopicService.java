@@ -37,21 +37,32 @@ public class TopicService {
 
     private TopicResponseDTO toResponseDTO(Topic topic){
 
-        // Mapeia o Set de Responses para ResponseResponseDTOs usando o ResponseService
-        Set<ResponseResponseDTO> responseDTOs = topic.getResponses().stream()
-                .filter(response -> response.getResponseParent() == null) // Filtra apenas respostas de nível superior (raízes)
-                .map(responseService::toResponseResponseDTO) // Assumindo que este método é público no ResponseService
-                .collect(Collectors.toSet());
-        
-        return new TopicResponseDTO(
-            topic.getId(),
-            topic.getTitle(),
-            topic.getContent(),
-            topic.getCreationDate(),
-            courseService.toResponseDTO(topic.getCourse()),
-            userService.toResponseDTO(topic.getUser()),
-            responseDTOs // Agora inclui as responses raízes
-        );
+        // FORÇANDO UMA CÓPIA DA COLEÇÃO DE ENTRADA antes de iniciar o stream
+    Set<ResponseResponseDTO> responseDTOs = topic.getResponses().stream()
+            .collect(Collectors.toUnmodifiableSet()) // Transforma a coleção do Hibernate em um Set imutável
+            .stream() // Inicia o stream sobre a cópia
+            .filter(response -> response.getResponseParent() == null) 
+            .map(responseService::toResponseResponseDTO) 
+            .collect(Collectors.toSet());
+    
+    // Nota: O uso de .collect(Collectors.toUnmodifiableSet()).stream() é uma forma robusta.
+    // Alternativamente, se o seu Java for mais antigo (sem toUnmodifiableSet), use:
+    /*
+    Set<ResponseResponseDTO> responseDTOs = new HashSet<>(topic.getResponses()).stream()
+            .filter(response -> response.getResponseParent() == null)
+            .map(responseService::toResponseResponseDTO)
+            .collect(Collectors.toSet());
+    */
+    
+    return new TopicResponseDTO(
+        topic.getId(),
+        topic.getTitle(),
+        topic.getContent(),
+        topic.getCreationDate(),
+        courseService.toResponseDTO(topic.getCourse()),
+        userService.toResponseDTO(topic.getUser()),
+        responseDTOs
+    );
     }
     
     public List<TopicResponseDTO> findAll() {

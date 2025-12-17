@@ -3,15 +3,22 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.lp3.elearning.dto.CompletedLessonResponseDTO;
 import com.lp3.elearning.dto.CourseFilterDTO;
 import com.lp3.elearning.dto.CourseRequestDTO;
 import com.lp3.elearning.dto.CourseResponseDTO;
+import com.lp3.elearning.dto.EnrollmentRequestDTO;
+import com.lp3.elearning.entities.Enrollment;
+import com.lp3.elearning.entities.Response;
+import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.service.CourseService;
+import com.lp3.elearning.service.EnrollmentService;
 
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -27,9 +34,11 @@ public class CourseController {
     //localhost:8080/courses/{courseId}/modules/{moduleId}/lessons/{lessonId}
     
     private final CourseService courseService;
+    private final EnrollmentService enrollmentService;
 
-    public CourseController(CourseService courseService){
+    public CourseController(CourseService courseService, EnrollmentService enrollmentService){
         this.courseService = courseService;
+        this.enrollmentService = enrollmentService;
     }
 
     @PostMapping("/create")
@@ -61,5 +70,11 @@ public class CourseController {
     @GetMapping("/filter-courses")
     public ResponseEntity<Set<CourseResponseDTO>> filterCourses(@RequestBody @Valid CourseFilterDTO request){
         return ResponseEntity.ok(courseService.filterCourses(request));
+    }
+
+    @GetMapping("/progress")
+    public ResponseEntity<Set<CompletedLessonResponseDTO>> progress(@AuthenticationPrincipal Student student, EnrollmentRequestDTO enrollment){
+        Enrollment e = enrollmentService.findByStudentIdAndCourseId(enrollment);
+        return ResponseEntity.ok(enrollmentService.calculateProgress(e));
     }
 }

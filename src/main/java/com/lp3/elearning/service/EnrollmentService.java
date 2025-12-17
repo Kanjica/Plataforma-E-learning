@@ -4,6 +4,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.lp3.elearning.dto.CompletedLessonResponseDTO;
 import com.lp3.elearning.dto.EnrollmentRequestDTO;
 import com.lp3.elearning.dto.EnrollmentResponseDTO;
 import com.lp3.elearning.entities.Course;
@@ -12,6 +13,7 @@ import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.repository.EnrollmentRepository;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -61,11 +63,19 @@ public class EnrollmentService {
         return (double) completedLessons / totalLessons;
     }
 
+    public Set<CompletedLessonResponseDTO> calculateProgress(Enrollment enrollment){
+        return completedLessonsService.findByEnrollment(enrollment);
+    }
+
     public Enrollment findByStudentIdAndCourseId(Long studentId, Long courseId) {
         return enrollmentRepository.findByStudentIdAndCourseId(studentId, courseId)
             .orElseThrow(() -> new RuntimeException("Estudante não está matriculado neste curso."));
     }
 
+    public Enrollment findByStudentIdAndCourseId(EnrollmentRequestDTO request) {
+        return enrollmentRepository.findByStudentIdAndCourseId(request.studentId(), request.courseId())
+            .orElseThrow(() -> new RuntimeException("Estudante não está matriculado neste curso."));
+    }
     public List<EnrollmentResponseDTO> getMyEnrollments(Long studentId) {
         List<Enrollment> enrollments = enrollmentRepository.findByStudentIdOrderByEnrollmentDateDesc(studentId);
         
@@ -74,7 +84,6 @@ public class EnrollmentService {
                 .collect(Collectors.toList());
     }
 
-    
     public Enrollment toEntity(EnrollmentRequestDTO request){
         Student student = studentService.findById(request.studentId());
         Course course = courseService.findById(request.courseId());

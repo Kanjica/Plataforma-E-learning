@@ -38,11 +38,12 @@ public class ResponseService {
         
         // Conversão dos filhos (respostas aninhadas)
         List<ResponseResponseDTO> childDTOs = response.getChildResponses().stream()
-            .map(this::toResponseResponseDTO) // Chamada recursiva para profundidade
+            .collect(Collectors.toUnmodifiableList()) // Garante a cópia
+            .stream()
+            .map(this::toResponseResponseDTO) 
             .collect(Collectors.toList());
 
         UserResponseDTO userDTO = userService.toResponseDTO(response.getUser());
-
         return new ResponseResponseDTO(
             response.getId(),
             response.getContent(),
