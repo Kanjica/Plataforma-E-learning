@@ -57,7 +57,8 @@ public class TopicService {
         topic.getTitle(),
         topic.getContent(),
         topic.getCreationDate(),
-        courseService.toResponseDTO(topic.getCourse()),
+        topic.getCourse().getId(),
+        topic.getCourse().getTitle(),
         userService.toResponseDTO(topic.getUser()),
         responseDTOs
     );

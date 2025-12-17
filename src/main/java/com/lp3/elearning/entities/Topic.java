@@ -1,8 +1,8 @@
 package com.lp3.elearning.entities;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -21,7 +21,7 @@ public class Topic {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @Max(200)
+    @Size(max = 200)
     @Column(nullable = false, length = 200)
     private String title;
 

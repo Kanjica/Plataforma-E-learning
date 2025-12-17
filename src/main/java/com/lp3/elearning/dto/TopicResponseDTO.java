@@ -8,7 +8,8 @@ public record TopicResponseDTO(
     String title,
     String content,
     LocalDateTime creationDate,
-    CourseResponseDTO course,
+    Long courseId,
+    String courseTitle,
     UserResponseDTO user,
     Set<ResponseResponseDTO> responses
 ) {}

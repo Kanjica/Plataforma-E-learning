@@ -90,9 +90,9 @@ public class AuthenticationController {
         // Converte string do front para enum UserRole
         UserRole userRole;
         try {
-            userRole = UserRole.valueOf(data.role().toUpperCase());
+            userRole = UserRole.valueOf("ROLE_"+data.role().toUpperCase());
         } catch (IllegalArgumentException e) {
-            response.put("message", "Role inválido! Use STUDENT ou INSTRUCTOR.");
+            response.put("message", "Role inválido! Use STUDENT ou INSTRUCTOR.\n Seu input =" + data.role());
             return ResponseEntity.badRequest().body(response);
         }
 
@@ -122,41 +122,41 @@ public class AuthenticationController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/register/aluno")
-    public ResponseEntity<Void> registerAluno(@RequestBody @Valid RegisterDTO data){
-        if(studentRepository.findByEmail(data.login()) != null) return ResponseEntity.badRequest().build(); 
+    // @PostMapping("/register/aluno")
+    // public ResponseEntity<Void> registerAluno(@RequestBody @Valid RegisterDTO data){
+    //     if(studentRepository.findByEmail(data.login()) != null) return ResponseEntity.badRequest().build(); 
 
-        String encryptedPassword = passwordEncoder.encode(data.password());
+    //     String encryptedPassword = passwordEncoder.encode(data.password());
 
-        this.studentRepository.save(
-            Student.builder()
-                .name(data.name())
-                .email(data.login())
-                .password(encryptedPassword)
-                .role(UserRole.ROLE_STUDENT)
-                .build()
-        );
+    //     this.studentRepository.save(
+    //         Student.builder()
+    //             .name(data.name())
+    //             .email(data.login())
+    //             .password(encryptedPassword)
+    //             .role(UserRole.ROLE_STUDENT)
+    //             .build()
+    //     );
 
-        return ResponseEntity.ok().build();
-    }
+    //     return ResponseEntity.ok().build();
+    // }
 
-    @PostMapping("/register/instrutor")
-    public ResponseEntity<Void> registerInstrutor(@RequestBody @Valid RegisterDTO data){
-        if(instructorRepository.findByEmail(data.login()) != null) return ResponseEntity.badRequest().build();
+    // @PostMapping("/register/instrutor")
+    // public ResponseEntity<Void> registerInstrutor(@RequestBody @Valid RegisterDTO data){
+    //     if(instructorRepository.findByEmail(data.login()) != null) return ResponseEntity.badRequest().build();
 
-        String encryptedPassword = passwordEncoder.encode(data.password());
+    //     String encryptedPassword = passwordEncoder.encode(data.password());
 
-        this.instructorRepository.save(
-            Instructor.builder()
-                .name(data.name())
-                .email(data.login())
-                .password(encryptedPassword)
-                .role(UserRole.ROLE_INSTRUCTOR)
-                .build()
-        );
+    //     this.instructorRepository.save(
+    //         Instructor.builder()
+    //             .name(data.name())
+    //             .email(data.login())
+    //             .password(encryptedPassword)
+    //             .role(UserRole.ROLE_INSTRUCTOR)
+    //             .build()
+    //     );
 
-        return ResponseEntity.ok().build();
-    }
+    //     return ResponseEntity.ok().build();
+    // }
 
     @GetMapping
     public ResponseEntity<String> teste(){
