@@ -9,12 +9,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import com.lp3.elearning.dto.CompletedLessonResponseDTO;
-import com.lp3.elearning.dto.EnrollmentRequestDTO;
 import com.lp3.elearning.entities.CompletedLesson;
 import com.lp3.elearning.entities.Enrollment;
 import com.lp3.elearning.entities.Lesson;
 import com.lp3.elearning.entities.StatusEnrollment;
-import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.repository.CompletedLessonRepository;
 

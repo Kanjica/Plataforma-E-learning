@@ -15,7 +15,6 @@ import com.lp3.elearning.dto.CourseRequestDTO;
 import com.lp3.elearning.dto.CourseResponseDTO;
 import com.lp3.elearning.dto.EnrollmentRequestDTO;
 import com.lp3.elearning.entities.Enrollment;
-import com.lp3.elearning.entities.Response;
 import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.service.CourseService;
 import com.lp3.elearning.service.EnrollmentService;

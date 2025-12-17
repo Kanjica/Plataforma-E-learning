@@ -3,7 +3,6 @@ package com.lp3.elearning.service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Lazy;
@@ -20,7 +19,6 @@ import com.lp3.elearning.entities.Instructor;
 import com.lp3.elearning.entities.User;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.exception.ConflictException;
-import com.lp3.elearning.repository.CategoriesRepository;
 import com.lp3.elearning.repository.CourseRepository;
 
 @Service

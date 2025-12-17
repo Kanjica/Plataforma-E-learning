@@ -14,8 +14,6 @@ import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.repository.EnrollmentRepository;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-
 
 @Service
 public class EnrollmentService {
