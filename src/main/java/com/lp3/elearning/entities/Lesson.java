@@ -21,7 +21,7 @@ public class Lesson {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
-    private long id;
+    private Long id;
 
     @NotBlank(message = "O título da aula não pode ser vazio")
     @Size(min = 5, max = 150)
