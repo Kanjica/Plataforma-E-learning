@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import com.lp3.elearning.dto.LessonReorderRequestDTO;
 import com.lp3.elearning.dto.LessonRequestDTO;
@@ -27,7 +26,6 @@ public class LessonService {
     private final ModuleService moduleService;
     private final CompletedLessonsService completedLessonsService;
     private final EnrollmentService enrollmentService;
-
 
     public LessonService(LessonRepository lessonRepository, 
             ModuleService moduleService, 
@@ -57,34 +55,44 @@ public class LessonService {
 
     public LessonResponseDTO getById(Long lessonId, Long moduleId){
         Lesson lesson = lessonRepository.findByIdAndModuleId(lessonId, moduleId)
-            .orElseThrow(() -> new BusinessRuleException("Aula com ID " + lessonId + " não encontrada no módulo " + moduleId)); 
-        return toResponseDTO(lesson);
-    }   
-    
-    public void validateLessonAccessibility(Lesson currentLesson, Enrollment enrollment) {
+                .orElseThrow(() -> new BusinessRuleException("Aula com ID " + lessonId + " não encontrada no módulo " + moduleId)); 
+            return toResponseDTO(lesson);
+        }   
         
-        // Validação básica: Curso da matrícula deve bater com o curso da aula
+        public void validateLessonAccessibility(Lesson currentLesson, Enrollment enrollment) {
+        // 1. Verifica se a aula pertence ao curso que o aluno comprou
         if (!enrollment.getCourse().getId().equals(currentLesson.getModule().getCourse().getId())) {
             throw new BusinessRuleException("A matrícula não corresponde ao curso desta aula.");
         }
 
-        Integer currentLessonOrder = currentLesson.getLessonOrder();
-        
-        if (currentLessonOrder > 1) {
-            Lesson previousLesson = lessonRepository
-                .findByModuleIdAndLessonOrder(currentLesson.getModule().getId(), currentLessonOrder - 1)
-                .orElseThrow(() -> new BusinessRuleException("Erro de dados: Aula anterior não encontrada."));
+        Integer currentOrder = currentLesson.getLessonOrder();
+        Long moduleId = currentLesson.getModule().getId();
+
+        // CENÁRIO A: Não é a primeira aula do módulo? Verifica a anterior do mesmo módulo.
+        if (currentOrder > 1) {
+            Lesson previous = lessonRepository.findByModuleIdAndLessonOrder(moduleId, currentOrder - 1)
+                .orElseThrow(() -> new BusinessRuleException("Aula anterior não encontrada."));
             
-            if (!completedLessonsService.isLessonCompleted(enrollment, previousLesson)) {
-                throw new BusinessRuleException("Você precisa completar a aula anterior (" + previousLesson.getTitle() + ") antes de acessar esta.");
+            if (!completedLessonsService.isLessonCompleted(enrollment, previous)) {
+                throw new BusinessRuleException("Conclua a aula anterior primeiro!");
             }
-        }
-        
-        // CENÁRIO 2: Primeiro aula de um módulo novo (Módulo 2, Aula 1 requer Módulo 1, Última Aula)
-        // (Adicionei isso pois seu código original permitia pular do Módulo 1 direto pro Módulo 2 sem terminar o 1)
-        else if (currentLessonOrder == 1 && currentLesson.getModule().getModuleOrder() > 1) {
-             // Lógica para verificar o final do módulo anterior (opcional, mas recomendado)
-             // Você precisaria buscar o módulo anterior e sua última lição.
+        } 
+        // CENÁRIO B: É a primeira aula, mas não é o primeiro módulo? Verifica o módulo anterior.
+        else if (currentOrder == 1 && currentLesson.getModule().getModuleOrder() > 1) {
+            // Busca o módulo que vem antes deste (Ex: Se este é o 2, busca o 1)
+            Module previousModule = moduleService.findByCourseIdAndModuleOrder(
+                currentLesson.getModule().getCourse().getId(), 
+                currentLesson.getModule().getModuleOrder() - 1
+            );
+
+            // AQUI você usa o método do repo:
+            Lesson lastLessonOfPrevModule = lessonRepository
+                .findFirstByModuleIdOrderByLessonOrderDesc(previousModule.getId())
+                .orElseThrow(() -> new BusinessRuleException("O módulo anterior não possui aulas."));
+
+            if (!completedLessonsService.isLessonCompleted(enrollment, lastLessonOfPrevModule)) {
+                throw new BusinessRuleException("Você precisa concluir a última aula do módulo anterior!");
+            }
         }
     }
 

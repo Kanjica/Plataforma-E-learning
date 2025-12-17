@@ -163,4 +163,9 @@ public class ModuleService {
             .map(obj -> new ModuleLessonCountDTO((Long) obj[0], (Long) obj[1]))
             .toList();
     }
+
+    public Module findByCourseIdAndModuleOrder(Long courseId, int moduleOrder){
+        return moduleRepository.findByCourseIdAndModuleOrder(courseId, moduleOrder)
+                .orElseThrow(()-> new BusinessRuleException("Modulo não encontrado"));
+    }
 }
