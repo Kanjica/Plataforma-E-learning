@@ -1,28 +1,21 @@
 package com.lp3.elearning.controller;
 
 import java.util.List;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import com.lp3.elearning.dto.LessonReorderRequestDTO;
 import com.lp3.elearning.dto.LessonRequestDTO;
 import com.lp3.elearning.dto.LessonResponseDTO;
 import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.service.LessonService;
-import org.springframework.web.bind.annotation.RequestParam;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/courses/{courseId}/modules/{moduleId}/lessons")
+@Tag(name = "Aulas", description = "Gerencia as aulas e conteúdos dos módulos")
 public class LessonController {
     
     private final LessonService lessonService;
@@ -31,7 +24,8 @@ public class LessonController {
         this.lessonService = lessonService;
     }
 
-    @PostMapping("/create")
+    @Operation(summary = "Criar Aula")
+    @PostMapping // ANTES: /create (Removido)
     public ResponseEntity<LessonResponseDTO> createLesson(
         @PathVariable Long courseId,
         @PathVariable Long moduleId,
@@ -39,36 +33,35 @@ public class LessonController {
         return ResponseEntity.ok(lessonService.create(lessonRequest, moduleId, courseId));
     }
 
+    @Operation(summary = "Buscar Aula", description = "Busca detalhes da aula e valida acesso do aluno")
     @GetMapping("/{lessonId}")
     public ResponseEntity<LessonResponseDTO> getById(
         @PathVariable Long courseId,
         @PathVariable Long moduleId,
         @PathVariable Long lessonId,
-        // AQUI: Injeta o objeto Student autenticado
         @AuthenticationPrincipal Student student ){
-        
         return ResponseEntity.ok(lessonService.getLessonByIdForUser(lessonId, student.getId(), courseId));
     }
 
+    @Operation(summary = "Buscar por Ordem", description = "Navegação sequencial (ex: Aula 1, Aula 2)")
     @GetMapping("/order") 
     public ResponseEntity<LessonResponseDTO> getByOrder(
         @PathVariable Long courseId,
         @PathVariable Long moduleId,
         @RequestParam Integer order,
-        @AuthenticationPrincipal Student student) { // Adicionado Student para validar acesso
-
+        @AuthenticationPrincipal Student student) {
         return ResponseEntity.ok(lessonService.getByLessonOrder(moduleId, order, student.getId(), courseId));
     }
-    
 
+    @Operation(summary = "Listar Aulas do Módulo")
     @GetMapping
     public ResponseEntity<List<LessonResponseDTO>> getAllByModuleId(
         @PathVariable Long courseId,
         @PathVariable Long moduleId){
-        List<LessonResponseDTO> lessons = lessonService.getAllByModuleId(moduleId);
-        return ResponseEntity.ok(lessons);
+        return ResponseEntity.ok(lessonService.getAllByModuleId(moduleId));
     }
 
+    @Operation(summary = "Atualizar Aula")
     @PutMapping("/{lessonId}")
     public ResponseEntity<LessonResponseDTO> updateLesson(
         @PathVariable Long courseId,
@@ -78,6 +71,7 @@ public class LessonController {
         return ResponseEntity.ok(lessonService.update(lessonId, moduleId, lessonRequest));
     }
 
+    @Operation(summary = "Deletar Aula")
     @DeleteMapping("/{lessonId}")
     public ResponseEntity<Void> deleteLesson(
         @PathVariable Long courseId,
@@ -87,13 +81,12 @@ public class LessonController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Reordenar Aulas")
     @PutMapping("/reorder")
     public ResponseEntity<List<LessonResponseDTO>> reorderLessons(
         @PathVariable Long courseId, 
         @PathVariable Long moduleId,
         @RequestBody List<LessonReorderRequestDTO> requests){
-        
-        List<LessonResponseDTO> updatedLessons = lessonService.reorder(moduleId, requests);
-        return ResponseEntity.ok(updatedLessons);
+        return ResponseEntity.ok(lessonService.reorder(moduleId, requests));
     }
 }

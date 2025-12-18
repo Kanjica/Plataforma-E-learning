@@ -1,25 +1,19 @@
 package com.lp3.elearning.controller;
 
 import java.util.List;
-
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import com.lp3.elearning.dto.ModuleReorderRequestDTO;
 import com.lp3.elearning.dto.ModuleRequestDTO;
 import com.lp3.elearning.dto.ModuleResponseDTO;
 import com.lp3.elearning.service.ModuleService;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping("/courses/{courseId}/modules")    
+@RequestMapping("/courses/{courseId}/modules")
+@Tag(name = "Módulos", description = "Gerencia os módulos de um curso")
 public class ModuleController {
 
     private final ModuleService moduleService;
@@ -28,29 +22,29 @@ public class ModuleController {
         this.moduleService = moduleService;
     }
 
-    @PostMapping("/create")
+    @Operation(summary = "Criar Módulo", description = "Adiciona um módulo ao curso")
+    @PostMapping // ANTES: /create (Removido)
     public ResponseEntity<ModuleResponseDTO> create(@PathVariable Long courseId, @RequestBody ModuleRequestDTO request){
         return ResponseEntity.ok(moduleService.create(request, courseId));
     }
 
+    @Operation(summary = "Buscar Módulo por ID")
     @GetMapping("/{moduleId}")
     public ResponseEntity<ModuleResponseDTO> getById(@PathVariable Long courseId, @PathVariable Long moduleId){
         return ResponseEntity.ok(moduleService.getById(moduleId, courseId));
     }
 
+    @Operation(summary = "Listar Módulos do Curso")
     @GetMapping
     public ResponseEntity<List<ModuleResponseDTO>> getAllByCourseId(@PathVariable Long courseId){
-        List<ModuleResponseDTO> modules = moduleService.getAllByCourseId(courseId);
-        return ResponseEntity.ok(modules);
+        return ResponseEntity.ok(moduleService.getAllByCourseId(courseId));
     }
     
+    @Operation(summary = "Reordenar Módulos", description = "Altera a ordem de exibição dos módulos")
     @PutMapping("/reorder")
     public ResponseEntity<List<ModuleResponseDTO>> reorderModules(
         @PathVariable Long courseId, 
         @RequestBody List<ModuleReorderRequestDTO> requests){
-        
-        List<ModuleResponseDTO> updatedModules = moduleService.reorder(courseId, requests);
-        return ResponseEntity.ok(updatedModules);
+        return ResponseEntity.ok(moduleService.reorder(courseId, requests));
     }
-    
 }

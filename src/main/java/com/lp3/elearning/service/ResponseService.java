@@ -3,9 +3,7 @@ package com.lp3.elearning.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.lp3.elearning.dto.ResponseRequestDTO;
 import com.lp3.elearning.dto.ResponseResponseDTO;
@@ -16,7 +14,6 @@ import com.lp3.elearning.entities.User;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.repository.ResponseRepository;
 import com.lp3.elearning.repository.TopicRepository;
-import com.lp3.elearning.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -25,13 +22,11 @@ public class ResponseService {
 
     private final ResponseRepository responseRepository;
     private final TopicRepository topicRepository;
-    private final UserRepository userRepository;
     private final UserService userService;
 
-    public ResponseService(ResponseRepository responseRepository, TopicRepository topicRepository, UserRepository userRepository, UserService userService) {
+    public ResponseService(ResponseRepository responseRepository, TopicRepository topicRepository, UserService userService) {
         this.responseRepository = responseRepository;
         this.topicRepository = topicRepository;
-        this.userRepository = userRepository;
         this.userService = userService;
     }
 

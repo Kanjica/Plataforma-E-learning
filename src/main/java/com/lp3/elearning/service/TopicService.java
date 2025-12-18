@@ -9,13 +9,11 @@ import org.springframework.stereotype.Service;
 
 import com.lp3.elearning.dto.TopicRequestDTO;
 import com.lp3.elearning.dto.TopicResponseDTO;
-import com.lp3.elearning.dto.ResponseResponseDTO; // Importado
-import com.lp3.elearning.entities.Instructor;
+import com.lp3.elearning.dto.ResponseResponseDTO; 
 import com.lp3.elearning.entities.Topic;
 import com.lp3.elearning.entities.User;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.repository.TopicRepository;
-import com.lp3.elearning.repository.UserRepository;
 
 @Service
 public class TopicService {
@@ -23,13 +21,11 @@ public class TopicService {
     private final UserService userService;
     private final TopicRepository topicRepository;
     private final CourseService courseService;
-    private final UserRepository userRepository;
-    private final ResponseService responseService; // Novo: Para conversão de Responses
+    private final ResponseService responseService; 
 
-    public TopicService(TopicRepository topicRepository, CourseService courseService, UserRepository userRepository, UserService userService, ResponseService responseService){
+    public TopicService(TopicRepository topicRepository, CourseService courseService, UserService userService, ResponseService responseService){
         this.topicRepository = topicRepository;
         this.courseService = courseService;
-        this.userRepository = userRepository;
         this.userService = userService;
         this.responseService = responseService;
     }

@@ -1,38 +1,34 @@
 package com.lp3.elearning.controller;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.lp3.elearning.dto.AuthenticationDTO;
 import com.lp3.elearning.dto.LoginResponseDTO;
 import com.lp3.elearning.dto.RegisterDTO;
-import com.lp3.elearning.entities.UserRole;
 import com.lp3.elearning.entities.Instructor;
 import com.lp3.elearning.entities.Student;
+import com.lp3.elearning.entities.User;
+import com.lp3.elearning.entities.UserRole;
 import com.lp3.elearning.repository.InstructorRepository;
 import com.lp3.elearning.repository.StudentRepository;
 import com.lp3.elearning.service.TokenService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.Map;
-
-import org.springframework.security.core.Authentication;
-import com.lp3.elearning.entities.User;
-
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "http://localhost:4200") // Backup CORS no controller
+@CrossOrigin(origins = "http://localhost:4200")
+@Tag(name = "Autenticação", description = "Login e Registro de usuários")
 public class AuthenticationController {
 
     private final AuthenticationManager authenticationManager;
@@ -49,79 +45,49 @@ public class AuthenticationController {
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
     
+    @Operation(summary = "Realizar Login", description = "Retorna o token JWT")
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(
-            @RequestBody @Valid AuthenticationDTO data
-    ) {
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid AuthenticationDTO data) {
         Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        data.login(),
-                        data.password()
-                )
+                new UsernamePasswordAuthenticationToken(data.login(), data.password())
         );
 
         User user = (User) auth.getPrincipal();
         String token = tokenService.generateToken(user);
 
-        return ResponseEntity.ok(
-                new LoginResponseDTO(
-                        token,
-                        user.getRole().name(),
-                        user.getId(),
-                        user.getName()
-                )
-        );
+        return ResponseEntity.ok(new LoginResponseDTO(token, user.getRole().name(), user.getId(), user.getName()));
     }
 
-        // NOVO: Endpoint unificado de registro
+    @Operation(summary = "Registrar novo usuário", description = "Cria conta para Aluno ou Instrutor")
     @PostMapping("/register")
     public ResponseEntity<Map<String, String>> register(@RequestBody @Valid RegisterDTO data){
         Map<String, String> response = new HashMap<>();
 
-        // Verifica se já existe
-        if(studentRepository.findByEmail(data.login()) != null || 
-        instructorRepository.findByEmail(data.login()) != null) {
+        if(studentRepository.findByEmail(data.login()) != null || instructorRepository.findByEmail(data.login()) != null) {
             response.put("message", "Email já cadastrado!");
             return ResponseEntity.badRequest().body(response);
         }
 
         String encryptedPassword = passwordEncoder.encode(data.password());
-
-        // Converte string do front para enum UserRole
         UserRole userRole;
         try {
             userRole = UserRole.valueOf("ROLE_"+data.role().toUpperCase());
         } catch (IllegalArgumentException e) {
-            response.put("message", "Role inválido! Use STUDENT ou INSTRUCTOR.\n Seu input =" + data.role());
+            response.put("message", "Role inválido! Use STUDENT ou INSTRUCTOR.");
             return ResponseEntity.badRequest().body(response);
         }
 
-        // Registra baseado no role
         if(userRole == UserRole.ROLE_STUDENT) {
-            studentRepository.save(
-                Student.builder()
-                    .name(data.name())
-                    .email(data.login())
-                    .password(encryptedPassword)
-                    .role(userRole)
-                    .build()
-            );
+            studentRepository.save(Student.builder().name(data.name()).email(data.login()).password(encryptedPassword).role(userRole).build());
             response.put("message", "Aluno cadastrado com sucesso!");
         } else if(userRole == UserRole.ROLE_INSTRUCTOR) {
-            instructorRepository.save(
-                Instructor.builder()
-                    .name(data.name())
-                    .email(data.login())
-                    .password(encryptedPassword)
-                    .role(userRole)
-                    .build()
-            );
+            instructorRepository.save(Instructor.builder().name(data.name()).email(data.login()).password(encryptedPassword).role(userRole).build());
             response.put("message", "Instrutor cadastrado com sucesso!");
         }
 
         return ResponseEntity.ok(response);
     }
-
+}
     // @PostMapping("/register/aluno")
     // public ResponseEntity<Void> registerAluno(@RequestBody @Valid RegisterDTO data){
     //     if(studentRepository.findByEmail(data.login()) != null) return ResponseEntity.badRequest().build(); 
@@ -157,10 +123,3 @@ public class AuthenticationController {
 
     //     return ResponseEntity.ok().build();
     // }
-
-    @GetMapping
-    public ResponseEntity<String> teste(){
-        return ResponseEntity.ok("Deu bom");
-    }
-
-}

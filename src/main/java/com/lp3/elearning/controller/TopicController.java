@@ -1,42 +1,32 @@
 package com.lp3.elearning.controller;
 
 import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import com.lp3.elearning.dto.TopicRequestDTO;
 import com.lp3.elearning.dto.TopicResponseDTO;
 import com.lp3.elearning.entities.Instructor;
 import com.lp3.elearning.entities.User;
 import com.lp3.elearning.service.TopicService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/topics")
+@Tag(name = "Fórum - Tópicos", description = "Gestão de tópicos de discussão dos cursos")
 public class TopicController {
     
     private final TopicService topicService;
 
-    // Apenas TopicService é injetado, o Repository deve ser gerenciado pelo Service
     public TopicController(TopicService topicService){ 
         this.topicService = topicService;
     }
 
-    // [1] Listar Tópicos (Global ou Filtrado por Curso)
-    // GET /topics                 -> Lista todos
-    // GET /topics?courseId=123    -> Lista por curso
+    @Operation(summary = "Listar Tópicos", description = "Retorna todos os tópicos ou filtra por curso se 'courseId' for informado")
     @GetMapping
     public ResponseEntity<List<TopicResponseDTO>> getAllTopics(@RequestParam(required = false) Long courseId) {
         if (courseId != null) {
@@ -45,8 +35,7 @@ public class TopicController {
         return ResponseEntity.ok(topicService.findAll());
     }
     
-    // [2] Criar um novo Tópico
-    // POST /topics (O courseId e userId vêm no corpo do DTO)
+    @Operation(summary = "Criar Tópico", description = "Abre uma nova discussão no fórum")
     @PostMapping
     public ResponseEntity<TopicResponseDTO> createTopic(
         @RequestBody @Valid TopicRequestDTO request,
@@ -55,33 +44,26 @@ public class TopicController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     
-    // [3] Obter um Tópico por ID
-    // GET /topics/{topicId}
+    @Operation(summary = "Buscar Tópico por ID", description = "Exibe os detalhes de um tópico específico")
     @GetMapping("/{topicId}")
     public ResponseEntity<TopicResponseDTO> getTopicById(@PathVariable Long topicId) {
-        TopicResponseDTO topic = topicService.findById(topicId);
-        return ResponseEntity.ok(topic);
+        return ResponseEntity.ok(topicService.findById(topicId));
     }
 
-    // [4] Atualizar um Tópico
-    // PUT /topics/{topicId}
+    @Operation(summary = "Atualizar Tópico", description = "Permite editar o título ou mensagem do tópico")
     @PutMapping("/{topicId}")
     public ResponseEntity<TopicResponseDTO> updateTopic(
         @PathVariable Long topicId, 
         @RequestBody @Valid TopicRequestDTO request,
         @AuthenticationPrincipal Instructor instructor) {
-        // O service deve validar se o usuário autenticado é o criador ou um instrutor/admin
-        TopicResponseDTO response = topicService.update(topicId, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(topicService.update(topicId, request));
     }
 
-    // [5] Deletar um Tópico
-    // DELETE /topics/{topicId}
+    @Operation(summary = "Deletar Tópico", description = "Remove o tópico e todas as suas respostas")
     @DeleteMapping("/{topicId}")
     public ResponseEntity<Void> deleteTopic(
         @PathVariable Long topicId,
         @AuthenticationPrincipal Instructor instructor) {
-        // O service deve validar se o usuário autenticado é o criador ou um instrutor/admin
         topicService.delete(topicId);
         return ResponseEntity.noContent().build();
     }

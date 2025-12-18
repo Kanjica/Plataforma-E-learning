@@ -1,29 +1,23 @@
 package com.lp3.elearning.controller;
 
 import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import com.lp3.elearning.dto.ResponseRequestDTO;
 import com.lp3.elearning.dto.ResponseResponseDTO;
 import com.lp3.elearning.entities.User;
 import com.lp3.elearning.service.ResponseService;
 import com.lp3.elearning.exception.BusinessRuleException;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/topics/{topicId}/responses")
+@Tag(name = "Fórum - Respostas", description = "Gestão de comentários e replies nos tópicos")
 public class ResponseController {
 
     private final ResponseService responseService;
@@ -32,15 +26,14 @@ public class ResponseController {
         this.responseService = responseService;
     }
     
-    // [1] Criar uma nova Resposta (Comentário ou Reply)
-    // POST /topics/{topicId}/responses
+    @Operation(summary = "Criar Resposta", description = "Adiciona um comentário ou resposta a um tópico")
     @PostMapping
     public ResponseEntity<ResponseResponseDTO> createResponse(
         @PathVariable Long topicId,
         @RequestBody @Valid ResponseRequestDTO request,
-        @AuthenticationPrincipal User user) {
+        @AuthenticationPrincipal User user){
 
-        if (!topicId.equals(request.topicId())) {
+        if(!topicId.equals(request.topicId())){
             throw new BusinessRuleException("O ID do tópico na URL não corresponde ao ID do corpo da requisição.");
         }
         
@@ -48,39 +41,31 @@ public class ResponseController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // [2] Listar as Respostas Raízes (Primeiro Nível, com os threads aninhados) de um Tópico
-    // GET /topics/{topicId}/responses
+    @Operation(summary = "Listar Respostas", description = "Retorna a árvore de comentários de um tópico")
     @GetMapping
     public ResponseEntity<List<ResponseResponseDTO>> getRootResponsesByTopic(@PathVariable Long topicId) {
-        // O Service deve carregar apenas as respostas de primeiro nível, e as filhas serão carregadas recursivamente no DTO
-        List<ResponseResponseDTO> responses = responseService.findRootResponsesByTopic(topicId);
-        return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(responseService.findRootResponsesByTopic(topicId));
     }
     
-    // [3] Deletar uma Resposta
-    // DELETE /topics/{topicId}/responses/{responseId}
+    @Operation(summary = "Deletar Resposta", description = "Remove um comentário (apenas autor ou admin)")
     @DeleteMapping("/{responseId}")
     public ResponseEntity<Void> deleteResponse(
         @PathVariable Long topicId, 
         @PathVariable Long responseId,
         @AuthenticationPrincipal User user) {
-        // O Service deve validar a permissão e a existência da resposta
         responseService.delete(responseId, user);
         return ResponseEntity.noContent().build();
     }
     
-    // [4] Atualizar uma Resposta
-    // PUT /topics/{topicId}/responses/{responseId}
+    @Operation(summary = "Atualizar Resposta", description = "Edita o conteúdo de um comentário")
     @PutMapping("/{responseId}")
     public ResponseEntity<ResponseResponseDTO> updateResponse(
         @PathVariable Long topicId,
         @PathVariable Long responseId,
-        @RequestBody @Valid ResponseRequestDTO request, // Reutilizando DTO ou crie um específico para Update
+        @RequestBody @Valid ResponseRequestDTO request, 
         @AuthenticationPrincipal User user) {
 
-        // Chama o service passando o novo conteúdo e o usuário logado
         ResponseResponseDTO updatedResponse = responseService.update(responseId, request.content(), user);
-        
         return ResponseEntity.ok(updatedResponse);
     }
 }

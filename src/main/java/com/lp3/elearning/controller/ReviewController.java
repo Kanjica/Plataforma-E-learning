@@ -18,11 +18,13 @@ import com.lp3.elearning.dto.ReviewResponseDTO;
 import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.service.ReviewService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
-
 @RequestMapping("/courses/{courseId}/reviews") 
+@Tag(name = "Avaliações", description = "Notas e comentários dos cursos")
 public class ReviewController {
 
     private final ReviewService reviewService;
@@ -31,21 +33,25 @@ public class ReviewController {
         this.reviewService = reviewService;
     }
 
+    
+    @Operation(summary = "Criar Avaliação")
     @PostMapping
     public ResponseEntity<ReviewResponseDTO> create(
-            @PathVariable Long courseId, // ID da URL
+            @PathVariable Long courseId,
             @RequestBody @Valid ReviewRequestDTO request,
             @AuthenticationPrincipal Student student) {
         
-        // Passa o ID e o corpo para o serviço
         ReviewResponseDTO response = reviewService.createReview(courseId, request, student);
         return ResponseEntity.status(201).body(response);
     }
 
+    @Operation(summary = "Listar Avaliações do Curso")
     @GetMapping
     public ResponseEntity<List<ReviewResponseDTO>> list(@PathVariable Long courseId) {
         return ResponseEntity.ok(reviewService.listByCourse(courseId));
     }
+    
+    @Operation(summary = "Atualizar Avaliação")
     @PutMapping("/{reviewId}")
     public ResponseEntity<ReviewResponseDTO> update(
             @PathVariable Long courseId,
@@ -56,6 +62,7 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.updateReview(courseId, reviewId, request, student));
     }
 
+    @Operation(summary = "Deletar Avaliação")
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<Void> delete(
             @PathVariable Long courseId,

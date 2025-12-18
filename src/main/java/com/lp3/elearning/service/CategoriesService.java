@@ -111,10 +111,10 @@ public class CategoriesService {
         if (!categoriesRepository.existsById(id)) {
             throw new ResourceNotFoundException("Categoria não encontrada.");
         }
-        // Opcional: Verificar se existem cursos vinculados antes de deletar
-        if (courseRepository.existsByCategoryId(id)) { 
-            throw new ConflictException("a categoria que c ta tentando deletar tem curso ligada nela"); 
-        }
+        // // Opcional: Verificar se existem cursos vinculados antes de deletar
+        // if (courseRepository.existsByCategoryId(new HashSet<>(Set.of(id)))) { 
+        //     throw new ConflictException("a categoria que c ta tentando deletar tem curso ligada nela"); 
+        // }
         
         categoriesRepository.deleteById(id);
     }

@@ -10,26 +10,23 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.lp3.elearning.dto.EnrollmentResponseDTO;
 import com.lp3.elearning.entities.Student;
-import com.lp3.elearning.entities.User;
-import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.service.EnrollmentService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/students")
+@Tag(name = "Área do Aluno", description = "Dashboard e dados do aluno")
 public class StudentController {
 
     private final EnrollmentService enrollmentService;
 
-    public StudentController(EnrollmentService enrollmentService) {
-        this.enrollmentService = enrollmentService;
-    }
+    public StudentController(EnrollmentService enrollmentService) { this.enrollmentService = enrollmentService; }
 
-    // Endpoint do Dashboard: GET /students/dashboard
+    @Operation(summary = "Meu Dashboard", description = "Retorna cursos em andamento do aluno logado")
     @GetMapping("/dashboard")
     public ResponseEntity<List<EnrollmentResponseDTO>> getMyDashboard(@AuthenticationPrincipal Student student) {
-
-        List<EnrollmentResponseDTO> myCourses = enrollmentService.getMyEnrollments(student.getId());
-        
-        return ResponseEntity.ok(myCourses);
+        return ResponseEntity.ok(enrollmentService.getMyEnrollments(student.getId()));
     }
 }

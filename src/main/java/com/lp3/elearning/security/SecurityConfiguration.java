@@ -37,16 +37,38 @@ public class SecurityConfiguration {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/auth/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**", 
-                                     "/swagger-ui/**",
-                                     "/swagger-ui.html",
-                                     "/webjars/**").permitAll()
-                        // .anyRequest().permitAll()
-                        .requestMatchers(HttpMethod.GET, "/users").hasRole("ADMIN")
-                        // Qualquer usuário autenticado (Student ou Instructor) pode ver seu próprio perfil
-                        .requestMatchers("/users/me").authenticated()
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        
+                        // 2. Instrutores (Perfil Público)
+                        .requestMatchers(HttpMethod.GET, "/instructors/**").permitAll()
+
+                        // 3. Cursos e Categorias (Leitura Pública)
+                        .requestMatchers(HttpMethod.GET, "/courses/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/courses/search").permitAll() 
+                        .requestMatchers(HttpMethod.GET, "/categories/**").permitAll()
+                        
+                        // 4. Gestão de Cursos (Apenas Instrutores)
+                        .requestMatchers(HttpMethod.POST, "/courses/**").hasRole("INSTRUCTOR")
+                        .requestMatchers(HttpMethod.PUT, "/courses/**").hasRole("INSTRUCTOR")
+                        .requestMatchers(HttpMethod.DELETE, "/courses/**").hasRole("INSTRUCTOR")
+                        
+                        // 5. Módulos e Aulas (Gestão)
+                        .requestMatchers(HttpMethod.POST, "/courses/*/modules/**").hasRole("INSTRUCTOR")
+                        .requestMatchers(HttpMethod.PUT, "/courses/*/modules/**").hasRole("INSTRUCTOR")
+                        .requestMatchers(HttpMethod.DELETE, "/courses/*/modules/**").hasRole("INSTRUCTOR")
+
+                        // 6. Área do Aluno (Matrícula, Progresso, Dashboard)
+                        .requestMatchers("/students/**").hasRole("STUDENT")
+                        .requestMatchers(HttpMethod.POST, "/enrollments/**").hasRole("STUDENT")
+                        .requestMatchers(HttpMethod.GET, "/enrollments/*/certificate").hasRole("STUDENT")
+                        
+                        // 7. Fórum e Reviews (Alunos e Instrutores)
+                        .requestMatchers("/topics/**").authenticated()
+                        .requestMatchers("/courses/*/reviews/**").authenticated()
+                        .requestMatchers("/users/**").authenticated()
+
+                        // Qualquer outra coisa precisa de autenticação
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception
