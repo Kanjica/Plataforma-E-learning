@@ -71,14 +71,16 @@ public class TopicController {
         @RequestBody @Valid TopicRequestDTO request,
         @AuthenticationPrincipal Instructor instructor) {
         // O service deve validar se o usuário autenticado é o criador ou um instrutor/admin
-        TopicResponseDTO response = topicService.update(topicId, request, instructor);
+        TopicResponseDTO response = topicService.update(topicId, request);
         return ResponseEntity.ok(response);
     }
 
     // [5] Deletar um Tópico
     // DELETE /topics/{topicId}
     @DeleteMapping("/{topicId}")
-    public ResponseEntity<Void> deleteTopic(@PathVariable Long topicId) {
+    public ResponseEntity<Void> deleteTopic(
+        @PathVariable Long topicId,
+        @AuthenticationPrincipal Instructor instructor) {
         // O service deve validar se o usuário autenticado é o criador ou um instrutor/admin
         topicService.delete(topicId);
         return ResponseEntity.noContent().build();

@@ -59,7 +59,7 @@ public class LessonService {
             return toResponseDTO(lesson);
         }   
         
-        public void validateLessonAccessibility(Lesson currentLesson, Enrollment enrollment) {
+    public void validateLessonAccessibility(Lesson currentLesson, Enrollment enrollment) {
         // 1. Verifica se a aula pertence ao curso que o aluno comprou
         if (!enrollment.getCourse().getId().equals(currentLesson.getModule().getCourse().getId())) {
             throw new BusinessRuleException("A matrícula não corresponde ao curso desta aula.");

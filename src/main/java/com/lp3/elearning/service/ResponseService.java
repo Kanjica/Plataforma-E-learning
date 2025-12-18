@@ -1,107 +1,107 @@
-package com.lp3.elearning.service;
+    package com.lp3.elearning.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
+    import java.util.List;
+    import java.util.stream.Collectors;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+    import org.springframework.http.HttpStatus;
+    import org.springframework.stereotype.Service;
+    import org.springframework.web.server.ResponseStatusException;
 
-import com.lp3.elearning.dto.ResponseRequestDTO;
-import com.lp3.elearning.dto.ResponseResponseDTO;
-import com.lp3.elearning.dto.UserResponseDTO;
-import com.lp3.elearning.entities.Response;
-import com.lp3.elearning.entities.Topic;
-import com.lp3.elearning.entities.User;
-import com.lp3.elearning.exception.BusinessRuleException;
-import com.lp3.elearning.repository.ResponseRepository;
-import com.lp3.elearning.repository.TopicRepository;
-import com.lp3.elearning.repository.UserRepository;
+    import com.lp3.elearning.dto.ResponseRequestDTO;
+    import com.lp3.elearning.dto.ResponseResponseDTO;
+    import com.lp3.elearning.dto.UserResponseDTO;
+    import com.lp3.elearning.entities.Response;
+    import com.lp3.elearning.entities.Topic;
+    import com.lp3.elearning.entities.User;
+    import com.lp3.elearning.exception.BusinessRuleException;
+    import com.lp3.elearning.repository.ResponseRepository;
+    import com.lp3.elearning.repository.TopicRepository;
+    import com.lp3.elearning.repository.UserRepository;
 
-@Service
-public class ResponseService {
+    @Service
+    public class ResponseService {
 
-    private final ResponseRepository responseRepository;
-    private final TopicRepository topicRepository;
-    private final UserRepository userRepository;
-    private final UserService userService;
+        private final ResponseRepository responseRepository;
+        private final TopicRepository topicRepository;
+        private final UserRepository userRepository;
+        private final UserService userService;
 
-    public ResponseService(ResponseRepository responseRepository, TopicRepository topicRepository, UserRepository userRepository, UserService userService) {
-        this.responseRepository = responseRepository;
-        this.topicRepository = topicRepository;
-        this.userRepository = userRepository;
-        this.userService = userService;
-    }
+        public ResponseService(ResponseRepository responseRepository, TopicRepository topicRepository, UserRepository userRepository, UserService userService) {
+            this.responseRepository = responseRepository;
+            this.topicRepository = topicRepository;
+            this.userRepository = userRepository;
+            this.userService = userService;
+        }
 
-    // Método de Conversão de Entidade para DTO (Pode ser chamado recursivamente para montar o thread)
-    public ResponseResponseDTO toResponseResponseDTO(Response response) {
-        
-        // Conversão dos filhos (respostas aninhadas)
-        List<ResponseResponseDTO> childDTOs = response.getChildResponses().stream()
-            .collect(Collectors.toUnmodifiableList()) // Garante a cópia
-            .stream()
-            .map(this::toResponseResponseDTO) 
-            .collect(Collectors.toList());
-
-        UserResponseDTO userDTO = userService.toResponseDTO(response.getUser());
-        return new ResponseResponseDTO(
-            response.getId(),
-            response.getContent(),
-            response.getCreationDate(),
-            userDTO,
-            response.getTopic().getId(),
-            response.getResponseParent() != null ? response.getResponseParent().getId() : null,
-            childDTOs
-        );
-    }
-    
-    // Cria uma nova resposta ou reply
-    public ResponseResponseDTO create(ResponseRequestDTO request, User user) {
-        
-        Topic topic = topicRepository.findById(request.topicId())
-            .orElseThrow(() -> new BusinessRuleException("Tópico não encontrado com ID: " + request.topicId()));
-
-        Response parentResponse = null;
-        if (request.responseParentId() != null) {
-            parentResponse = responseRepository.findById(request.responseParentId())
-                .orElseThrow(() -> new BusinessRuleException("Resposta pai não encontrada com ID: " + request.responseParentId()));
+        // Método de Conversão de Entidade para DTO (Pode ser chamado recursivamente para montar o thread)
+        public ResponseResponseDTO toResponseResponseDTO(Response response) {
             
-            // Validação extra: O reply deve pertencer ao mesmo tópico do pai
-            if (!parentResponse.getTopic().getId().equals(topic.getId())) {
-                throw new BusinessRuleException("A resposta pai pertence a outro tópico.");
+            // Conversão dos filhos (respostas aninhadas)
+            List<ResponseResponseDTO> childDTOs = response.getChildResponses().stream()
+                .collect(Collectors.toUnmodifiableList()) // Garante a cópia
+                .stream()
+                .map(this::toResponseResponseDTO) 
+                .collect(Collectors.toList());
+
+            UserResponseDTO userDTO = userService.toResponseDTO(response.getUser());
+            return new ResponseResponseDTO(
+                response.getId(),
+                response.getContent(),
+                response.getCreationDate(),
+                userDTO,
+                response.getTopic().getId(),
+                response.getResponseParent() != null ? response.getResponseParent().getId() : null,
+                childDTOs
+            );
+        }
+        
+        // Cria uma nova resposta ou reply
+        public ResponseResponseDTO create(ResponseRequestDTO request, User user) {
+            
+            Topic topic = topicRepository.findById(request.topicId())
+                .orElseThrow(() -> new BusinessRuleException("Tópico não encontrado com ID: " + request.topicId()));
+
+            Response parentResponse = null;
+            if (request.responseParentId() != null) {
+                parentResponse = responseRepository.findById(request.responseParentId())
+                    .orElseThrow(() -> new BusinessRuleException("Resposta pai não encontrada com ID: " + request.responseParentId()));
+                
+                // Validação extra: O reply deve pertencer ao mesmo tópico do pai
+                if (!parentResponse.getTopic().getId().equals(topic.getId())) {
+                    throw new BusinessRuleException("A resposta pai pertence a outro tópico.");
+                }
             }
+
+            Response newResponse = Response.builder()
+                .content(request.content())
+                .topic(topic)
+                .user(user)
+                .responseParent(parentResponse)
+                .build();
+            
+            return toResponseResponseDTO(responseRepository.save(newResponse));
         }
 
-        Response newResponse = Response.builder()
-            .content(request.content())
-            .topic(topic)
-            .user(user)
-            .responseParent(parentResponse)
-            .build();
-        
-        return toResponseResponseDTO(responseRepository.save(newResponse));
-    }
-
-    // Busca apenas as respostas de "primeiro nível" para um tópico (raízes)
-    public List<ResponseResponseDTO> findRootResponsesByTopic(Long topicId) {
-        // Requer o método findByTopicIdAndResponseParentIsNull no ResponseRepository
-        List<Response> rootResponses = responseRepository.findByTopicIdAndResponseParentIsNull(topicId);
-        
-        return rootResponses.stream()
-            .map(this::toResponseResponseDTO)
-            .collect(Collectors.toList());
-    }
-    
-    public void delete(Long responseId) {
-        // ** AQUI DEVERIA TER UMA VALIDAÇÃO DE AUTORIZAÇÃO **
-        if (!responseRepository.existsById(responseId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Resposta não encontrada com ID: " + responseId);
+        // Busca apenas as respostas de "primeiro nível" para um tópico (raízes)
+        public List<ResponseResponseDTO> findRootResponsesByTopic(Long topicId) {
+            // Requer o método findByTopicIdAndResponseParentIsNull no ResponseRepository
+            List<Response> rootResponses = responseRepository.findByTopicIdAndResponseParentIsNull(topicId);
+            
+            return rootResponses.stream()
+                .map(this::toResponseResponseDTO)
+                .collect(Collectors.toList());
         }
         
-        // Se a resposta tiver respostas filhas, pode-se optar por:
-        // 1. Impedir a exclusão (throw new BusinessRuleException)
-        // 2. Excluir em cascata (Se o 'orphanRemoval = true' na entidade estiver configurado)
-        
-        responseRepository.deleteById(responseId);
+        public void delete(Long responseId) {
+            // ** AQUI DEVERIA TER UMA VALIDAÇÃO DE AUTORIZAÇÃO **
+            if (!responseRepository.existsById(responseId)) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Resposta não encontrada com ID: " + responseId);
+            }
+            
+            // Se a resposta tiver respostas filhas, pode-se optar por:
+            // 1. Impedir a exclusão (throw new BusinessRuleException)
+            // 2. Excluir em cascata (Se o 'orphanRemoval = true' na entidade estiver configurado)
+            
+            responseRepository.deleteById(responseId);
+        }
     }
-}

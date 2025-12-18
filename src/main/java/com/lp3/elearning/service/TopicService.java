@@ -98,12 +98,9 @@ public class TopicService {
         return toResponseDTO(topicRepository.save(newTopic));
     }
 
-    public TopicResponseDTO update(Long id, TopicRequestDTO request, Instructor instructor) {
+    public TopicResponseDTO update(Long id, TopicRequestDTO request) {
         Topic existingTopic = topicRepository.findById(id)
                                 .orElseThrow(() -> new BusinessRuleException("Id de tópico n encontrado"));
-
-        // ** AQUI DEVERIA TER UMA VALIDAÇÃO DE AUTORIZAÇÃO ** // if (usuarioAutenticadoNaoPodeEditar(existingTopic)) { throw new BusinessRuleException(...) }
-
 
         existingTopic.setTitle(request.title());
         existingTopic.setContent(request.content());
@@ -113,7 +110,6 @@ public class TopicService {
     }
 
     public void delete(Long id) {
-        // ** AQUI DEVERIA TER UMA VALIDAÇÃO DE AUTORIZAÇÃO **
         Topic topic = topicRepository.findById(id)
             .orElseThrow(() -> new BusinessRuleException("Topic not found with id: " + id));
         
