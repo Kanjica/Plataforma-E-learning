@@ -93,14 +93,14 @@ SELECT setval('modules_id_seq', (SELECT MAX(id) FROM modules));
 -- ========================================================
 INSERT INTO lessons (id, title, content, video_url, module_id, lesson_order) OVERRIDING SYSTEM VALUE VALUES
 (1, 'Configurando o Ambiente', 'Configuração inicial do ambiente de desenvolvimento.', 'https://youtu.be/vV1Dy3Eo2Nw?si=iiJr26l5QkMsS-It', 1, 1),
-(2, 'Endpoints REST e Verbos HTTP', 'Criação de endpoints REST com verbos HTTP.', 'http://video.teste/sb/02', 1, 2),
-(3, 'Injeção de Dependência', 'Injeção de dependência no Spring Boot.', 'http://video.teste/sb/03', 1, 3),
-(4, 'Criando Componentes Funcionais', 'Criação de componentes funcionais no React.', 'http://video.teste/react/01', 4, 1),
-(5, 'Usando useEffect', 'Uso do hook useEffect no React.', 'http://video.teste/react/02', 5, 1),
-(6, 'Usando Índices com Eficiência', 'Técnicas para otimizar consultas em PostgreSQL.', 'http://video.teste/pg/01', 6, 1),
-(7, 'REST vs. gRPC', 'Padrões de comunicação em sistemas distribuídos.', 'http://video.teste/ms/01', 7, 1),
-(8, 'Atomic Design', 'Criação e manutenção de sistemas de design.', 'http://video.teste/ux/01', 8, 1),
-(9, 'Variáveis e Tipos de Dados', 'Primeiros passos com a linguagem Python.', 'http://video.teste/py/01', 9, 1);
+(2, 'Endpoints REST e Verbos HTTP', 'Criação de endpoints REST com verbos HTTP.', 'https://www.youtube.com/watch?v=SOVkQ8Ke-8s&list=RDSOVkQ8Ke-8s&start_radio=1', 1, 2),
+(3, 'Injeção de Dependência', 'Injeção de dependência no Spring Boot.', 'https://youtu.be/lSD_L-xic9o?si=W_qDuEfPTIj7UOtl', 1, 3),
+(4, 'Criando Componentes Funcionais', 'Criação de componentes funcionais no React.', 'https://www.youtube.com/watch?v=l9CZykYZkOQ&list=RDGMEMQ1dJ7wXfLlqCjwV0xfSNbA&start_radio=1&rv=wNKmYTmRmG4', 4, 1),
+(5, 'Usando useEffect', 'Uso do hook useEffect no React.', 'https://www.youtube.com/watch?v=3-qwqrQXsXQ&list=RDGMEMQ1dJ7wXfLlqCjwV0xfSNbA&index=13', 5, 1),
+(6, 'Usando Índices com Eficiência', 'Técnicas para otimizar consultas em PostgreSQL.', 'https://youtu.be/OzL7u5teZhg?si=_qWoJgAXbcelNLKu', 6, 1),
+(7, 'REST vs. gRPC', 'Padrões de comunicação em sistemas distribuídos.', 'https://youtu.be/o7fgFaXKVa0?si=CA14rL4qwk64FCc5', 7, 1),
+(8, 'Atomic Design', 'Criação e manutenção de sistemas de design.', 'https://youtu.be/VEe_yIbW64w?si=yLvjPsjv2trZCOqw', 8, 1),
+(9, 'Variáveis e Tipos de Dados', 'Primeiros passos com a linguagem Python.', 'https://youtu.be/LYsaKn8FRhc?si=f6VmYWi0RStHDjW7', 9, 1);
 
 SELECT setval('lessons_id_seq', (SELECT MAX(id) FROM lessons));
 
