@@ -2,7 +2,8 @@ package com.lp3.elearning.entities;
 
 public enum UserRole {
     ROLE_INSTRUCTOR("ROLE_INSTRUCTOR"),
-    ROLE_STUDENT("ROLE_STUDENT");
+    ROLE_STUDENT("ROLE_STUDENT"),
+    ROLE_ADMIN("ROLE_ADMIN");
 
     private String role;
 

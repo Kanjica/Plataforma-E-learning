@@ -15,6 +15,8 @@ import com.lp3.elearning.repository.CourseRepository;
 import com.lp3.elearning.repository.EnrollmentRepository;
 import com.lp3.elearning.repository.ReviewRepository;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class ReviewService {
 
@@ -70,5 +72,42 @@ public class ReviewService {
                         r.getReviewDate()
                 ))
                 .toList();
+    }
+
+    @Transactional
+public ReviewResponseDTO updateReview(Long courseId, Long reviewId, ReviewRequestDTO request, Student student) {
+    Review review = reviewRepository.findById(reviewId)
+            .orElseThrow(() -> new ResourceNotFoundException("Avaliação não encontrada"));
+
+    // Validação de segurança: A review pertence a esse curso e a esse aluno?
+    if (!review.getCourse().getId().equals(courseId) || !review.getStudent().getId().equals(student.getId())) {
+        throw new BusinessRuleException("Você não tem permissão para editar esta avaliação.");
+    }
+
+    review.setRating(request.rating());
+    review.setComment(request.comment());
+
+    review = reviewRepository.save(review);
+
+    return new ReviewResponseDTO(
+            review.getId(),
+            student.getName(),
+            review.getRating(),
+            review.getComment(),
+            review.getReviewDate()
+    );
+}
+
+    @Transactional
+    public void deleteReview(Long courseId, Long reviewId, Student student) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ResourceNotFoundException("Avaliação não encontrada"));
+
+        // Apenas o dono da avaliação pode deletar
+        if (!review.getStudent().getId().equals(student.getId())) {
+            throw new BusinessRuleException("Você não tem permissão para remover esta avaliação.");
+        }
+
+        reviewRepository.delete(review);
     }
 }

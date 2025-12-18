@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -59,11 +60,27 @@ public class ResponseController {
     // [3] Deletar uma Resposta
     // DELETE /topics/{topicId}/responses/{responseId}
     @DeleteMapping("/{responseId}")
-    public ResponseEntity<Void> deleteResponse(@PathVariable Long topicId, @PathVariable Long responseId) {
+    public ResponseEntity<Void> deleteResponse(
+        @PathVariable Long topicId, 
+        @PathVariable Long responseId,
+        @AuthenticationPrincipal User user) {
         // O Service deve validar a permissão e a existência da resposta
-        responseService.delete(responseId);
+        responseService.delete(responseId, user);
         return ResponseEntity.noContent().build();
     }
     
-    // Nota: O endpoint para UPDATE (PUT) de uma resposta específica também deve ser adicionado.
+    // [4] Atualizar uma Resposta
+    // PUT /topics/{topicId}/responses/{responseId}
+    @PutMapping("/{responseId}")
+    public ResponseEntity<ResponseResponseDTO> updateResponse(
+        @PathVariable Long topicId,
+        @PathVariable Long responseId,
+        @RequestBody @Valid ResponseRequestDTO request, // Reutilizando DTO ou crie um específico para Update
+        @AuthenticationPrincipal User user) {
+
+        // Chama o service passando o novo conteúdo e o usuário logado
+        ResponseResponseDTO updatedResponse = responseService.update(responseId, request.content(), user);
+        
+        return ResponseEntity.ok(updatedResponse);
+    }
 }

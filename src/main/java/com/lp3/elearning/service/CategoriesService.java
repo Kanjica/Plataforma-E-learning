@@ -11,18 +11,22 @@ import org.springframework.stereotype.Service;
 import com.lp3.elearning.dto.CategoryRequestDTO;
 import com.lp3.elearning.dto.CategoryResponseDTO;
 import com.lp3.elearning.entities.Category;
+import com.lp3.elearning.exception.ConflictException;
 import com.lp3.elearning.exception.ResourceNotFoundException;
 import com.lp3.elearning.repository.CategoriesRepository;
-
+import com.lp3.elearning.repository.CourseRepository;
 import io.micrometer.common.lang.NonNull;
 
 @Service
 public class CategoriesService {
 
+    private final CourseRepository courseRepository;
+
     private final CategoriesRepository categoriesRepository;
 
-    public CategoriesService(CategoriesRepository categoriesRepository) {
+    public CategoriesService(CategoriesRepository categoriesRepository, CourseRepository courseRepository) {
         this.categoriesRepository = categoriesRepository;
+        this.courseRepository = courseRepository;
     }
     
     public CategoryResponseDTO createCategory(CategoryRequestDTO dto) {
@@ -93,5 +97,25 @@ public class CategoriesService {
 
     public CategoryResponseDTO toResponseDTO(Category category) {
             return new CategoryResponseDTO(category.getId(), category.getName());
+    }
+
+    // Adicionar Update
+    public CategoryResponseDTO update(Long id, CategoryRequestDTO dto) {
+        Category category = findCategoryEntityById(id);
+        category.setName(dto.name());
+        return toResponseDTO(categoriesRepository.save(category));
+    }
+
+    // Adicionar Delete
+    public void delete(Long id) {
+        if (!categoriesRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Categoria não encontrada.");
+        }
+        // Opcional: Verificar se existem cursos vinculados antes de deletar
+        if (courseRepository.existsByCategoryId(id)) { 
+            throw new ConflictException("a categoria que c ta tentando deletar tem curso ligada nela"); 
+        }
+        
+        categoriesRepository.deleteById(id);
     }
 }

@@ -6,10 +6,13 @@ import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.lp3.elearning.entities.Course;
+import com.lp3.elearning.entities.Category;
+
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
     boolean existsByTitle(String title);
     boolean existsById(Long id);
+    boolean existsByCategoryId(Long categoryId);
     List<Course> findByTitleContainingIgnoreCaseAndCategories_IdIn(String title, Set<Long> categoryIds);
     List<Course> findByTitleContainingIgnoreCase(String title);
     List<Course> findByCategories_IdIn(Set<Long> categoryIds);

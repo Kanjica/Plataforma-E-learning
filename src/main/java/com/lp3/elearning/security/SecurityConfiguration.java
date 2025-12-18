@@ -44,6 +44,9 @@ public class SecurityConfiguration {
                                      "/swagger-ui.html",
                                      "/webjars/**").permitAll()
                         // .anyRequest().permitAll()
+                        .requestMatchers(HttpMethod.GET, "/users").hasRole("ADMIN")
+                        // Qualquer usuário autenticado (Student ou Instructor) pode ver seu próprio perfil
+                        .requestMatchers("/users/me").authenticated()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception
