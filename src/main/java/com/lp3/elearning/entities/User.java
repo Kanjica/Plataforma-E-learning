@@ -36,7 +36,7 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
-    private long id;
+    private Long id;
 
     @NonNull
     @NotBlank(message = "Nome do usuario não pode estar vazio")
