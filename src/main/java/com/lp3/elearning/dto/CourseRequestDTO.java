@@ -6,6 +6,7 @@ import java.util.Set;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
 public record CourseRequestDTO(
@@ -30,12 +31,15 @@ public record CourseRequestDTO(
     @NotBlank(message = "A URL da imagem do curso não pode ser vazia.")
     String imageUrl,
 
-    @NotBlank(message = "O preço é obrigatório.")
+    @NotNull
+    @PositiveOrZero
     BigDecimal price,
 
+    @NotNull
+    @PositiveOrZero
     BigDecimal oldPrice,
 
-    @NotBlank
+    @NotNull
     Boolean isBestSeller
 
 ) {}
