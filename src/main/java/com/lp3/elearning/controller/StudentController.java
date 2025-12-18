@@ -32,7 +32,6 @@ public class StudentController {
             throw new BusinessRuleException("Apenas alunos podem acessar o dashboard de cursos.");
         }
 
-        // Busca as matrículas usando o ID do usuário logado (token JWT)
         List<EnrollmentResponseDTO> myCourses = enrollmentService.getMyEnrollments(user.getId());
         
         return ResponseEntity.ok(myCourses);
