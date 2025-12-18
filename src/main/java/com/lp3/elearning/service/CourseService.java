@@ -1,5 +1,6 @@
 package com.lp3.elearning.service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -70,8 +71,13 @@ public class CourseService {
                 .title(request.title())
                 .description(request.description())
                 .workload(request.workload())
+                .imageUrl(request.imageUrl())
+                .price(request.price())
+                .oldPrice(request.oldPrice())
+                .isBestSeller(request.isBestSeller())
                 .categories(categories)
                 .instructors(instructors)
+                .modules(new ArrayList<>())
                 .build();
 
         return toResponseDTO(courseRepository.save(course));
@@ -116,6 +122,10 @@ public class CourseService {
         existingCourse.setTitle(request.title());
         existingCourse.setDescription(request.description());
         existingCourse.setWorkload(request.workload());
+        existingCourse.setImageUrl(request.imageUrl());
+        existingCourse.setPrice(request.price());
+        existingCourse.setOldPrice(request.oldPrice());
+        existingCourse.setIsBestSeller(request.isBestSeller());
         existingCourse.setCategories(categories);
         existingCourse.setInstructors(instructors);
 
@@ -150,6 +160,10 @@ public class CourseService {
                 .title(request.title())
                 .description(request.description())
                 .workload(request.workload())
+                .imageUrl(request.imageUrl())
+                .price(request.price())
+                .oldPrice(request.oldPrice())
+                .isBestSeller(request.isBestSeller())
                 .categories(categories)
                 .instructors(instructors)
                 .build();
@@ -160,6 +174,10 @@ public class CourseService {
                 .title(request.title())
                 .description(request.description())
                 .workload(request.workload())
+                .imageUrl(request.imageUrl())
+                .price(request.price())
+                .oldPrice(request.oldPrice())
+                .isBestSeller(request.isBestSeller())
                 .categories(categories)
                 .instructors(instructors)
                 .build();
@@ -194,5 +212,4 @@ public class CourseService {
         return courseRepository.findById(id)
                 .orElseThrow(() -> new BusinessRuleException("Curso não encontrado com o ID: " + id));
     }
-
 }
