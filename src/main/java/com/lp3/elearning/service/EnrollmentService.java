@@ -103,4 +103,11 @@ public class EnrollmentService {
 
         );
     }
+
+    public List<EnrollmentResponseDTO> findByStudent(Long studentId) {
+    return enrollmentRepository.findByStudentId(studentId)
+        .stream()
+        .map(this::toResponseDTO)
+        .toList();
+}
 }

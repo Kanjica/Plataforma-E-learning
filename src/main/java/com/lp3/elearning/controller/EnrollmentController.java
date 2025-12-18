@@ -1,5 +1,7 @@
 package com.lp3.elearning.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -56,5 +58,12 @@ public class EnrollmentController {
                 .body(pdfBytes);
     }
 
-    
+    @GetMapping("/student/{studentId}")
+    public ResponseEntity<List<EnrollmentResponseDTO>> getByStudent(
+            @PathVariable Long studentId) {
+
+        return ResponseEntity.ok(
+            enrollmentService.findByStudent(studentId)
+        );
+    }
 }
