@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.lp3.elearning.dto.TopicRequestDTO;
 import com.lp3.elearning.dto.TopicResponseDTO;
+import com.lp3.elearning.entities.Instructor;
+import com.lp3.elearning.entities.User;
 import com.lp3.elearning.service.TopicService;
 
 import jakarta.validation.Valid;
@@ -45,8 +48,10 @@ public class TopicController {
     // [2] Criar um novo Tópico
     // POST /topics (O courseId e userId vêm no corpo do DTO)
     @PostMapping
-    public ResponseEntity<TopicResponseDTO> createTopic(@RequestBody @Valid TopicRequestDTO request) {
-        TopicResponseDTO response = topicService.create(request);
+    public ResponseEntity<TopicResponseDTO> createTopic(
+        @RequestBody @Valid TopicRequestDTO request,
+        @AuthenticationPrincipal User user) {
+        TopicResponseDTO response = topicService.create(request, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     
@@ -61,9 +66,12 @@ public class TopicController {
     // [4] Atualizar um Tópico
     // PUT /topics/{topicId}
     @PutMapping("/{topicId}")
-    public ResponseEntity<TopicResponseDTO> updateTopic(@PathVariable Long topicId, @RequestBody @Valid TopicRequestDTO request) {
+    public ResponseEntity<TopicResponseDTO> updateTopic(
+        @PathVariable Long topicId, 
+        @RequestBody @Valid TopicRequestDTO request,
+        @AuthenticationPrincipal Instructor instructor) {
         // O service deve validar se o usuário autenticado é o criador ou um instrutor/admin
-        TopicResponseDTO response = topicService.update(topicId, request);
+        TopicResponseDTO response = topicService.update(topicId, request, instructor);
         return ResponseEntity.ok(response);
     }
 

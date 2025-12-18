@@ -56,13 +56,10 @@ public class ResponseService {
     }
     
     // Cria uma nova resposta ou reply
-    public ResponseResponseDTO create(ResponseRequestDTO request) {
+    public ResponseResponseDTO create(ResponseRequestDTO request, User user) {
         
         Topic topic = topicRepository.findById(request.topicId())
             .orElseThrow(() -> new BusinessRuleException("Tópico não encontrado com ID: " + request.topicId()));
-
-        User user = userRepository.findById(request.userId())
-            .orElseThrow(() -> new BusinessRuleException("Usuário não encontrado com ID: " + request.userId()));
 
         Response parentResponse = null;
         if (request.responseParentId() != null) {

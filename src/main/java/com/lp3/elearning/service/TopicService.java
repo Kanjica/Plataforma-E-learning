@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.lp3.elearning.dto.TopicRequestDTO;
 import com.lp3.elearning.dto.TopicResponseDTO;
 import com.lp3.elearning.dto.ResponseResponseDTO; // Importado
+import com.lp3.elearning.entities.Instructor;
 import com.lp3.elearning.entities.Topic;
 import com.lp3.elearning.entities.User;
 import com.lp3.elearning.exception.BusinessRuleException;
@@ -84,11 +85,7 @@ public class TopicService {
         return toResponseDTO(topic);
     }
 
-    public TopicResponseDTO create(TopicRequestDTO request) {
-        
-        // Em um sistema real, o user ID viria do token de autenticação, não do DTO.
-        User user = userRepository.findById(request.userId())
-            .orElseThrow(() -> new BusinessRuleException("User not found with ID: " + request.userId()));
+    public TopicResponseDTO create(TopicRequestDTO request, User user) {
         
         Topic newTopic = Topic.builder()
             .title(request.title())
@@ -101,11 +98,12 @@ public class TopicService {
         return toResponseDTO(topicRepository.save(newTopic));
     }
 
-    public TopicResponseDTO update(Long id, TopicRequestDTO request) {
+    public TopicResponseDTO update(Long id, TopicRequestDTO request, Instructor instructor) {
         Topic existingTopic = topicRepository.findById(id)
                                 .orElseThrow(() -> new BusinessRuleException("Id de tópico n encontrado"));
 
         // ** AQUI DEVERIA TER UMA VALIDAÇÃO DE AUTORIZAÇÃO ** // if (usuarioAutenticadoNaoPodeEditar(existingTopic)) { throw new BusinessRuleException(...) }
+
 
         existingTopic.setTitle(request.title());
         existingTopic.setContent(request.content());

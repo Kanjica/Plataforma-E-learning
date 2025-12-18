@@ -16,6 +16,7 @@ import com.lowagie.text.Paragraph;
 import com.lowagie.text.pdf.PdfWriter;
 import com.lp3.elearning.entities.Enrollment;
 import com.lp3.elearning.entities.StatusEnrollment;
+import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.exception.BusinessRuleException;
 
 @Service
@@ -27,10 +28,13 @@ public class CertificateService {
         this.enrollmentService = enrollmentService;
     }
 
-    public byte[] generateCertificatePdf(Long enrollmentId) {
+    public byte[] generateCertificatePdf(Long enrollmentId, Student student) {
         // Busca a matrícula
         Enrollment enrollment = enrollmentService.findById(enrollmentId);
 
+        if(!enrollment.getStudent().equals(student)){
+            throw new BusinessRuleException("Tá se passando por quem colega?");
+        }
         // Valida se o curso foi concluído
         if (enrollment.getStatus() != StatusEnrollment.COMPLETED && enrollment.getOverallProgress() < 100.0) {
             throw new BusinessRuleException("O certificado só pode ser emitido após a conclusão do curso.");

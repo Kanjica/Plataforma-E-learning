@@ -26,13 +26,9 @@ public class StudentController {
 
     // Endpoint do Dashboard: GET /students/dashboard
     @GetMapping("/dashboard")
-    public ResponseEntity<List<EnrollmentResponseDTO>> getMyDashboard(@AuthenticationPrincipal User user) {
-        
-        if (!(user instanceof Student)) {
-            throw new BusinessRuleException("Apenas alunos podem acessar o dashboard de cursos.");
-        }
+    public ResponseEntity<List<EnrollmentResponseDTO>> getMyDashboard(@AuthenticationPrincipal Student student) {
 
-        List<EnrollmentResponseDTO> myCourses = enrollmentService.getMyEnrollments(user.getId());
+        List<EnrollmentResponseDTO> myCourses = enrollmentService.getMyEnrollments(student.getId());
         
         return ResponseEntity.ok(myCourses);
     }

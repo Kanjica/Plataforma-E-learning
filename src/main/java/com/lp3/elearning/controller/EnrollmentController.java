@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.lp3.elearning.dto.EnrollmentRequestDTO;
 import com.lp3.elearning.dto.EnrollmentResponseDTO;
+import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.service.CertificateService;
 import com.lp3.elearning.service.EnrollmentService;
 
@@ -38,8 +40,11 @@ public class EnrollmentController {
 
     // ENDPOINT DE DOWNLOAD 
     @GetMapping("/{enrollmentId}/certificate")
-    public ResponseEntity<byte[]> getCertificate(@PathVariable Long enrollmentId) {
-        byte[] pdfBytes = certificateService.generateCertificatePdf(enrollmentId);
+    public ResponseEntity<byte[]> getCertificate(
+        @PathVariable Long enrollmentId,
+        @AuthenticationPrincipal Student student) {
+
+        byte[] pdfBytes = certificateService.generateCertificatePdf(enrollmentId, student);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
