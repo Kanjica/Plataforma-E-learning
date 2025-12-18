@@ -90,14 +90,14 @@ public class AuthenticationController {
         // Converte string do front para enum UserRole
         UserRole userRole;
         try {
-            userRole = UserRole.valueOf(data.role().toUpperCase());
+            userRole = UserRole.valueOf("ROLE_"+data.role().toUpperCase());
         } catch (IllegalArgumentException e) {
             response.put("message", "Role inválido! Use STUDENT ou INSTRUCTOR.\n Seu input =" + data.role());
             return ResponseEntity.badRequest().body(response);
         }
 
         // Registra baseado no role
-        if(userRole == UserRole.STUDENT) {
+        if(userRole == UserRole.ROLE_STUDENT) {
             studentRepository.save(
                 Student.builder()
                     .name(data.name())
@@ -107,7 +107,7 @@ public class AuthenticationController {
                     .build()
             );
             response.put("message", "Aluno cadastrado com sucesso!");
-        } else if(userRole == UserRole.INSTRUCTOR) {
+        } else if(userRole == UserRole.ROLE_INSTRUCTOR) {
             instructorRepository.save(
                 Instructor.builder()
                     .name(data.name())
