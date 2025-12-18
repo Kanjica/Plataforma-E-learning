@@ -41,7 +41,6 @@ public class CategoriesService {
         if (!categoriesRepository.existsById(id)) {
             throw new ResourceNotFoundException("Categoria não encontrada.");
         }
-        // TODO: Verificar se há cursos vinculados antes de deletar, se necessário.
         categoriesRepository.deleteById(id);
     }
 

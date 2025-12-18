@@ -38,37 +38,13 @@ public class SecurityConfiguration {
                 .csrf(csrf -> csrf.disable()) // Desabilita CSRF (Padrão para API REST Stateless)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        // 1. Acesso Público (Auth e Docs)
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        
-                        // 2. Leitura Pública (Catálogo)
-                        .requestMatchers(HttpMethod.GET, "/instructors/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/courses/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/courses/search").permitAll() 
-                        .requestMatchers(HttpMethod.GET, "/categories/**").permitAll()
-                        
-                        // 3. Instrutores (Escrita em Cursos)
-                        .requestMatchers(HttpMethod.POST, "/courses/**").hasRole("INSTRUCTOR")
-                        .requestMatchers(HttpMethod.PUT, "/courses/**").hasRole("INSTRUCTOR")
-                        .requestMatchers(HttpMethod.DELETE, "/courses/**").hasRole("INSTRUCTOR")
-                        
-                        // 4. Módulos e Aulas
-                        .requestMatchers(HttpMethod.POST, "/courses/*/modules/**").hasRole("INSTRUCTOR")
-                        .requestMatchers(HttpMethod.PUT, "/courses/*/modules/**").hasRole("INSTRUCTOR")
-                        .requestMatchers(HttpMethod.DELETE, "/courses/*/modules/**").hasRole("INSTRUCTOR")
-
-                        // 5. Alunos (Matrícula e Certificado)
-                        .requestMatchers("/students/**").hasRole("STUDENT")
-                        .requestMatchers(HttpMethod.POST, "/enrollments/**").hasRole("STUDENT")
-                        .requestMatchers(HttpMethod.GET, "/enrollments/*/certificate").hasRole("STUDENT")
-                        
-                        // 6. Interações (Autenticados em geral)
-                        .requestMatchers("/topics/**").authenticated()
-                        .requestMatchers("/courses/*/reviews/**").authenticated()
-                        .requestMatchers("/users/**").authenticated()
-
-                        // Resto bloqueado
+                        .requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/auth/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**", 
+                                     "/swagger-ui/**",
+                                     "/swagger-ui.html",
+                                     "/webjars/**").permitAll()
+                        // .anyRequest().permitAll()
                         .anyRequest().authenticated()
                 )
                 // Configura o tratamento de erro customizado (401 JSON)
