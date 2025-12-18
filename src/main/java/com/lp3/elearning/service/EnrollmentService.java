@@ -112,4 +112,8 @@ public class EnrollmentService {
     public Set<CompletedLessonResponseDTO> calculateProgress(Enrollment enrollment){
         return completedLessonsService.findByEnrollment(enrollment);
     }
+
+    public Enrollment saveProgress(Enrollment enrollment){
+        return enrollmentRepository.save(enrollment);
+    }
 }
