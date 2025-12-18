@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.lp3.elearning.dto.UserRequestDTO;
+import com.lp3.elearning.dto.UserUpdateRequestDTO;
 import com.lp3.elearning.entities.User;
 import com.lp3.elearning.repository.UserRepository;
 
@@ -24,7 +25,7 @@ class UserServiceTest {
     @Test
     void shouldUpdateProfile() {
         User user = new User(); user.setId(1L); user.setName("Old");
-        UserRequestDTO dto = new UserRequestDTO("New Name", "new@email.com", null, null);
+        UserUpdateRequestDTO dto = new UserUpdateRequestDTO("New Name", "new@email.com");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));

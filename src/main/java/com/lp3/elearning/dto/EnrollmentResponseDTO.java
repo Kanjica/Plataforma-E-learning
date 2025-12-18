@@ -8,7 +8,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record EnrollmentResponseDTO(
     Long id,
     StudentResponseDTO student,
-    CourseResponseDTO course,
+    Long courseId,
+    String courseTitle,
     
     @Schema(description = "Progresso geral (0.0 a 1.0)", example = "0.75")
     Double overallProgress,

@@ -209,6 +209,9 @@ INSERT INTO categories (id, name) VALUES
 (9, 'Arte e Música'),
 (10, 'Produtividade');
 
+-- Atualiza a sequência da tabela categories para o maior ID existente
+SELECT setval('categories_id_seq', (SELECT MAX(id) FROM categories));
+
 INSERT INTO course_category (course_id, category_id) VALUES
 (1, 1),
 (2, 1),

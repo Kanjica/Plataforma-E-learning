@@ -39,4 +39,5 @@ public interface LessonRepository extends JpaRepository<Lesson, Long>{
     boolean existsByLessonOrderAndModuleId(Integer order, Long moduleId);
     Optional<Lesson> findByLessonOrder(Integer lessonOrder);
     Optional<Lesson> findFirstByModuleIdOrderByLessonOrderDesc(Long moduleId);
+    
 }

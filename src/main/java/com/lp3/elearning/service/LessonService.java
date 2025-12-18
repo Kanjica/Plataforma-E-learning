@@ -162,22 +162,15 @@ public class LessonService {
 
     private void shiftLessonOrders(Long moduleId, Integer startOrder, Long ignoreLessonId) {
         List<Lesson> lessons = lessonRepository.findByModuleId(moduleId);
-        
-        // Filtra aulas que têm ordem maior ou igual à nova ordem
-        // Se for um update, excluímos a própria aula da lista de shift
-        List<Lesson> toShift = lessons.stream()
+        lessons.stream()
             .filter(l -> !l.getId().equals(ignoreLessonId))
             .filter(l -> l.getLessonOrder() >= startOrder)
-            .sorted(Comparator.comparing(Lesson::getLessonOrder).reversed()) // Ordem reversa para evitar conflito de unique constraint se houver
-            .toList();
-
-        if (!toShift.isEmpty()) {
-            toShift.forEach(l -> l.setLessonOrder(l.getLessonOrder() + 1));
-            lessonRepository.saveAll(toShift);
-            lessonRepository.flush(); // Força o update antes de inserir a nova
-        }
+            .forEach(l -> l.setLessonOrder(l.getLessonOrder() + 1));
+        
+        lessonRepository.saveAll(lessons);
     }
 
+    // Métodos de conversão e leitura simples mantidos...
     public LessonResponseDTO toResponseDTO(Lesson lesson){
         return new LessonResponseDTO(
             lesson.getId(), lesson.getTitle(), lesson.getContent(),

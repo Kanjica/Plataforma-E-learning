@@ -6,6 +6,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import com.lp3.elearning.dto.UserRequestDTO;
 import com.lp3.elearning.dto.UserResponseDTO;
+import com.lp3.elearning.dto.UserUpdateRequestDTO;
 import com.lp3.elearning.entities.User;
 import com.lp3.elearning.service.UserService;
 
@@ -32,7 +33,7 @@ public class UserController {
     @PutMapping("/me")
     public ResponseEntity<UserResponseDTO> updateMyProfile(
             @AuthenticationPrincipal User user, 
-            @RequestBody @Valid UserRequestDTO request) {
+            @RequestBody @Valid UserUpdateRequestDTO request) {
         return ResponseEntity.ok(userService.updateProfile(user.getId(), request));
     }
 

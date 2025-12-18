@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.lp3.elearning.dto.UserRequestDTO;
 import com.lp3.elearning.dto.UserResponseDTO;
+import com.lp3.elearning.dto.UserUpdateRequestDTO;
 import com.lp3.elearning.entities.User;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.repository.UserRepository;
@@ -28,7 +29,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponseDTO updateProfile(Long userId, UserRequestDTO request) {
+    public UserResponseDTO updateProfile(Long userId, UserUpdateRequestDTO request) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new BusinessRuleException("Usuário não encontrado"));
         

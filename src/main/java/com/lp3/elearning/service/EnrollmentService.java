@@ -93,7 +93,8 @@ public class EnrollmentService {
         return new EnrollmentResponseDTO(
             enrollment.getId(),
             studentService.findByIdResponseDTO(enrollment.getStudent().getId()),
-            courseService.getCourseByIdResponseDTO(enrollment.getCourse().getId()),
+            courseService.getCourseByIdResponseDTO(enrollment.getCourse().getId()).id(),
+            courseService.getCourseByIdResponseDTO(enrollment.getCourse().getId()).title(),
             calculateOverallProgress(enrollment),
             enrollment.getStatus(),
             completedLessonsService.findByEnrollment(enrollment)
