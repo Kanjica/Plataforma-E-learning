@@ -73,7 +73,7 @@ public class AuthenticationController {
         try {
             userRole = UserRole.valueOf("ROLE_"+data.role().toUpperCase());
         } catch (IllegalArgumentException e) {
-            response.put("message", "Role inválido! Use STUDENT ou INSTRUCTOR.");
+            response.put("message", "Role inválido! Use STUDENT ou INSTRUCTOR." + "Sua entrada: " + data.role());
             return ResponseEntity.badRequest().body(response);
         }
 
