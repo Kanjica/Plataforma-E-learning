@@ -1,19 +1,23 @@
 package com.lp3.elearning.service;
 
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.lp3.elearning.dto.CompletedLessonResponseDTO;
 import com.lp3.elearning.dto.EnrollmentRequestDTO;
 import com.lp3.elearning.dto.EnrollmentResponseDTO;
 import com.lp3.elearning.entities.Course;
 import com.lp3.elearning.entities.Enrollment;
+import com.lp3.elearning.entities.StatusEnrollment;
 import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.exception.BusinessRuleException;
+import com.lp3.elearning.exception.ConflictException;
 import com.lp3.elearning.repository.EnrollmentRepository;
-import java.util.List;
-import java.util.Set;
 
 @Service
 public class EnrollmentService {
@@ -24,7 +28,11 @@ public class EnrollmentService {
     private final CompletedLessonsService completedLessonsService;
     private final LessonService lessonService;
 
-    public EnrollmentService(EnrollmentRepository enrollmentRepository, StudentService studentService, CourseService courseService, CompletedLessonsService completedLessonsService, LessonService lessonService) {
+    public EnrollmentService(EnrollmentRepository enrollmentRepository, 
+                             StudentService studentService, 
+                             CourseService courseService, 
+                             @Lazy CompletedLessonsService completedLessonsService, // Lazy para evitar ciclo
+                             @Lazy LessonService lessonService) {
         this.enrollmentRepository = enrollmentRepository;
         this.studentService = studentService;
         this.courseService = courseService;
@@ -32,64 +40,53 @@ public class EnrollmentService {
         this.lessonService = lessonService;
     }
 
+    @Transactional
     public EnrollmentResponseDTO create(EnrollmentRequestDTO request){
         if(enrollmentRepository.existsByStudentIdAndCourseId(request.studentId(), request.courseId())){
-            throw new RuntimeException("Estudante com id " + request.studentId() + " já está inscrito no curso com id " + request.courseId());
+            throw new ConflictException("O aluno já possui matrícula ativa neste curso.");
         }
 
         Enrollment enrollment = toEntity(request);
-
+        enrollment.setStatus(StatusEnrollment.IN_PROGRESS); // Define status inicial explícito
+        
         return toResponseDTO(enrollmentRepository.save(enrollment));
     }
 
-    public Enrollment saveProgress(Enrollment enrollment){
-        return enrollmentRepository.save(enrollment);
-    }
-    public Enrollment findById(Long id) {
-        return enrollmentRepository.findById(id)
-                .orElseThrow(() -> new BusinessRuleException("Matrícula não encontrada com o ID: " + id));
-    }
-
+    /**
+     * Calcula o progresso (0 a 1) do aluno baseado nas aulas concluídas vs total.
+     */
     public Double calculateOverallProgress(Enrollment enrollment){
         Integer totalLessons = lessonService.countLessonsInCourse(enrollment.getCourse().getId());
-        Integer completedLessons = completedLessonsService.countByEnrollment(enrollment);
+        
+        if (totalLessons == 0) return 1.0; // Curso sem aulas é automaticamente "completo" ou 0, depende da regra. 1.0 evita divisão por zero.
 
-        if (totalLessons == 0){
-            return 0.0;
-        }
-
-        return (double) completedLessons / totalLessons;
+        Integer completedCount = completedLessonsService.countByEnrollment(enrollment);
+        
+        double progress = (double) completedCount / totalLessons;
+        
+        // Arredonda para 2 casas decimais e garante teto de 100%
+        return Math.min(Math.round(progress * 100.0) / 100.0, 1.0);
     }
-
-    public Set<CompletedLessonResponseDTO> calculateProgress(Enrollment enrollment){
-        return completedLessonsService.findByEnrollment(enrollment);
-    }
-
+    
+    @Transactional(readOnly = true)
     public Enrollment findByStudentIdAndCourseId(Long studentId, Long courseId) {
         return enrollmentRepository.findByStudentIdAndCourseId(studentId, courseId)
-            .orElseThrow(() -> new RuntimeException("Estudante não está matriculado neste curso."));
+            .orElseThrow(() -> new BusinessRuleException("Matrícula não encontrada. O aluno não tem acesso a este curso."));
     }
 
-    public Enrollment findByStudentIdAndCourseId(EnrollmentRequestDTO request) {
-        return enrollmentRepository.findByStudentIdAndCourseId(request.studentId(), request.courseId())
-            .orElseThrow(() -> new RuntimeException("Estudante não está matriculado neste curso."));
-    }
+    @Transactional(readOnly = true)
     public List<EnrollmentResponseDTO> getMyEnrollments(Long studentId) {
-        List<Enrollment> enrollments = enrollmentRepository.findByStudentIdOrderByEnrollmentDateDesc(studentId);
-        
-        return enrollments.stream()
+        return enrollmentRepository.findByStudentIdOrderByEnrollmentDateDesc(studentId).stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
+    // --- Métodos de Conversão e Auxiliares ---
+
     public Enrollment toEntity(EnrollmentRequestDTO request){
         Student student = studentService.findById(request.studentId());
         Course course = courseService.findById(request.courseId());
-
-        return Enrollment.builder()
-            .student(student)
-            .course(course)
-            .build();
+        return Enrollment.builder().student(student).course(course).build();
     }
 
     public EnrollmentResponseDTO toResponseDTO(Enrollment enrollment){
@@ -100,14 +97,19 @@ public class EnrollmentService {
             calculateOverallProgress(enrollment),
             enrollment.getStatus(),
             completedLessonsService.findByEnrollment(enrollment)
-
         );
     }
-
+    
+    // Métodos extras mantidos...
+    public Enrollment findById(Long id) {
+        return enrollmentRepository.findById(id).orElseThrow(() -> new BusinessRuleException("Matrícula não encontrada."));
+    }
+    
     public List<EnrollmentResponseDTO> findByStudent(Long studentId) {
-    return enrollmentRepository.findByStudentId(studentId)
-        .stream()
-        .map(this::toResponseDTO)
-        .toList();
-}
+        return enrollmentRepository.findByStudentId(studentId).stream().map(this::toResponseDTO).toList();
+    }
+    
+    public Set<CompletedLessonResponseDTO> calculateProgress(Enrollment enrollment){
+        return completedLessonsService.findByEnrollment(enrollment);
+    }
 }

@@ -1,9 +1,11 @@
 package com.lp3.elearning.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.lp3.elearning.dto.ResponseRequestDTO;
 import com.lp3.elearning.dto.ResponseResponseDTO;
@@ -14,8 +16,6 @@ import com.lp3.elearning.entities.User;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.repository.ResponseRepository;
 import com.lp3.elearning.repository.TopicRepository;
-
-import jakarta.transaction.Transactional;
 
 @Service
 public class ResponseService {
@@ -30,17 +30,77 @@ public class ResponseService {
         this.userService = userService;
     }
 
-    // Método de Conversão de Entidade para DTO (Pode ser chamado recursivamente para montar o thread)
-    public ResponseResponseDTO toResponseResponseDTO(Response response) {
+    /**
+     * Cria uma resposta em um tópico ou um reply para outra resposta.
+     */
+    @Transactional
+    public ResponseResponseDTO create(ResponseRequestDTO request, User user) {
+        Topic topic = topicRepository.findById(request.topicId())
+            .orElseThrow(() -> new BusinessRuleException("Tópico não encontrado com ID: " + request.topicId()));
+
+        Response parentResponse = null;
+        if (request.responseParentId() != null) {
+            parentResponse = responseRepository.findById(request.responseParentId())
+                .orElseThrow(() -> new BusinessRuleException("Resposta pai não encontrada."));
+            
+            // Integridade: Reply deve ser do mesmo tópico
+            if (!parentResponse.getTopic().getId().equals(topic.getId())) {
+                throw new BusinessRuleException("Erro de integridade: A resposta pai pertence a outro tópico.");
+            }
+        }
+
+        Response newResponse = Response.builder()
+            .content(request.content())
+            .topic(topic)
+            .user(user)
+            .responseParent(parentResponse)
+            .creationDate(LocalDateTime.now())
+            .build();
         
-        // Conversão dos filhos (respostas aninhadas)
-        List<ResponseResponseDTO> childDTOs = response.getChildResponses().stream()
-            .collect(Collectors.toUnmodifiableList()) // Garante a cópia
-            .stream()
-            .map(this::toResponseResponseDTO) 
+        return toResponseResponseDTO(responseRepository.save(newResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public List<ResponseResponseDTO> findRootResponsesByTopic(Long topicId) {
+        return responseRepository.findByTopicIdAndResponseParentIsNull(topicId).stream()
+            .map(this::toResponseResponseDTO)
             .collect(Collectors.toList());
+    }
+    
+    @Transactional
+    public void delete(Long responseId, User user) {
+        Response response = responseRepository.findById(responseId)
+            .orElseThrow(() -> new BusinessRuleException("Resposta não encontrada"));
+
+        // Validação de Dono ou Admin poderia entrar aqui
+        if (!response.getUser().getId().equals(user.getId())){
+            throw new BusinessRuleException("Você não tem permissão para deletar esta resposta.");
+        }
+        responseRepository.delete(response);
+    }
+
+    @Transactional
+    public ResponseResponseDTO update(Long responseId, String newContent, User user) {
+        Response response = responseRepository.findById(responseId)
+            .orElseThrow(() -> new BusinessRuleException("Resposta não encontrada"));
+
+        if (!response.getUser().getId().equals(user.getId())) {
+            throw new BusinessRuleException("Você não tem permissão para editar esta resposta.");
+        }
+        
+        response.setContent(newContent);
+        return toResponseResponseDTO(responseRepository.save(response));
+    }
+
+    // Conversão Recursiva para montar a árvore de comentários
+    public ResponseResponseDTO toResponseResponseDTO(Response response) {
+        List<ResponseResponseDTO> childDTOs = response.getChildResponses() == null ? List.of() :
+            response.getChildResponses().stream()
+                .map(this::toResponseResponseDTO) // Recursão
+                .collect(Collectors.toList());
 
         UserResponseDTO userDTO = userService.toResponseDTO(response.getUser());
+        
         return new ResponseResponseDTO(
             response.getId(),
             response.getContent(),
@@ -50,77 +110,5 @@ public class ResponseService {
             response.getResponseParent() != null ? response.getResponseParent().getId() : null,
             childDTOs
         );
-    }
-    
-    // Cria uma nova resposta ou reply
-    public ResponseResponseDTO create(ResponseRequestDTO request, User user) {
-        
-        Topic topic = topicRepository.findById(request.topicId())
-            .orElseThrow(() -> new BusinessRuleException("Tópico não encontrado com ID: " + request.topicId()));
-
-        Response parentResponse = null;
-        if (request.responseParentId() != null) {
-            parentResponse = responseRepository.findById(request.responseParentId())
-                .orElseThrow(() -> new BusinessRuleException("Resposta pai não encontrada com ID: " + request.responseParentId()));
-            
-            // Validação extra: O reply deve pertencer ao mesmo tópico do pai
-            if (!parentResponse.getTopic().getId().equals(topic.getId())) {
-                throw new BusinessRuleException("A resposta pai pertence a outro tópico.");
-            }
-        }
-
-        Response newResponse = Response.builder()
-            .content(request.content())
-            .topic(topic)
-            .user(user)
-            .responseParent(parentResponse)
-            .build();
-        
-        return toResponseResponseDTO(responseRepository.save(newResponse));
-    }
-
-    // Busca apenas as respostas de "primeiro nível" para um tópico (raízes)
-    public List<ResponseResponseDTO> findRootResponsesByTopic(Long topicId) {
-        // Requer o método findByTopicIdAndResponseParentIsNull no ResponseRepository
-        List<Response> rootResponses = responseRepository.findByTopicIdAndResponseParentIsNull(topicId);
-        
-        return rootResponses.stream()
-            .map(this::toResponseResponseDTO)
-            .collect(Collectors.toList());
-    }
-    
-    public void delete(Long responseId, User user) {
-        Response response = responseRepository.findById(responseId)
-            .orElseThrow(() -> new BusinessRuleException("Resposta não encontrada"));
-
-        boolean isAuthor = response.getUser().getId().equals(user.getId());
-        
-        if (!isAuthor){
-            throw new BusinessRuleException("Sem permissão para deletar esta resposta.");
-        }
-
-        responseRepository.delete(response);
-    }
-
-    @Transactional
-    public ResponseResponseDTO update(Long responseId, String newContent, User user) {
-        Response response = responseRepository.findById(responseId)
-            .orElseThrow(() -> new BusinessRuleException("Resposta não encontrada com ID: " + responseId));
-
-        // VALIDAÇÃO DE SEGURANÇA: Somente o autor pode editar
-        if (!response.getUser().getId().equals(user.getId())) {
-            throw new BusinessRuleException("Você não tem permissão para editar esta resposta.");
-        }
-
-        // Validação de conteúdo (opcional, se não estiver usando @Valid no DTO)
-        if (newContent == null || newContent.trim().isEmpty()) {
-            throw new BusinessRuleException("O conteúdo da resposta não pode estar vazio.");
-        }
-
-        response.setContent(newContent);
-        
-        // O save aqui é opcional se o método for @Transactional, 
-        // mas ajuda na clareza e retorna o objeto atualizado
-        return toResponseResponseDTO(responseRepository.save(response));
     }
 }

@@ -1,45 +1,44 @@
 package com.lp3.elearning.service;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.lp3.elearning.dto.ModuleLessonCountDTO;
 import com.lp3.elearning.dto.ModuleReorderRequestDTO;
 import com.lp3.elearning.dto.ModuleRequestDTO;
 import com.lp3.elearning.dto.ModuleResponseDTO;
 import com.lp3.elearning.entities.Course;
+import com.lp3.elearning.entities.Module;
+import com.lp3.elearning.exception.BusinessRuleException;
+import com.lp3.elearning.exception.ConflictException;
+import com.lp3.elearning.exception.ResourceNotFoundException;
 import com.lp3.elearning.repository.CourseRepository;
 import com.lp3.elearning.repository.LessonRepository;
 import com.lp3.elearning.repository.ModuleRepository;
 
-import jakarta.transaction.Transactional;
-
-import com.lp3.elearning.entities.Module;
-import com.lp3.elearning.exception.BusinessRuleException;
-import com.lp3.elearning.exception.ConflictException;
-
 @Service
 public class ModuleService {
-
-    private final LessonService lessonService;
-
-    private final CourseRepository courseRepository;
 
     private final CourseService courseService;
     private final ModuleRepository moduleRepository;
     private final LessonRepository lessonRepository;
+    private final CourseRepository courseRepository;
+    private final LessonService lessonService;
 
     public ModuleService(
-        CourseService courseService, 
+        @Lazy CourseService courseService, 
         ModuleRepository moduleRepository, 
         LessonRepository lessonRepository, 
         CourseRepository courseRepository, 
-        @org.springframework.context.annotation.Lazy LessonService lessonService) {
+        @Lazy LessonService lessonService) {
         this.courseService = courseService;
         this.moduleRepository = moduleRepository;
         this.lessonRepository = lessonRepository;
@@ -47,125 +46,94 @@ public class ModuleService {
         this.lessonService = lessonService;
     }
     
-
+    @Transactional
     public ModuleResponseDTO create(ModuleRequestDTO request, Long courseId){
-    
         Course course = courseService.findById(courseId);
 
-        Optional<Module> existingModuleByTitle = moduleRepository.findByTitleAndCourseId(request.title(), courseId);
-        
-        if(existingModuleByTitle.isPresent()){
-            ModuleResponseDTO existingModuleDTO = toResponseDTO(existingModuleByTitle.get());
-            throw new ConflictException("Módulo com o título '" + request.title() + 
-                                    "' já existe nesse curso.\nDetalhes: " + existingModuleDTO);
+        // Valida duplicidade de título no mesmo curso
+        if(moduleRepository.findByTitleAndCourseId(request.title(), courseId).isPresent()){
+            throw new ConflictException("Módulo com o título '" + request.title() + "' já existe neste curso.");
         }
 
-        Optional<Module> existingModuleByOrder = moduleRepository.findByModuleOrderAndCourseId(request.moduleOrder(), courseId);
-
-        if(existingModuleByOrder.isPresent()){
-            ModuleResponseDTO existingModuleDTO = toResponseDTO(existingModuleByOrder.get());
-            throw new ConflictException("Módulo com a ordem '" + request.moduleOrder() + 
-                                    "' já existe nesse curso.\nDetalhes: " + existingModuleDTO);
+        // Valida duplicidade de ordem
+        if(moduleRepository.findByModuleOrderAndCourseId(request.moduleOrder(), courseId).isPresent()){
+            // Opcional: Poderia fazer um 'shift' automático aqui igual ao LessonService
+            throw new ConflictException("Já existe um módulo na posição " + request.moduleOrder());
         }
 
         Module module = toEntity(request, course);
-
         return toResponseDTO(moduleRepository.save(module));
     }
 
     @Transactional
     public List<ModuleResponseDTO> reorder(Long courseId, List<ModuleReorderRequestDTO> requests) {
-        
         if(!courseRepository.existsById(courseId)){
-            throw new BusinessRuleException("Curso com ID " + courseId + " não encontrado.");
-        }
-
-        if(requests.isEmpty()){
-            throw new IllegalArgumentException("A lista de reordenação não pode ser vazia.");
+            throw new ResourceNotFoundException("Curso não encontrado.");
         }
 
         List<Module> currentModules = moduleRepository.findByCourseId(courseId);
+        Map<Long, Module> moduleMap = currentModules.stream().collect(Collectors.toMap(Module::getId, m -> m));
         
-        Map<Long, Module> moduleMap = currentModules.stream()
-            .collect(Collectors.toMap(Module::getId, module -> module));
-        
-        if(requests.size() != currentModules.size() || 
-            requests.stream().anyMatch(r -> !moduleMap.containsKey(r.moduleId()))){
-            throw new BusinessRuleException("A lista de IDs para reordenação está incompleta ou contém IDs inválidos.");
+        if(requests.stream().anyMatch(r -> !moduleMap.containsKey(r.moduleId()))){
+            throw new BusinessRuleException("Tentativa de reordenar módulos que não pertencem a este curso.");
         }
         
-        requests.forEach(request -> {
-            Module moduleToUpdate = moduleMap.get(request.moduleId());
-            moduleToUpdate.setModuleOrder(request.newOrder()); 
+        requests.forEach(req -> {
+            Module module = moduleMap.get(req.moduleId());
+            if(module != null) module.setModuleOrder(req.newOrder());
         });
         
-        List<Module> updatedModules = moduleRepository.saveAll(currentModules);
-        
-        return updatedModules.stream()
+        return moduleRepository.saveAll(currentModules).stream()
             .sorted(Comparator.comparing(Module::getModuleOrder)) 
             .map(this::toResponseDTO)
+            .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ModuleResponseDTO> getAllByCourseId(Long courseId) {
+        return moduleRepository.findByCourseId(courseId).stream()
+                .sorted(Comparator.comparing(Module::getModuleOrder))
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    // --- Métodos Auxiliares ---
+    
+    public Module findById(Long moduleId) {
+        return moduleRepository.findById(moduleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Módulo não encontrado com ID: " + moduleId));
+    }
+    
+    public ModuleResponseDTO getById(Long moduleId, Long courseId) {
+        Module module = moduleRepository.findByIdAndCourseId(moduleId, courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Módulo não encontrado neste curso."));
+        return toResponseDTO(module);
+    }
+    
+    public boolean existsById(Long id) { return moduleRepository.existsById(id); }
+
+    public Module findByCourseIdAndModuleOrder(Long courseId, int moduleOrder){
+        return moduleRepository.findByCourseIdAndModuleOrder(courseId, moduleOrder)
+                .orElseThrow(()-> new BusinessRuleException("Módulo sequencial não encontrado."));
+    }
+
+    public List<ModuleLessonCountDTO> getLessonCountsByModule(Long courseId) {
+        return lessonRepository.countLessonsPerModuleInCourse(courseId).stream()
+            .map(obj -> new ModuleLessonCountDTO((Long) obj[0], (Long) obj[1]))
             .toList();
     }
     
     public Module toEntity(ModuleRequestDTO request, Course course) {
         return Module.builder()
-                .title(request.title())
-                .description(request.description())
-                .course(course)
-                .moduleOrder(request.moduleOrder())
-                .build();
-    }
-
-    public Module getModuleById(Long moduleId) {
-        return moduleRepository.findById(moduleId)
-                .orElseThrow(() -> new BusinessRuleException("Módulo com ID " + moduleId + " não encontrado."));
-    }
-    
-    public boolean existsById(Long id) {
-        return moduleRepository.existsById(id);
-    }
-    
-    public Module findById(Long moduleId) {
-        return moduleRepository.findById(moduleId)
-                .orElseThrow(() -> new BusinessRuleException("Módulo com ID " + moduleId + " não encontrado."));
-    }
-    
-    public ModuleResponseDTO getById(Long moduleId, Long courseId) {
-        Module module = moduleRepository.findByIdAndCourseId(moduleId, courseId)
-                .orElseThrow(() -> new BusinessRuleException("Módulo com ID " + moduleId + " não encontrado no curso com ID " + courseId + "."));
-        return toResponseDTO(module);
-    }
-
-    public List<ModuleResponseDTO> getAllByCourseId(Long courseId) {
-        List<Module> modules = moduleRepository.findByCourseId(courseId);
-        return modules.stream()
-                .map(this::toResponseDTO)
-                .collect(Collectors.toList());
+                .title(request.title()).description(request.description())
+                .course(course).moduleOrder(request.moduleOrder()).build();
     }
     
     public ModuleResponseDTO toResponseDTO(Module module) {
         return new ModuleResponseDTO(
-                module.getId(),
-                module.getTitle(),
-                module.getDescription(),
-                module.getModuleOrder(),
-                module.getCourse().getId(),
-                module.getCourse().getTitle(),
-                module.getLessons().stream().map(lessonService::toResponseDTO).collect(Collectors.toSet())
+                module.getId(), module.getTitle(), module.getDescription(),
+                module.getModuleOrder(), module.getCourse().getId(), module.getCourse().getTitle(),
+                module.getLessons() != null ? module.getLessons().stream().map(lessonService::toResponseDTO).collect(Collectors.toSet()) : Collections.emptySet()
         );
-    }
-
-    public List<ModuleLessonCountDTO> getLessonCountsByModule(Long courseId) {
-    
-        List<Object[]> results = lessonRepository.countLessonsPerModuleInCourse(courseId);
-        
-        return results.stream()
-            .map(obj -> new ModuleLessonCountDTO((Long) obj[0], (Long) obj[1]))
-            .toList();
-    }
-
-    public Module findByCourseIdAndModuleOrder(Long courseId, int moduleOrder){
-        return moduleRepository.findByCourseIdAndModuleOrder(courseId, moduleOrder)
-                .orElseThrow(()-> new BusinessRuleException("Modulo não encontrado"));
     }
 }

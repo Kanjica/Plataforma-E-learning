@@ -20,13 +20,13 @@ import com.lp3.elearning.entities.Instructor;
 import com.lp3.elearning.entities.User;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.exception.ConflictException;
+import com.lp3.elearning.exception.ResourceNotFoundException;
 import com.lp3.elearning.repository.CourseRepository;
 
 @Service
 public class CourseService {
 
     private final ModuleService moduleService;
-
     private final CourseRepository courseRepository;
     private final CategoriesService categoriesService;
     private final InstructorService instructorService;
@@ -34,8 +34,7 @@ public class CourseService {
     public CourseService(CourseRepository courseRepository, 
         CategoriesService categoriesService, 
         @Lazy InstructorService instructorService, 
-        @Lazy ModuleService moduleService, 
-        @Lazy LessonService lessonService) {
+        @Lazy ModuleService moduleService) {
         this.courseRepository = courseRepository;
         this.categoriesService = categoriesService;
         this.instructorService = instructorService;
@@ -44,47 +43,37 @@ public class CourseService {
 
     @Transactional
     public CourseResponseDTO createCourse(CourseRequestDTO request) {
-        if(alreadyExists(request)){
+        if(courseRepository.existsByTitle(request.title())){
             throw new ConflictException("Já existe um curso com o título: " + request.title());
         }
 
-        // Busca as categorias e instrutores usando os Services auxiliares
         Set<Category> categories = categoriesService.getCategoriesByValidIds(request.categoryIds());
-        Set<Instructor> instructors = instructorService.getInstructorsByValidIds(request.instructorIds());
+        if(categories.isEmpty()) throw new BusinessRuleException("O curso deve ter pelo menos uma categoria.");
 
-        // Validação básica
-        if(categories.isEmpty()){
-            throw new BusinessRuleException("O curso deve ser associado a pelo menos uma categoria válida.");
-        }
+        Set<Instructor> instructors = instructorService.getInstructorsByValidIds(request.instructorIds());
         
-        // Se a lista de instrutores vier vazia no JSON, tentamos pegar o usuário logado
+        // Fallback: se não enviou instrutores, usa o usuário logado se for instrutor
         if(instructors.isEmpty()){
             User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             if (user instanceof Instructor instructor) {
                 instructors.add(instructor);
             } else {
-                throw new BusinessRuleException("O curso deve ter pelo menos um instrutor válido.");
+                throw new BusinessRuleException("É necessário informar os instrutores do curso.");
             }
         }
 
-        Course course = Course.builder()
-                .title(request.title())
-                .description(request.description())
-                .workload(request.workload())
-                .imageUrl(request.imageUrl())
-                .price(request.price())
-                .oldPrice(request.oldPrice())
-                .isBestSeller(request.isBestSeller())
-                .categories(categories)
-                .instructors(instructors)
-                .modules(new ArrayList<>())
-                .build();
-
+        Course course = toEntity(request, categories, instructors);
+        course.setModules(new ArrayList<>()); // Inicializa lista vazia para evitar NullPointer
+        
         return toResponseDTO(courseRepository.save(course));
     }
 
+    /**
+     * Filtra cursos por título e/ou categorias.
+     * Implementação otimizada para evitar N+1 selects.
+     */
+    @Transactional(readOnly = true)
     public Set<CourseResponseDTO> filterCourses(CourseFilterDTO request){
-        
         String title = request.title() != null ? request.title() : "";
         Set<Long> categoryIds = request.categoryIds() != null ? request.categoryIds() : Collections.emptySet();
         
@@ -92,124 +81,87 @@ public class CourseService {
 
         if(categoryIds.isEmpty()){
             courses = courseRepository.findByTitleContainingIgnoreCase(title);
-        }else if (title.isEmpty()){
+        } else if (title.isEmpty()){
             courses = courseRepository.findByCategories_IdIn(categoryIds);
-        }else{
+        } else {
             courses = courseRepository.findByTitleContainingIgnoreCaseAndCategories_IdIn(title, categoryIds);
         }
         
-        return courses.stream()
-                .map(this::toResponseDTO)
-                .collect(Collectors.toSet());
+        return courses.stream().map(this::toResponseDTO).collect(Collectors.toSet());
     }
 
     @Transactional
     public CourseResponseDTO updateCourse(Long id, CourseRequestDTO request) {
-        Course existingCourse = courseRepository.findById(id)
-                .orElseThrow(() -> new BusinessRuleException("Curso com ID " + id + " não encontrado."));
+        Course existingCourse = findById(id);
 
-        if(!existingCourse.getTitle().equals(request.title()) && alreadyExists(request)){
-            throw new ConflictException("Já existe um curso com o título: " + request.title());
+        // Verifica duplicidade de título apenas se o título mudou
+        if(!existingCourse.getTitle().equals(request.title()) && courseRepository.existsByTitle(request.title())){
+            throw new ConflictException("Já existe outro curso com este título.");
         }
 
         Set<Category> categories = categoriesService.getCategoriesByValidIds(request.categoryIds());
         Set<Instructor> instructors = instructorService.getInstructorsByValidIds(request.instructorIds());
 
-        if(!verifyCategoriesAndInstructors(categories, instructors)){
-            throw new BusinessRuleException("O curso deve ser associado a pelo menos uma categoria válida e ter pelo menos um instrutor válido.");
+        if(categories.isEmpty() || instructors.isEmpty()){
+            throw new BusinessRuleException("Categorias e Instrutores não podem ser vazios.");
         }
 
-        existingCourse.setTitle(request.title());
-        existingCourse.setDescription(request.description());
-        existingCourse.setWorkload(request.workload());
-        existingCourse.setImageUrl(request.imageUrl());
-        existingCourse.setPrice(request.price());
-        existingCourse.setOldPrice(request.oldPrice());
-        existingCourse.setIsBestSeller(request.isBestSeller());
-        existingCourse.setCategories(categories);
-        existingCourse.setInstructors(instructors);
-
+        updateCourseData(existingCourse, request, categories, instructors);
         return toResponseDTO(courseRepository.save(existingCourse));
     }
 
-    public boolean verifyCategoriesAndInstructors(Set<Category> categories, Set<Instructor> instructors) {
-        return !categories.isEmpty() && !instructors.isEmpty();
+    private void updateCourseData(Course course, CourseRequestDTO request, Set<Category> cats, Set<Instructor> insts) {
+        course.setTitle(request.title());
+        course.setDescription(request.description());
+        course.setWorkload(request.workload());
+        course.setImageUrl(request.imageUrl());
+        course.setPrice(request.price());
+        course.setOldPrice(request.oldPrice());
+        course.setIsBestSeller(request.isBestSeller());
+        course.setCategories(cats);
+        course.setInstructors(insts);
     }
     
-    public CourseResponseDTO toResponseDTO(Course course) {
-        return new CourseResponseDTO(
-            course.getId(),
-            course.getTitle(),
-            course.getDescription(),
-            course.getWorkload(),
-            course.getCategories().stream().map(categoriesService::toResponseDTO).collect(Collectors.toSet()),
-            course.getInstructors().stream().map(instructorService::toResponseDTO).collect(Collectors.toSet()),
-            course.getImageUrl(),
-            course.getModules().stream().map(moduleService::toResponseDTO).collect(Collectors.toSet()),
-            course.getPrice(),
-            course.getOldPrice(),
-            course.getIsBestSeller()
-        );
-    }
+    // --- Métodos Auxiliares ---
 
-    public Course toEntity(CourseRequestDTO request) {
-        Set<Category> categories = categoriesService.getCategoriesByValidIds(request.categoryIds());
-        Set<Instructor> instructors = instructorService.getInstructorsByValidIds(request.instructorIds());
-
-        return Course.builder()
-                .title(request.title())
-                .description(request.description())
-                .workload(request.workload())
-                .imageUrl(request.imageUrl())
-                .price(request.price())
-                .oldPrice(request.oldPrice())
-                .isBestSeller(request.isBestSeller())
-                .categories(categories)
-                .instructors(instructors)
-                .build();
-    }
-    
-    public Course toEntity(CourseRequestDTO request, Set<Category> categories, Set<Instructor> instructors) {
-        return Course.builder()
-                .title(request.title())
-                .description(request.description())
-                .workload(request.workload())
-                .imageUrl(request.imageUrl())
-                .price(request.price())
-                .oldPrice(request.oldPrice())
-                .isBestSeller(request.isBestSeller())
-                .categories(categories)
-                .instructors(instructors)
-                .build();
-    }
-
-    public boolean alreadyExists(CourseRequestDTO request) {
-        return courseRepository.existsByTitle(request.title());
-    }
-
-    public CourseResponseDTO getCourseByIdResponseDTO(Long id) {
-        Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new BusinessRuleException("Curso com ID " + id + " não encontrado."));
-        return toResponseDTO(course);
-    }
-
-    public java.util.List<CourseResponseDTO> getAllCourses() {
-        return courseRepository.findAll().stream()
-                .map(this::toResponseDTO)
-                .collect(Collectors.toList());
+    public Course findById(Long id) {
+        return courseRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Curso não encontrado com ID: " + id));
     }
 
     public void deleteCourse(Long id) {
-        if (courseRepository.existsById(id)) {
-            courseRepository.deleteById(id);
-        } else {
-            throw new BusinessRuleException("Curso não encontrado para deleção.");
+        if (!courseRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Curso não encontrado.");
         }
+        courseRepository.deleteById(id);
     }
 
-    // Adicione este método para permitir que outros Services busquem a Entidade Curso
-    public Course findById(Long id) {
-        return courseRepository.findById(id)
-                .orElseThrow(() -> new BusinessRuleException("Curso não encontrado com o ID: " + id));
+    public CourseResponseDTO getCourseByIdResponseDTO(Long id) {
+        return toResponseDTO(findById(id));
+    }
+
+    public List<CourseResponseDTO> getAllCourses() {
+        return courseRepository.findAll().stream().map(this::toResponseDTO).toList();
+    }
+
+    // Converters
+    public CourseResponseDTO toResponseDTO(Course course) {
+        return new CourseResponseDTO(
+            course.getId(), course.getTitle(), course.getDescription(), course.getWorkload(),
+            course.getCategories().stream().map(categoriesService::toResponseDTO).collect(Collectors.toSet()),
+            course.getInstructors().stream().map(instructorService::toResponseDTO).collect(Collectors.toSet()),
+            course.getImageUrl(),
+            course.getModules() != null ? course.getModules().stream().map(moduleService::toResponseDTO).collect(Collectors.toSet()) : Collections.emptySet(),
+            course.getPrice(), course.getOldPrice(), course.getIsBestSeller()
+        );
+    }
+
+    private Course toEntity(CourseRequestDTO request, Set<Category> categories, Set<Instructor> instructors) {
+        return Course.builder()
+            .title(request.title()).description(request.description())
+            .workload(request.workload()).imageUrl(request.imageUrl())
+            .price(request.price()).oldPrice(request.oldPrice())
+            .isBestSeller(request.isBestSeller())
+            .categories(categories).instructors(instructors).build();
     }
 }

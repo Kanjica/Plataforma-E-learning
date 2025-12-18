@@ -5,11 +5,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.lp3.elearning.dto.ResponseResponseDTO;
 import com.lp3.elearning.dto.TopicRequestDTO;
 import com.lp3.elearning.dto.TopicResponseDTO;
-import com.lp3.elearning.dto.ResponseResponseDTO; 
 import com.lp3.elearning.entities.Topic;
 import com.lp3.elearning.entities.User;
 import com.lp3.elearning.exception.BusinessRuleException;
@@ -23,66 +25,36 @@ public class TopicService {
     private final CourseService courseService;
     private final ResponseService responseService; 
 
-    public TopicService(TopicRepository topicRepository, CourseService courseService, UserService userService, ResponseService responseService){
+    public TopicService(TopicRepository topicRepository, CourseService courseService, UserService userService, @Lazy ResponseService responseService){
         this.topicRepository = topicRepository;
         this.courseService = courseService;
         this.userService = userService;
         this.responseService = responseService;
     }
 
-    private TopicResponseDTO toResponseDTO(Topic topic){
-
-        // FORÇANDO UMA CÓPIA DA COLEÇÃO DE ENTRADA antes de iniciar o stream
-    Set<ResponseResponseDTO> responseDTOs = topic.getResponses().stream()
-            .collect(Collectors.toUnmodifiableSet()) // Transforma a coleção do Hibernate em um Set imutável
-            .stream() // Inicia o stream sobre a cópia
-            .filter(response -> response.getResponseParent() == null) 
-            .map(responseService::toResponseResponseDTO) 
-            .collect(Collectors.toSet());
-    
-    // Nota: O uso de .collect(Collectors.toUnmodifiableSet()).stream() é uma forma robusta.
-    // Alternativamente, se o seu Java for mais antigo (sem toUnmodifiableSet), use:
-    /*
-    Set<ResponseResponseDTO> responseDTOs = new HashSet<>(topic.getResponses()).stream()
-            .filter(response -> response.getResponseParent() == null)
-            .map(responseService::toResponseResponseDTO)
-            .collect(Collectors.toSet());
-    */
-    
-    return new TopicResponseDTO(
-        topic.getId(),
-        topic.getTitle(),
-        topic.getContent(),
-        topic.getCreationDate(),
-        topic.getCourse().getId(),
-        topic.getCourse().getTitle(),
-        userService.toResponseDTO(topic.getUser()),
-        responseDTOs
-    );
-    }
-    
+    @Transactional(readOnly = true)
     public List<TopicResponseDTO> findAll() {
         return topicRepository.findAll().stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    // NOVO: Busca de tópicos filtrados por curso
+    @Transactional(readOnly = true)
     public List<TopicResponseDTO> findAllByCourse(Long courseId) {
-        // Requer o método findByCourseId no TopicRepository
         return topicRepository.findByCourseId(courseId).stream() 
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public TopicResponseDTO findById(Long id) {
         Topic topic = topicRepository.findById(id)
-            .orElseThrow(()-> new BusinessRuleException("Topic not found with id: " + id));
+            .orElseThrow(()-> new BusinessRuleException("Tópico não encontrado com id: " + id));
         return toResponseDTO(topic);
     }
 
+    @Transactional
     public TopicResponseDTO create(TopicRequestDTO request, User user) {
-        
         Topic newTopic = Topic.builder()
             .title(request.title())
             .content(request.content())
@@ -94,21 +66,43 @@ public class TopicService {
         return toResponseDTO(topicRepository.save(newTopic));
     }
 
+    @Transactional
     public TopicResponseDTO update(Long id, TopicRequestDTO request) {
         Topic existingTopic = topicRepository.findById(id)
-                                .orElseThrow(() -> new BusinessRuleException("Id de tópico n encontrado"));
+                                .orElseThrow(() -> new BusinessRuleException("Tópico não encontrado"));
 
         existingTopic.setTitle(request.title());
         existingTopic.setContent(request.content());
         
-        Topic updatedTopic = topicRepository.save(existingTopic);
-        return toResponseDTO(updatedTopic);
+        return toResponseDTO(topicRepository.save(existingTopic));
     }
 
+    @Transactional
     public void delete(Long id) {
-        Topic topic = topicRepository.findById(id)
-            .orElseThrow(() -> new BusinessRuleException("Topic not found with id: " + id));
+        if (!topicRepository.existsById(id)) {
+            throw new BusinessRuleException("Tópico não encontrado.");
+        }
+        topicRepository.deleteById(id);
+    }
+    
+    // Converter
+    private TopicResponseDTO toResponseDTO(Topic topic){
+        // Filtra apenas as respostas raiz (sem pai) para não duplicar na árvore
+        Set<ResponseResponseDTO> responseDTOs = topic.getResponses() == null ? Collections.emptySet() :
+            topic.getResponses().stream()
+                .filter(response -> response.getResponseParent() == null) 
+                .map(responseService::toResponseResponseDTO) 
+                .collect(Collectors.toSet());
         
-        topicRepository.delete(topic);
+        return new TopicResponseDTO(
+            topic.getId(),
+            topic.getTitle(),
+            topic.getContent(),
+            topic.getCreationDate(),
+            topic.getCourse().getId(),
+            topic.getCourse().getTitle(),
+            userService.toResponseDTO(topic.getUser()),
+            responseDTOs
+        );
     }
 }

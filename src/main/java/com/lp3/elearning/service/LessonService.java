@@ -7,17 +7,16 @@ import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // Importante: use o do Spring
 
 import com.lp3.elearning.dto.LessonReorderRequestDTO;
 import com.lp3.elearning.dto.LessonRequestDTO;
 import com.lp3.elearning.dto.LessonResponseDTO;
 import com.lp3.elearning.entities.Enrollment;
 import com.lp3.elearning.entities.Lesson;
-import com.lp3.elearning.repository.LessonRepository;
 import com.lp3.elearning.entities.Module;
 import com.lp3.elearning.exception.BusinessRuleException;
-
-import jakarta.transaction.Transactional;
+import com.lp3.elearning.repository.LessonRepository;
 
 @Service
 public class LessonService {
@@ -37,223 +36,188 @@ public class LessonService {
         this.enrollmentService = enrollmentService;
     }
 
+    /**
+     * Cria uma nova aula e ajusta a ordenação se necessário.
+     * @throws BusinessRuleException se o módulo não pertencer ao curso informado.
+     */
     @Transactional
     public LessonResponseDTO create(LessonRequestDTO lessonRequest, Long moduleId, Long courseId) {
         Module module = moduleService.findById(moduleId);
 
         if(!module.getCourse().getId().equals(courseId)){
-            throw new BusinessRuleException("ID do curso na url difere do id do curso do modulo");
+            throw new BusinessRuleException("Conflito: O módulo informado não pertence ao curso da URL.");
         }
 
-        // Se a ordem já existe, empurra as outras para frente
-        if(lessonRepository.existsByLessonOrderAndModuleId(lessonRequest.lessonOrder(), moduleId))
-        shiftLessonOrders(moduleId, lessonRequest.lessonOrder(), null);
+        // Se a ordem já existe, empurra as outras para frente para abrir espaço
+        if(lessonRepository.existsByLessonOrderAndModuleId(lessonRequest.lessonOrder(), moduleId)) {
+            shiftLessonOrders(moduleId, lessonRequest.lessonOrder(), null);
+        }
 
         Lesson lesson = toEntity(lessonRequest, module);
         return toResponseDTO(lessonRepository.save(lesson));
     }
 
-    public LessonResponseDTO getById(Long lessonId, Long moduleId){
-        Lesson lesson = lessonRepository.findByIdAndModuleId(lessonId, moduleId)
-                .orElseThrow(() -> new BusinessRuleException("Aula com ID " + lessonId + " não encontrada no módulo " + moduleId)); 
-            return toResponseDTO(lesson);
-        }   
+    /**
+     * Busca uma aula para consumo do aluno, validando regras de acesso e sequência.
+     * Garante que o aluno não pule aulas ou módulos.
+     */
+    @Transactional(readOnly = true)
+    public LessonResponseDTO getLessonByIdForUser(Long lessonId, Long studentId, Long courseId){
+        Enrollment enrollment = enrollmentService.findByStudentIdAndCourseId(studentId, courseId);
+        Lesson currentLesson = findById(lessonId);
+
+        validateLessonAccessibility(currentLesson, enrollment);
         
+        return toResponseDTO(currentLesson);
+    }
+
+    /**
+     * Valida se o aluno pode assistir a aula atual baseada no seu progresso.
+     * Regra 1: Deve estar matriculado.
+     * Regra 2: Se não for a primeira aula, a anterior deve estar concluída.
+     * Regra 3: Se for a primeira aula de um módulo novo, o módulo anterior deve estar finalizado.
+     */
     public void validateLessonAccessibility(Lesson currentLesson, Enrollment enrollment) {
-        // 1. Verifica se a aula pertence ao curso que o aluno comprou
         if (!enrollment.getCourse().getId().equals(currentLesson.getModule().getCourse().getId())) {
-            throw new BusinessRuleException("A matrícula não corresponde ao curso desta aula.");
+            throw new BusinessRuleException("Acesso negado: Esta aula não pertence ao curso matriculado.");
         }
 
         Integer currentOrder = currentLesson.getLessonOrder();
         Long moduleId = currentLesson.getModule().getId();
 
-        // CENÁRIO A: Não é a primeira aula do módulo? Verifica a anterior do mesmo módulo.
+        // CENÁRIO A: Sequência dentro do mesmo módulo
         if (currentOrder > 1) {
             Lesson previous = lessonRepository.findByModuleIdAndLessonOrder(moduleId, currentOrder - 1)
-                .orElseThrow(() -> new BusinessRuleException("Aula anterior não encontrada."));
+                .orElseThrow(() -> new BusinessRuleException("Erro de integridade: Aula anterior não encontrada."));
             
             if (!completedLessonsService.isLessonCompleted(enrollment, previous)) {
-                throw new BusinessRuleException("Conclua a aula anterior primeiro!");
+                throw new BusinessRuleException("Bloqueado: Você precisa concluir a aula '" + previous.getTitle() + "' antes de avançar.");
             }
         } 
-        // CENÁRIO B: É a primeira aula, mas não é o primeiro módulo? Verifica o módulo anterior.
+        // CENÁRIO B: Transição entre módulos (Primeira aula do módulo X exige fim do módulo X-1)
         else if (currentOrder == 1 && currentLesson.getModule().getModuleOrder() > 1) {
-            // Busca o módulo que vem antes deste (Ex: Se este é o 2, busca o 1)
             Module previousModule = moduleService.findByCourseIdAndModuleOrder(
                 currentLesson.getModule().getCourse().getId(), 
                 currentLesson.getModule().getModuleOrder() - 1
             );
 
-            // AQUI você usa o método do repo:
-            Lesson lastLessonOfPrevModule = lessonRepository
-                .findFirstByModuleIdOrderByLessonOrderDesc(previousModule.getId())
-                .orElseThrow(() -> new BusinessRuleException("O módulo anterior não possui aulas."));
-
-            if (!completedLessonsService.isLessonCompleted(enrollment, lastLessonOfPrevModule)) {
-                throw new BusinessRuleException("Você precisa concluir a última aula do módulo anterior!");
-            }
+            // Busca a última aula do módulo anterior
+            lessonRepository.findFirstByModuleIdOrderByLessonOrderDesc(previousModule.getId())
+                .ifPresent(lastLessonOfPrevModule -> {
+                    if (!completedLessonsService.isLessonCompleted(enrollment, lastLessonOfPrevModule)) {
+                        throw new BusinessRuleException("Bloqueado: Complete o módulo '" + previousModule.getTitle() + "' antes de iniciar este.");
+                    }
+                });
         }
     }
 
-    // 2. Atualize o método antigo para usar o novo validador
-    public LessonResponseDTO getLessonByIdForUser(Long lessonId, Long studentId, Long courseId){
-        Enrollment enrollment = enrollmentService.findByStudentIdAndCourseId(studentId, courseId);
-        Lesson currentLesson = findById(lessonId);
-
-        // Chama a validação centralizada
-        validateLessonAccessibility(currentLesson, enrollment);
-        
-        return toResponseDTO(currentLesson);
-    }
-    
-    
-    public List<LessonResponseDTO> getAllByModuleId(Long moduleId) {
-        List<Lesson> lessons = lessonRepository.findByModuleId(moduleId);
-        return lessons.stream()
-                .sorted(Comparator.comparing(Lesson::getLessonOrder))
-                .map(this::toResponseDTO)
-                .toList();
-    }
-    
-    
     @Transactional
     public List<LessonResponseDTO> reorder(Long moduleId, List<LessonReorderRequestDTO> requests) {
-        
         if(!moduleService.existsById(moduleId)){
-            throw new BusinessRuleException("Módulo com ID " + moduleId + " não existe.");
+            throw new BusinessRuleException("Módulo não encontrado.");
         }
 
         List<Lesson> currentLessons = lessonRepository.findByModuleId(moduleId);
+        Map<Long, Lesson> lessonMap = currentLessons.stream().collect(Collectors.toMap(Lesson::getId, l -> l));
         
-        Map<Long, Lesson> lessonMap = currentLessons.stream()
-            .collect(Collectors.toMap(Lesson::getId, lesson -> lesson));
-        
-        if(requests.size() != currentLessons.size() || 
-            requests.stream().anyMatch(r -> !lessonMap.containsKey(r.lessonId()))){
-            throw new BusinessRuleException("A lista de IDs para reordenação está incompleta ou contém IDs inválidos para o módulo " + moduleId);
+        // Valida se todos os IDs enviados pertencem ao módulo
+        if(requests.stream().anyMatch(r -> !lessonMap.containsKey(r.lessonId()))){
+            throw new BusinessRuleException("Tentativa de reordenar aulas que não pertencem a este módulo.");
         }
         
-        requests.forEach(request -> {
-            Lesson lessonToUpdate = lessonMap.get(request.lessonId());
-            lessonToUpdate.setLessonOrder(request.newOrder()); 
+        requests.forEach(req -> {
+            Lesson lesson = lessonMap.get(req.lessonId());
+            if (lesson != null) lesson.setLessonOrder(req.newOrder());
         });
         
-        List<Lesson> updatedLessons = lessonRepository.saveAll(currentLessons);
-        
-        return updatedLessons.stream()
+        return lessonRepository.saveAll(currentLessons).stream()
             .sorted(Comparator.comparing(Lesson::getLessonOrder))
             .map(this::toResponseDTO)
             .toList();
     }
 
-    public LessonResponseDTO toResponseDTO(Lesson lesson){
-        return new LessonResponseDTO(
-                lesson.getId(),
-                lesson.getTitle(),
-                lesson.getContent(),
-                lesson.getLessonOrder(),
-                lesson.getVideoUrl(),
-                lesson.getModule().getId(),
-                lesson.getModule().getTitle(),
-                lesson.getModule().getCourse().getId(),
-                lesson.getModule().getCourse().getTitle()
-        );
-    }
-    
-    public Lesson toEntity(LessonRequestDTO request, Module module) {
-        return Lesson.builder()
-                .title(request.title())
-                .content(request.content())
-                .lessonOrder(request.lessonOrder())
-                .videoUrl(request.videoUrl())
-                .module(module)
-                .build();
-    }
-
-    public Integer countLessonsInModule(Long moduleId) {
-        return lessonRepository.findByModuleId(moduleId).size();
-    }
-
-    public Integer countLessonsInCourse(Long courseId) {
-        List<Object[]> results = lessonRepository.countLessonsPerModuleInCourse(courseId);
-        return results.stream()
-            .mapToInt(obj -> ((Long) obj[1]).intValue())
-            .sum();
-    }
+    // --- Métodos Auxiliares e CRUD Simples ---
 
     public Lesson findById(Long lessonId) {
         return lessonRepository.findById(lessonId)
-            .orElseThrow(() -> new BusinessRuleException("Aula com ID " + lessonId + " não encontrada."));
-    }
-
-    @Transactional
-    public LessonResponseDTO update(Long lessonId, Long moduleId, LessonRequestDTO request) {
-        Lesson lesson = lessonRepository.findByIdAndModuleId(lessonId, moduleId)
-            .orElseThrow(() -> new BusinessRuleException("Aula não encontrada neste módulo."));
-
-        // Se mudou a ordem, aplica o shift
-        if (!lesson.getLessonOrder().equals(request.lessonOrder())) {
-            shiftLessonOrders(moduleId, request.lessonOrder(), lessonId);
-        }
-
-        lesson.setTitle(request.title());
-        lesson.setContent(request.content());
-        lesson.setVideoUrl(request.videoUrl());
-        lesson.setLessonOrder(request.lessonOrder());
-
-        return toResponseDTO(lessonRepository.save(lesson));
+            .orElseThrow(() -> new BusinessRuleException("Aula não encontrada com ID: " + lessonId));
     }
 
     @Transactional
     public void delete(Long lessonId, Long moduleId) {
         Lesson lessonToDelete = lessonRepository.findByIdAndModuleId(lessonId, moduleId)
-            .orElseThrow(() -> new BusinessRuleException("Aula não encontrada para exclusão."));
+            .orElseThrow(() -> new BusinessRuleException("Aula não encontrada."));
 
         Integer removedOrder = lessonToDelete.getLessonOrder();
         lessonRepository.delete(lessonToDelete);
 
-        // Ao deletar, puxamos as próximas para trás para não deixar buracos
-        List<Lesson> subsequentLessons = lessonRepository.findByModuleId(moduleId).stream()
+        // Reorganiza para não deixar "buracos" na numeração (ex: 1, 3, 4 vira 1, 2, 3)
+        List<Lesson> remainingLessons = lessonRepository.findByModuleId(moduleId);
+        remainingLessons.stream()
             .filter(l -> l.getLessonOrder() > removedOrder)
-            .toList();
+            .forEach(l -> l.setLessonOrder(l.getLessonOrder() - 1));
         
-        subsequentLessons.forEach(l -> l.setLessonOrder(l.getLessonOrder() - 1));
-        lessonRepository.saveAll(subsequentLessons);
+        lessonRepository.saveAll(remainingLessons);
     }
 
-    /**
-     * Lógica de deslocamento: se a posição 'newOrder' estiver ocupada, 
-     * incrementa ela e todas as subsequentes.
-     */
-    private void shiftLessonOrders(Long moduleId, Integer newOrder, Long excludedLessonId) {
+    private void shiftLessonOrders(Long moduleId, Integer startOrder, Long ignoreLessonId) {
         List<Lesson> lessons = lessonRepository.findByModuleId(moduleId);
+        lessons.stream()
+            .filter(l -> !l.getId().equals(ignoreLessonId))
+            .filter(l -> l.getLessonOrder() >= startOrder)
+            .forEach(l -> l.setLessonOrder(l.getLessonOrder() + 1));
         
-        // Filtra aulas que têm ordem maior ou igual à nova ordem
-        // Se for um update, excluímos a própria aula da lista de shift
-        List<Lesson> toShift = lessons.stream()
-            .filter(l -> !l.getId().equals(excludedLessonId))
-            .filter(l -> l.getLessonOrder() >= newOrder)
-            .sorted(Comparator.comparing(Lesson::getLessonOrder).reversed()) // Ordem reversa para evitar conflito de unique constraint se houver
-            .toList();
-
-        if (!toShift.isEmpty()) {
-            toShift.forEach(l -> l.setLessonOrder(l.getLessonOrder() + 1));
-            lessonRepository.saveAll(toShift);
-            lessonRepository.flush(); // Força o update antes de inserir a nova
-        }
+        lessonRepository.saveAll(lessons);
     }
+
+    // Métodos de conversão e leitura simples mantidos...
+    public LessonResponseDTO toResponseDTO(Lesson lesson){
+        return new LessonResponseDTO(
+            lesson.getId(), lesson.getTitle(), lesson.getContent(),
+            lesson.getLessonOrder(), lesson.getVideoUrl(),
+            lesson.getModule().getId(), lesson.getModule().getTitle(),
+            lesson.getModule().getCourse().getId(), lesson.getModule().getCourse().getTitle()
+        );
+    }
+
+    public Lesson toEntity(LessonRequestDTO request, Module module) {
+        return Lesson.builder()
+            .title(request.title()).content(request.content())
+            .lessonOrder(request.lessonOrder()).videoUrl(request.videoUrl())
+            .module(module).build();
+    }
+
+    public List<LessonResponseDTO> getAllByModuleId(Long moduleId) {
+        return lessonRepository.findByModuleId(moduleId).stream()
+            .sorted(Comparator.comparing(Lesson::getLessonOrder))
+            .map(this::toResponseDTO).toList();
+    }
+
+    public Integer countLessonsInCourse(Long courseId) {
+        return lessonRepository.countLessonsPerModuleInCourse(courseId).stream()
+            .mapToInt(obj -> ((Long) obj[1]).intValue()).sum();
+    }
+    
     public LessonResponseDTO getByLessonOrder(Long moduleId, Integer order, Long studentId, Long courseId) {
-        // 1. Busca a aula pela ordem e módulo
         Lesson lesson = lessonRepository.findByModuleIdAndLessonOrder(moduleId, order)
-            .orElseThrow(() -> new BusinessRuleException("Aula com ordem " + order + " não encontrada no módulo " + moduleId));
-
-        // 2. Busca a matrícula do aluno
+            .orElseThrow(() -> new BusinessRuleException("Aula número " + order + " não existe neste módulo."));
+        
         Enrollment enrollment = enrollmentService.findByStudentIdAndCourseId(studentId, courseId);
-
-        // 3. Reutiliza sua lógica de validação existente!
         validateLessonAccessibility(lesson, enrollment);
-
+        
         return toResponseDTO(lesson);
+    }
+    
+    @Transactional
+    public LessonResponseDTO update(Long lessonId, Long moduleId, LessonRequestDTO request) {
+        Lesson lesson = findById(lessonId);
+        if (!lesson.getLessonOrder().equals(request.lessonOrder())) {
+            shiftLessonOrders(moduleId, request.lessonOrder(), lessonId);
+        }
+        lesson.setTitle(request.title());
+        lesson.setContent(request.content());
+        lesson.setVideoUrl(request.videoUrl());
+        lesson.setLessonOrder(request.lessonOrder());
+        return toResponseDTO(lessonRepository.save(lesson));
     }
 }

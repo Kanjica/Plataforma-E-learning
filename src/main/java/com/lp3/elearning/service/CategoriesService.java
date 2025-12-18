@@ -1,121 +1,85 @@
 package com.lp3.elearning.service;
 
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.lp3.elearning.dto.CategoryRequestDTO;
 import com.lp3.elearning.dto.CategoryResponseDTO;
 import com.lp3.elearning.entities.Category;
-import com.lp3.elearning.exception.ConflictException;
 import com.lp3.elearning.exception.ResourceNotFoundException;
 import com.lp3.elearning.repository.CategoriesRepository;
-import com.lp3.elearning.repository.CourseRepository;
-import io.micrometer.common.lang.NonNull;
 
 @Service
 public class CategoriesService {
 
-    private final CourseRepository courseRepository;
-
     private final CategoriesRepository categoriesRepository;
 
-    public CategoriesService(CategoriesRepository categoriesRepository, CourseRepository courseRepository) {
+    public CategoriesService(CategoriesRepository categoriesRepository) {
         this.categoriesRepository = categoriesRepository;
-        this.courseRepository = courseRepository;
     }
     
+    @Transactional
     public CategoryResponseDTO createCategory(CategoryRequestDTO dto) {
-        Category category = Category.builder()
-                .name(dto.name())
-                .build();
-        
-        category = categoriesRepository.save(category);
-        return toResponseDTO(category);
+        Category category = Category.builder().name(dto.name()).build();
+        return toResponseDTO(categoriesRepository.save(category));
     }
     
-    public List<CategoryResponseDTO> findAll() {
-        return categoriesRepository.findAll().stream()
-                .map(this::toResponseDTO)
-                .collect(Collectors.toList());
-    }
-
-
-    public CategoryResponseDTO findById(Long id) {
-        return toResponseDTO(findCategoryEntityById(id));
-    }
-
-
-    public Category findCategoryEntityById(@NonNull Long id) {
-        return categoriesRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada com o ID: " + id));
-    }
-
-    public Set<Category> getCategoriesByValidIds(Set<Long> ids) {
-            if (ids == null || ids.isEmpty()) {
-                return new HashSet<>();
-            }
-
-            List<Long> requestedIds = ids.stream().toList(); 
-            
-            List<Category> foundCategories = categoriesRepository.findAllById(requestedIds);
-
-            if (foundCategories.size() != requestedIds.size()) {
-                
-                Set<Long> foundIds = foundCategories.stream()
-                    .map(Category::getId)
-                    .collect(Collectors.toSet());
-
-                String missingIds = requestedIds.stream()
-                    .filter(id -> !foundIds.contains(id))
-                    .map(String::valueOf)
-                    .collect(Collectors.joining(", "));
-
-                throw new ResourceNotFoundException("As seguintes IDs de Categoria não foram encontradas: " + missingIds);
-            }
-
-            return new HashSet<>(foundCategories);
-    }
-
-    public Set<CategoryResponseDTO> toResponseDTOs(Set<Category> categories) {
-        return categories.stream()
-            .map(category -> new CategoryResponseDTO(category.getId(), category.getName()))
-            .collect(Collectors.toSet());
-    }
-
-    public Set<Category> toEntitys(Set<Long> ids) {
-        Set<Category> categories = new HashSet<>();
-        for (Long id : ids) {
-            categories.add(findCategoryEntityById(id));
-        }
-        return categories;
-    }
-
-    public CategoryResponseDTO toResponseDTO(Category category) {
-            return new CategoryResponseDTO(category.getId(), category.getName());
-    }
-
-    // Adicionar Update
+    @Transactional
     public CategoryResponseDTO update(Long id, CategoryRequestDTO dto) {
         Category category = findCategoryEntityById(id);
         category.setName(dto.name());
         return toResponseDTO(categoriesRepository.save(category));
     }
 
-    // Adicionar Delete
+    @Transactional
     public void delete(Long id) {
         if (!categoriesRepository.existsById(id)) {
             throw new ResourceNotFoundException("Categoria não encontrada.");
         }
-        // // Opcional: Verificar se existem cursos vinculados antes de deletar
-        // if (courseRepository.existsByCategoryId(new HashSet<>(Set.of(id)))) { 
-        //     throw new ConflictException("a categoria que c ta tentando deletar tem curso ligada nela"); 
-        // }
-        
+        // TODO: Verificar se há cursos vinculados antes de deletar, se necessário.
         categoriesRepository.deleteById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CategoryResponseDTO> findAll() {
+        return categoriesRepository.findAll().stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    public CategoryResponseDTO findById(Long id) {
+        return toResponseDTO(findCategoryEntityById(id));
+    }
+
+    public Category findCategoryEntityById(Long id) {
+        return categoriesRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada com o ID: " + id));
+    }
+
+    /**
+     * Valida uma lista de IDs e retorna as entidades correspondentes.
+     * @throws ResourceNotFoundException se algum ID não existir.
+     */
+    public Set<Category> getCategoriesByValidIds(Set<Long> ids) {
+        if (ids == null || ids.isEmpty()) return new HashSet<>();
+        
+        List<Category> foundCategories = categoriesRepository.findAllById(ids);
+        
+        if (foundCategories.size() != ids.size()) {
+            Set<Long> foundIds = foundCategories.stream().map(Category::getId).collect(Collectors.toSet());
+            String missingIds = ids.stream().filter(id -> !foundIds.contains(id))
+                .map(String::valueOf).collect(Collectors.joining(", "));
+            throw new ResourceNotFoundException("IDs de Categoria inválidos: " + missingIds);
+        }
+        return new HashSet<>(foundCategories);
+    }
+
+    public CategoryResponseDTO toResponseDTO(Category category) {
+        return new CategoryResponseDTO(category.getId(), category.getName());
     }
 }

@@ -1,9 +1,7 @@
 package com.lp3.elearning.repository;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Locale.Category;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
