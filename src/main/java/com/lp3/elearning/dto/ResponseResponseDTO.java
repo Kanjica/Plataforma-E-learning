@@ -3,6 +3,8 @@ package com.lp3.elearning.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 public record ResponseResponseDTO(
     Long id,
     String content,
@@ -10,5 +12,6 @@ public record ResponseResponseDTO(
     UserResponseDTO user,
     Long topicId, 
     Long responseParentId, 
-    List<ResponseResponseDTO> childResponses // Para montar o thread
+    @Schema(description = "Respostas filhas (Threads)")
+    List<ResponseResponseDTO> childResponses 
 ) {}
