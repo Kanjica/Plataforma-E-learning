@@ -4,8 +4,8 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import com.lp3.elearning.dto.CategoryRequestDTO;
-import com.lp3.elearning.dto.CategoryResponseDTO;
+import com.lp3.elearning.dto.course.CategoryRequestDTO;
+import com.lp3.elearning.dto.course.CategoryResponseDTO;
 import com.lp3.elearning.entities.Instructor;
 import com.lp3.elearning.service.CategoriesService;
 

@@ -10,9 +10,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import com.lp3.elearning.dto.AuthenticationDTO;
-import com.lp3.elearning.dto.LoginResponseDTO;
-import com.lp3.elearning.dto.RegisterDTO;
+import com.lp3.elearning.dto.auth.AuthenticationDTO;
+import com.lp3.elearning.dto.auth.LoginResponseDTO;
+import com.lp3.elearning.dto.auth.RegisterDTO;
 import com.lp3.elearning.entities.Instructor;
 import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.entities.User;

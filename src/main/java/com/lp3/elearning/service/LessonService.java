@@ -9,9 +9,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional; // Importante: use o do Spring
 
-import com.lp3.elearning.dto.LessonReorderRequestDTO;
-import com.lp3.elearning.dto.LessonRequestDTO;
-import com.lp3.elearning.dto.LessonResponseDTO;
+import com.lp3.elearning.dto.course.LessonReorderRequestDTO;
+import com.lp3.elearning.dto.course.LessonRequestDTO;
+import com.lp3.elearning.dto.course.LessonResponseDTO;
 import com.lp3.elearning.entities.Enrollment;
 import com.lp3.elearning.entities.Lesson;
 import com.lp3.elearning.entities.Module;

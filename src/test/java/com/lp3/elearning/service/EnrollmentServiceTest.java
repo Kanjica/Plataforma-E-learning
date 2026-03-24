@@ -11,7 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.lp3.elearning.dto.EnrollmentRequestDTO;
+import com.lp3.elearning.dto.enrollment.EnrollmentRequestDTO;
 import com.lp3.elearning.entities.*;
 import com.lp3.elearning.exception.ConflictException;
 import com.lp3.elearning.repository.EnrollmentRepository;

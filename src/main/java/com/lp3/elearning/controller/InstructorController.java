@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.lp3.elearning.dto.CourseResponseDTO;
-import com.lp3.elearning.dto.InstructorResponseDTO;
+import com.lp3.elearning.dto.course.CourseResponseDTO;
+import com.lp3.elearning.dto.user.InstructorResponseDTO;
 import com.lp3.elearning.service.InstructorService;
 
 import io.swagger.v3.oas.annotations.Operation;

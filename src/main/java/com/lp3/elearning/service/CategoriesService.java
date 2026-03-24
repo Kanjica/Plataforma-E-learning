@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.lp3.elearning.dto.CategoryRequestDTO;
-import com.lp3.elearning.dto.CategoryResponseDTO;
+import com.lp3.elearning.dto.course.CategoryRequestDTO;
+import com.lp3.elearning.dto.course.CategoryResponseDTO;
 import com.lp3.elearning.entities.Category;
 import com.lp3.elearning.exception.ResourceNotFoundException;
 import com.lp3.elearning.repository.CategoriesRepository;

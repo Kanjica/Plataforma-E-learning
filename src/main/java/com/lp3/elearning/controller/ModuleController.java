@@ -3,9 +3,9 @@ package com.lp3.elearning.controller;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.lp3.elearning.dto.ModuleReorderRequestDTO;
-import com.lp3.elearning.dto.ModuleRequestDTO;
-import com.lp3.elearning.dto.ModuleResponseDTO;
+import com.lp3.elearning.dto.course.ModuleReorderRequestDTO;
+import com.lp3.elearning.dto.course.ModuleRequestDTO;
+import com.lp3.elearning.dto.course.ModuleResponseDTO;
 import com.lp3.elearning.service.ModuleService;
 
 import io.swagger.v3.oas.annotations.Operation;

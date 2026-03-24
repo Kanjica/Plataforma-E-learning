@@ -14,7 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.lp3.elearning.dto.CourseRequestDTO;
+import com.lp3.elearning.dto.course.CourseRequestDTO;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.exception.ConflictException;
 import com.lp3.elearning.repository.CourseRepository;

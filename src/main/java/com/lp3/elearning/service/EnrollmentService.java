@@ -8,9 +8,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.lp3.elearning.dto.CompletedLessonResponseDTO;
-import com.lp3.elearning.dto.EnrollmentRequestDTO;
-import com.lp3.elearning.dto.EnrollmentResponseDTO;
+import com.lp3.elearning.dto.enrollment.CompletedLessonResponseDTO;
+import com.lp3.elearning.dto.enrollment.EnrollmentRequestDTO;
+import com.lp3.elearning.dto.enrollment.EnrollmentResponseDTO;
 import com.lp3.elearning.entities.Course;
 import com.lp3.elearning.entities.Enrollment;
 import com.lp3.elearning.entities.StatusEnrollment;

@@ -11,8 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.lp3.elearning.dto.UserRequestDTO;
-import com.lp3.elearning.dto.UserUpdateRequestDTO;
+import com.lp3.elearning.dto.user.UserUpdateRequestDTO;
 import com.lp3.elearning.entities.User;
 import com.lp3.elearning.repository.UserRepository;
 

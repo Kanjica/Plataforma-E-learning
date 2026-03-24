@@ -3,12 +3,15 @@ package com.lp3.elearning.controller;
 import java.util.List;
 import java.util.Set;
 
+import com.lp3.elearning.dto.enrollment.CompletedLessonResponseDTO;
+import com.lp3.elearning.dto.course.CourseFilterDTO;
+import com.lp3.elearning.dto.course.CourseRequestDTO;
+import com.lp3.elearning.dto.course.CourseResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import com.lp3.elearning.dto.*;
 import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.service.CourseService;
 import com.lp3.elearning.service.EnrollmentService;

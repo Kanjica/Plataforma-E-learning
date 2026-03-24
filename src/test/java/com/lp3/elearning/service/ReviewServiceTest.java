@@ -11,7 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.lp3.elearning.dto.ReviewRequestDTO;
+import com.lp3.elearning.dto.forum.ReviewRequestDTO;
 import com.lp3.elearning.entities.Review;
 import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.exception.BusinessRuleException;

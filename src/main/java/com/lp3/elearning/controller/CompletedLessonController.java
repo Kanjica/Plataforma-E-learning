@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.lp3.elearning.dto.CompletedLessonResponseDTO;
+import com.lp3.elearning.dto.enrollment.CompletedLessonResponseDTO;
 import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.repository.StudentRepository;
 import com.lp3.elearning.service.CompletedLessonsService;

@@ -4,9 +4,9 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import com.lp3.elearning.dto.LessonReorderRequestDTO;
-import com.lp3.elearning.dto.LessonRequestDTO;
-import com.lp3.elearning.dto.LessonResponseDTO;
+import com.lp3.elearning.dto.course.LessonReorderRequestDTO;
+import com.lp3.elearning.dto.course.LessonRequestDTO;
+import com.lp3.elearning.dto.course.LessonResponseDTO;
 import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.service.LessonService;
 

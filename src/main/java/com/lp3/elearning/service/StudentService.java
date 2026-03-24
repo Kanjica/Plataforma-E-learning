@@ -2,7 +2,7 @@ package com.lp3.elearning.service;
 
 import org.springframework.stereotype.Service;
 
-import com.lp3.elearning.dto.StudentResponseDTO;
+import com.lp3.elearning.dto.user.StudentResponseDTO;
 import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.repository.StudentRepository;
 

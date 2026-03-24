@@ -11,9 +11,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.lp3.elearning.dto.CourseFilterDTO;
-import com.lp3.elearning.dto.CourseRequestDTO;
-import com.lp3.elearning.dto.CourseResponseDTO;
+import com.lp3.elearning.dto.course.CourseFilterDTO;
+import com.lp3.elearning.dto.course.CourseRequestDTO;
+import com.lp3.elearning.dto.course.CourseResponseDTO;
 import com.lp3.elearning.entities.Category;
 import com.lp3.elearning.entities.Course;
 import com.lp3.elearning.entities.Instructor;

@@ -7,9 +7,9 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.lp3.elearning.dto.ResponseRequestDTO;
-import com.lp3.elearning.dto.ResponseResponseDTO;
-import com.lp3.elearning.dto.UserResponseDTO;
+import com.lp3.elearning.dto.forum.ResponseRequestDTO;
+import com.lp3.elearning.dto.forum.ResponseResponseDTO;
+import com.lp3.elearning.dto.user.UserResponseDTO;
 import com.lp3.elearning.entities.Response;
 import com.lp3.elearning.entities.Topic;
 import com.lp3.elearning.entities.User;

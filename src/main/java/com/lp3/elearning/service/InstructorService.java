@@ -7,8 +7,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.lp3.elearning.dto.CourseResponseDTO;
-import com.lp3.elearning.dto.InstructorResponseDTO;
+import com.lp3.elearning.dto.course.CourseResponseDTO;
+import com.lp3.elearning.dto.user.InstructorResponseDTO;
 import com.lp3.elearning.entities.Instructor;
 import com.lp3.elearning.exception.ResourceNotFoundException;
 import com.lp3.elearning.repository.InstructorRepository;

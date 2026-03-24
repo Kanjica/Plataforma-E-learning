@@ -6,8 +6,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.lp3.elearning.dto.ReviewRequestDTO;
-import com.lp3.elearning.dto.ReviewResponseDTO;
+import com.lp3.elearning.dto.forum.ReviewRequestDTO;
+import com.lp3.elearning.dto.forum.ReviewResponseDTO;
 import com.lp3.elearning.entities.Course;
 import com.lp3.elearning.entities.Review;
 import com.lp3.elearning.entities.Student;

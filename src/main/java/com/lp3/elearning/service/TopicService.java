@@ -9,9 +9,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.lp3.elearning.dto.ResponseResponseDTO;
-import com.lp3.elearning.dto.TopicRequestDTO;
-import com.lp3.elearning.dto.TopicResponseDTO;
+import com.lp3.elearning.dto.forum.ResponseResponseDTO;
+import com.lp3.elearning.dto.forum.TopicRequestDTO;
+import com.lp3.elearning.dto.forum.TopicResponseDTO;
 import com.lp3.elearning.entities.Topic;
 import com.lp3.elearning.entities.User;
 import com.lp3.elearning.exception.BusinessRuleException;

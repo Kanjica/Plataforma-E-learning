@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.lp3.elearning.dto.ReviewRequestDTO;
-import com.lp3.elearning.dto.ReviewResponseDTO;
+import com.lp3.elearning.dto.forum.ReviewRequestDTO;
+import com.lp3.elearning.dto.forum.ReviewResponseDTO;
 import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.service.ReviewService;
 

@@ -10,10 +10,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.lp3.elearning.dto.ModuleLessonCountDTO;
-import com.lp3.elearning.dto.ModuleReorderRequestDTO;
-import com.lp3.elearning.dto.ModuleRequestDTO;
-import com.lp3.elearning.dto.ModuleResponseDTO;
+import com.lp3.elearning.dto.course.ModuleLessonCountDTO;
+import com.lp3.elearning.dto.course.ModuleReorderRequestDTO;
+import com.lp3.elearning.dto.course.ModuleRequestDTO;
+import com.lp3.elearning.dto.course.ModuleResponseDTO;
 import com.lp3.elearning.entities.Course;
 import com.lp3.elearning.entities.Module;
 import com.lp3.elearning.exception.BusinessRuleException;

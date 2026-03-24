@@ -15,8 +15,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.lp3.elearning.dto.ModuleReorderRequestDTO;
-import com.lp3.elearning.dto.ModuleRequestDTO;
+import com.lp3.elearning.dto.course.ModuleReorderRequestDTO;
+import com.lp3.elearning.dto.course.ModuleRequestDTO;
 import com.lp3.elearning.entities.Course;
 import com.lp3.elearning.entities.Module;
 import com.lp3.elearning.exception.ConflictException;
