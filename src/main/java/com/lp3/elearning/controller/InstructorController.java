@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.course.CourseResponseDTO;
 import com.lp3.elearning.dto.user.InstructorResponseDTO;
 import com.lp3.elearning.service.InstructorService;
@@ -27,13 +28,13 @@ public class InstructorController {
 
     @Operation(summary = "Perfil do Instrutor", description = "Busca detalhes públicos de um instrutor")
     @GetMapping("/{instructorId}")
-    public ResponseEntity<InstructorResponseDTO> getInstructorById(@PathVariable Long instructorId) {
-        return ResponseEntity.ok(instructorService.findById(instructorId));
+    public ResponseEntity<APIResponse<InstructorResponseDTO>> getInstructorById(@PathVariable Long instructorId) {
+        return ResponseEntity.ok(APIResponse.success(instructorService.findById(instructorId)));
     }
 
     @Operation(summary = "Cursos do Instrutor", description = "Lista todos os cursos ministrados por este instrutor")
     @GetMapping("/{instructorId}/my-courses")
-    public ResponseEntity<Set<CourseResponseDTO>> getInstructorCourses(@PathVariable Long instructorId) {
-        return ResponseEntity.ok(instructorService.findCoursesByInstructorId(instructorId));
+    public ResponseEntity<APIResponse<Set<CourseResponseDTO>>> getInstructorCourses(@PathVariable Long instructorId) {
+        return ResponseEntity.ok(APIResponse.success(instructorService.findCoursesByInstructorId(instructorId)));
     }
 }

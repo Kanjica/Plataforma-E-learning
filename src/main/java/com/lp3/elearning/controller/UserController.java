@@ -4,6 +4,8 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.user.UserResponseDTO;
 import com.lp3.elearning.dto.user.UserUpdateRequestDTO;
 import com.lp3.elearning.entities.User;
@@ -24,27 +26,27 @@ public class UserController {
 
     @Operation(summary = "Meu Perfil", description = "Dados do usuário logado")
     @GetMapping("/me")
-    public ResponseEntity<UserResponseDTO> getMyProfile(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(userService.findById(user.getId()));
+    public ResponseEntity<APIResponse<UserResponseDTO>> getMyProfile(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(APIResponse.success(userService.findById(user.getId())));
     }
 
     @Operation(summary = "Atualizar Meu Perfil")
     @PutMapping("/me")
-    public ResponseEntity<UserResponseDTO> updateMyProfile(
+    public ResponseEntity<APIResponse<UserResponseDTO>> updateMyProfile(
             @AuthenticationPrincipal User user, 
             @RequestBody @Valid UserUpdateRequestDTO request) {
-        return ResponseEntity.ok(userService.updateProfile(user.getId(), request));
+        return ResponseEntity.ok(APIResponse.success(userService.updateProfile(user.getId(), request)));
     }
 
     @Operation(summary = "Listar Usuários (Admin)")
     @GetMapping
-    public ResponseEntity<List<UserResponseDTO>> getAll() {
-        return ResponseEntity.ok(userService.findAll());
+    public ResponseEntity<APIResponse<List<UserResponseDTO>>> getAll() {
+        return ResponseEntity.ok(APIResponse.success(userService.findAll()));
     }
 
     @Operation(summary = "Buscar Usuário por ID")
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.findById(id));
+    public ResponseEntity<APIResponse<UserResponseDTO>> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(APIResponse.success(userService.findById(id)));
     }
 }

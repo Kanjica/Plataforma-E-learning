@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.enrollment.CompletedLessonResponseDTO;
 import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.repository.StudentRepository;
@@ -28,10 +29,13 @@ public class CompletedLessonController {
     
     @Operation(summary = "Concluir Aula", description = "Marca a aula como assistida e atualiza o progresso")
     @PostMapping
-    public ResponseEntity<CompletedLessonResponseDTO> completeLesson(
-        @PathVariable Long courseId, @PathVariable Long lessonId, @AuthenticationPrincipal UserDetails userDetails){
+    public ResponseEntity<APIResponse<CompletedLessonResponseDTO>> completeLesson(
+        @PathVariable Long courseId, 
+        @PathVariable Long lessonId, 
+        @AuthenticationPrincipal UserDetails userDetails){
+            
             String email = userDetails.getUsername();
             Student student = (Student) studentRepository.findByEmail(email);
-        return ResponseEntity.ok(service.completeLesson(student.getId(), courseId, lessonId));
+        return ResponseEntity.ok(APIResponse.success(service.completeLesson(student.getId(), courseId, lessonId)));
     }
 }

@@ -4,6 +4,8 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.course.LessonReorderRequestDTO;
 import com.lp3.elearning.dto.course.LessonRequestDTO;
 import com.lp3.elearning.dto.course.LessonResponseDTO;
@@ -25,68 +27,68 @@ public class LessonController {
     }
 
     @Operation(summary = "Criar Aula")
-    @PostMapping // ANTES: /create (Removido)
-    public ResponseEntity<LessonResponseDTO> createLesson(
+    @PostMapping
+    public ResponseEntity<APIResponse<LessonResponseDTO>> createLesson(
         @PathVariable Long courseId,
         @PathVariable Long moduleId,
         @RequestBody LessonRequestDTO lessonRequest){
-        return ResponseEntity.ok(lessonService.create(lessonRequest, moduleId, courseId));
+        return ResponseEntity.ok(APIResponse.success(lessonService.create(lessonRequest, moduleId, courseId)));
     }
 
     @Operation(summary = "Buscar Aula", description = "Busca detalhes da aula e valida acesso do aluno")
     @GetMapping("/{lessonId}")
-    public ResponseEntity<LessonResponseDTO> getById(
+    public ResponseEntity<APIResponse<LessonResponseDTO>> getById(
         @PathVariable Long courseId,
         @PathVariable Long moduleId,
         @PathVariable Long lessonId,
         @AuthenticationPrincipal Student student ){
-        return ResponseEntity.ok(lessonService.getLessonByIdForUser(lessonId, student.getId(), courseId));
+        return ResponseEntity.ok(APIResponse.success(lessonService.getLessonByIdForUser(lessonId, student.getId(), courseId)));
     }
 
     @Operation(summary = "Buscar por Ordem", description = "Navegação sequencial (ex: Aula 1, Aula 2)")
     @GetMapping("/order") 
-    public ResponseEntity<LessonResponseDTO> getByOrder(
+    public ResponseEntity<APIResponse<LessonResponseDTO>> getByOrder(
         @PathVariable Long courseId,
         @PathVariable Long moduleId,
         @RequestParam Integer order,
         @AuthenticationPrincipal Student student) {
-        return ResponseEntity.ok(lessonService.getByLessonOrder(moduleId, order, student.getId(), courseId));
+        return ResponseEntity.ok(APIResponse.success(lessonService.getByLessonOrder(moduleId, order, student.getId(), courseId)));
     }
 
     @Operation(summary = "Listar Aulas do Módulo")
     @GetMapping
-    public ResponseEntity<List<LessonResponseDTO>> getAllByModuleId(
+    public ResponseEntity<APIResponse<List<LessonResponseDTO>>> getAllByModuleId(
         @PathVariable Long courseId,
         @PathVariable Long moduleId){
-        return ResponseEntity.ok(lessonService.getAllByModuleId(moduleId));
+        return ResponseEntity.ok(APIResponse.success(lessonService.getAllByModuleId(moduleId)));
     }
 
     @Operation(summary = "Atualizar Aula")
     @PutMapping("/{lessonId}")
-    public ResponseEntity<LessonResponseDTO> updateLesson(
+    public ResponseEntity<APIResponse<LessonResponseDTO>> updateLesson(
         @PathVariable Long courseId,
         @PathVariable Long moduleId,
         @PathVariable Long lessonId,
         @RequestBody LessonRequestDTO lessonRequest) {
-        return ResponseEntity.ok(lessonService.update(lessonId, moduleId, lessonRequest));
+        return ResponseEntity.ok(APIResponse.success(lessonService.update(lessonId, moduleId, lessonRequest)));
     }
 
     @Operation(summary = "Deletar Aula")
     @DeleteMapping("/{lessonId}")
-    public ResponseEntity<Void> deleteLesson(
+    public ResponseEntity<APIResponse<Void>> deleteLesson(
         @PathVariable Long courseId,
         @PathVariable Long moduleId,
         @PathVariable Long lessonId) {
         lessonService.delete(lessonId, moduleId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(APIResponse.success(null));
     }
 
     @Operation(summary = "Reordenar Aulas")
     @PutMapping("/reorder")
-    public ResponseEntity<List<LessonResponseDTO>> reorderLessons(
+    public ResponseEntity<APIResponse<List<LessonResponseDTO>>> reorderLessons(
         @PathVariable Long courseId, 
         @PathVariable Long moduleId,
         @RequestBody List<LessonReorderRequestDTO> requests){
-        return ResponseEntity.ok(lessonService.reorder(moduleId, requests));
+        return ResponseEntity.ok(APIResponse.success(lessonService.reorder(moduleId, requests)));
     }
 }

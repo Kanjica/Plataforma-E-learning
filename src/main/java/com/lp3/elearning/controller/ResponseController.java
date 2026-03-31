@@ -1,10 +1,11 @@
 package com.lp3.elearning.controller;
 
 import java.util.List;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.forum.ResponseRequestDTO;
 import com.lp3.elearning.dto.forum.ResponseResponseDTO;
 import com.lp3.elearning.entities.User;
@@ -28,7 +29,7 @@ public class ResponseController {
     
     @Operation(summary = "Criar Resposta", description = "Adiciona um comentário ou resposta a um tópico")
     @PostMapping
-    public ResponseEntity<ResponseResponseDTO> createResponse(
+    public ResponseEntity<APIResponse<ResponseResponseDTO>> createResponse(
         @PathVariable Long topicId,
         @RequestBody @Valid ResponseRequestDTO request,
         @AuthenticationPrincipal User user){
@@ -38,34 +39,34 @@ public class ResponseController {
         }
         
         ResponseResponseDTO response = responseService.create(request, user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.ok(APIResponse.success(response));
     }
 
     @Operation(summary = "Listar Respostas", description = "Retorna a árvore de comentários de um tópico")
     @GetMapping
-    public ResponseEntity<List<ResponseResponseDTO>> getRootResponsesByTopic(@PathVariable Long topicId) {
-        return ResponseEntity.ok(responseService.findRootResponsesByTopic(topicId));
+    public ResponseEntity<APIResponse<List<ResponseResponseDTO>>> getRootResponsesByTopic(@PathVariable Long topicId) {
+        return ResponseEntity.ok(APIResponse.success(responseService.findRootResponsesByTopic(topicId)));
     }
     
     @Operation(summary = "Deletar Resposta", description = "Remove um comentário (apenas autor ou admin)")
     @DeleteMapping("/{responseId}")
-    public ResponseEntity<Void> deleteResponse(
+    public ResponseEntity<APIResponse<Void>> deleteResponse(
         @PathVariable Long topicId, 
         @PathVariable Long responseId,
         @AuthenticationPrincipal User user) {
         responseService.delete(responseId, user);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(APIResponse.success(null));
     }
     
     @Operation(summary = "Atualizar Resposta", description = "Edita o conteúdo de um comentário")
     @PutMapping("/{responseId}")
-    public ResponseEntity<ResponseResponseDTO> updateResponse(
+    public ResponseEntity<APIResponse<ResponseResponseDTO>> updateResponse(
         @PathVariable Long topicId,
         @PathVariable Long responseId,
         @RequestBody @Valid ResponseRequestDTO request, 
         @AuthenticationPrincipal User user) {
 
         ResponseResponseDTO updatedResponse = responseService.update(responseId, request.content(), user);
-        return ResponseEntity.ok(updatedResponse);
+        return ResponseEntity.ok(APIResponse.success(updatedResponse));
     }
 }

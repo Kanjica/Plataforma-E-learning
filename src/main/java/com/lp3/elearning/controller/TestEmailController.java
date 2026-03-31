@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.service.EmailService;
 
 @RestController
@@ -18,13 +19,13 @@ public class TestEmailController {
     }
 
     @PostMapping("/send-email")
-    public ResponseEntity<String> enviarEmailTeste(@RequestParam("destinatario") String destinatario) {
+    public ResponseEntity<APIResponse<String>> enviarEmailTeste(@RequestParam("destinatario") String destinatario) {
         
         String assunto = "Teste de Envio de Email com Spring Boot";
         String corpo = "Olá,\n\nEste é um email de teste enviado da sua aplicação Spring Boot!\n\nAtenciosamente,\nSeu Sistema";
 
         emailService.sendSimpleMail(destinatario, assunto, corpo);
 
-        return ResponseEntity.ok("Solicitação de envio de e-mail iniciada.");
+        return ResponseEntity.ok(APIResponse.success("Solicitação de envio de e-mail iniciada."));
     }
 }

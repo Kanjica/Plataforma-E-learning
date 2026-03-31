@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.forum.ReviewRequestDTO;
 import com.lp3.elearning.dto.forum.ReviewResponseDTO;
 import com.lp3.elearning.entities.Student;
@@ -36,40 +37,41 @@ public class ReviewController {
     
     @Operation(summary = "Criar Avaliação")
     @PostMapping
-    public ResponseEntity<ReviewResponseDTO> create(
+    public ResponseEntity<APIResponse<ReviewResponseDTO>> create(
             @PathVariable Long courseId,
             @RequestBody @Valid ReviewRequestDTO request,
             @AuthenticationPrincipal Student student) {
         
         ReviewResponseDTO response = reviewService.createReview(courseId, request, student);
-        return ResponseEntity.status(201).body(response);
+        return ResponseEntity.ok(APIResponse.success(response));
     }
 
     @Operation(summary = "Listar Avaliações do Curso")
     @GetMapping
-    public ResponseEntity<List<ReviewResponseDTO>> list(@PathVariable Long courseId) {
-        return ResponseEntity.ok(reviewService.listByCourse(courseId));
+    public ResponseEntity<APIResponse<List<ReviewResponseDTO>>> list(@PathVariable Long courseId) {
+        return ResponseEntity.ok(APIResponse.success(reviewService.listByCourse(courseId)));
     }
     
     @Operation(summary = "Atualizar Avaliação")
     @PutMapping("/{reviewId}")
-    public ResponseEntity<ReviewResponseDTO> update(
+    public ResponseEntity<APIResponse<ReviewResponseDTO>> update(
             @PathVariable Long courseId,
             @PathVariable Long reviewId,
             @RequestBody @Valid ReviewRequestDTO request,
             @AuthenticationPrincipal Student student) {
         
-        return ResponseEntity.ok(reviewService.updateReview(courseId, reviewId, request, student));
+        ReviewResponseDTO response = reviewService.updateReview(courseId, reviewId, request, student);
+        return ResponseEntity.ok(APIResponse.success(response));
     }
 
     @Operation(summary = "Deletar Avaliação")
     @DeleteMapping("/{reviewId}")
-    public ResponseEntity<Void> delete(
+    public ResponseEntity<APIResponse<Void>> delete(
             @PathVariable Long courseId,
             @PathVariable Long reviewId,
             @AuthenticationPrincipal Student student) {
         
         reviewService.deleteReview(courseId, reviewId, student);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(APIResponse.success(null));
     }
 }

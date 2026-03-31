@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.lp3.elearning.dto.enrollment.CompletedLessonResponseDTO;
+import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.course.CourseFilterDTO;
 import com.lp3.elearning.dto.course.CourseRequestDTO;
 import com.lp3.elearning.dto.course.CourseResponseDTO;
@@ -41,25 +42,25 @@ public class CourseController {
         @ApiResponse(responseCode = "400", description = "Dados inválidos")
     })
     @PostMapping 
-    public ResponseEntity<CourseResponseDTO> create(@RequestBody @Valid CourseRequestDTO courseRequest){
+    public ResponseEntity<APIResponse<CourseResponseDTO>> create(@RequestBody @Valid CourseRequestDTO courseRequest){
         return ResponseEntity.status(HttpStatus.CREATED).body(courseService.createCourse(courseRequest));
     }
 
     @Operation(summary = "Buscar Curso por ID")
     @GetMapping("/{courseId}")
-    public ResponseEntity<CourseResponseDTO> getCourseById(@PathVariable Long courseId){
+    public ResponseEntity<APIResponse<CourseResponseDTO>> getCourseById(@PathVariable Long courseId){
         return ResponseEntity.ok(courseService.getCourseByIdResponseDTO(courseId));
     }
 
     @Operation(summary = "Listar todos os cursos")
     @GetMapping
-    public ResponseEntity<List<CourseResponseDTO>> getAllCourses(){
+    public ResponseEntity<APIResponse<List<CourseResponseDTO>>> getAllCourses(){
         return ResponseEntity.ok(courseService.getAllCourses());
     }
 
     @Operation(summary = "Atualizar Curso")
     @PutMapping("/{courseId}") 
-    public ResponseEntity<CourseResponseDTO> update(@PathVariable Long courseId, @RequestBody @Valid CourseRequestDTO courseRequest){
+    public ResponseEntity<APIResponse<CourseResponseDTO>> update(@PathVariable Long courseId, @RequestBody @Valid CourseRequestDTO courseRequest){
         return ResponseEntity.ok(courseService.updateCourse(courseId, courseRequest));
     }
 
@@ -72,7 +73,7 @@ public class CourseController {
 
     @Operation(summary = "Filtrar Cursos", description = "Busca avançada de cursos")
     @PostMapping("/search") 
-    public ResponseEntity<Set<CourseResponseDTO>> filterCourses(@RequestBody @Valid CourseFilterDTO request){
+    public ResponseEntity<Set<APIResponse<CourseResponseDTO>>> filterCourses(@RequestBody @Valid CourseFilterDTO request){
         return ResponseEntity.ok(courseService.filterCourses(request));
     }
 

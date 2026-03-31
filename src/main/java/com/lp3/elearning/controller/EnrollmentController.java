@@ -6,6 +6,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.enrollment.EnrollmentRequestDTO;
 import com.lp3.elearning.dto.enrollment.EnrollmentResponseDTO;
 import com.lp3.elearning.entities.Student;
@@ -30,14 +32,14 @@ public class EnrollmentController {
     }
 
     @Operation(summary = "Realizar Matrícula", description = "Inscreve o aluno em um curso")
-    @PostMapping // ANTES: /create (Removido)
-    public ResponseEntity<EnrollmentResponseDTO> create(@RequestBody @Valid EnrollmentRequestDTO request){
-        return ResponseEntity.ok(enrollmentService.create(request));
+    @PostMapping 
+    public ResponseEntity<APIResponse<EnrollmentResponseDTO>> create(@RequestBody @Valid EnrollmentRequestDTO request){
+        return ResponseEntity.ok(APIResponse.success(enrollmentService.create(request)));
     }
 
     @Operation(summary = "Baixar Certificado", description = "Gera o PDF se o curso estiver concluído")
     @GetMapping("/{enrollmentId}/certificate")
-    public ResponseEntity<byte[]> getCertificate(
+    public ResponseEntity<APIResponse<byte[]>> getCertificate(
         @PathVariable Long enrollmentId,
         @AuthenticationPrincipal Student student) {
 
@@ -48,12 +50,12 @@ public class EnrollmentController {
                 .contentType(MediaType.APPLICATION_PDF)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
                 .contentLength(pdfBytes.length)
-                .body(pdfBytes);
+                .body(APIResponse.success(pdfBytes));
     }
 
     @Operation(summary = "Listar por Aluno (Admin)", description = "Lista matrículas de um aluno específico")
     @GetMapping("/student/{studentId}")
-    public ResponseEntity<List<EnrollmentResponseDTO>> getByStudent(@PathVariable Long studentId) {
-        return ResponseEntity.ok(enrollmentService.findByStudent(studentId));
+    public ResponseEntity<APIResponse<List<EnrollmentResponseDTO>>> getByStudent(@PathVariable Long studentId) {
+        return ResponseEntity.ok(APIResponse.success(enrollmentService.findByStudent(studentId)));
     }
 }

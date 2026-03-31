@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.enrollment.EnrollmentResponseDTO;
 import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.service.EnrollmentService;
@@ -26,7 +27,7 @@ public class StudentController {
 
     @Operation(summary = "Meu Dashboard", description = "Retorna cursos em andamento do aluno logado")
     @GetMapping("/dashboard")
-    public ResponseEntity<List<EnrollmentResponseDTO>> getMyDashboard(@AuthenticationPrincipal Student student) {
-        return ResponseEntity.ok(enrollmentService.getMyEnrollments(student.getId()));
+    public ResponseEntity<APIResponse<List<EnrollmentResponseDTO>>> getMyDashboard(@AuthenticationPrincipal Student student) {
+        return ResponseEntity.ok(APIResponse.success(enrollmentService.getMyEnrollments(student.getId())));
     }
 }
