@@ -43,47 +43,47 @@ public class CourseController {
     })
     @PostMapping 
     public ResponseEntity<APIResponse<CourseResponseDTO>> create(@RequestBody @Valid CourseRequestDTO courseRequest){
-        return ResponseEntity.status(HttpStatus.CREATED).body(courseService.createCourse(courseRequest));
+        return ResponseEntity.ok(APIResponse.success(courseService.createCourse(courseRequest)));
     }
 
     @Operation(summary = "Buscar Curso por ID")
     @GetMapping("/{courseId}")
     public ResponseEntity<APIResponse<CourseResponseDTO>> getCourseById(@PathVariable Long courseId){
-        return ResponseEntity.ok(courseService.getCourseByIdResponseDTO(courseId));
+        return ResponseEntity.ok(APIResponse.success(courseService.getCourseByIdResponseDTO(courseId)));
     }
 
     @Operation(summary = "Listar todos os cursos")
     @GetMapping
     public ResponseEntity<APIResponse<List<CourseResponseDTO>>> getAllCourses(){
-        return ResponseEntity.ok(courseService.getAllCourses());
+        return ResponseEntity.ok(APIResponse.success(courseService.getAllCourses()));
     }
 
     @Operation(summary = "Atualizar Curso")
     @PutMapping("/{courseId}") 
     public ResponseEntity<APIResponse<CourseResponseDTO>> update(@PathVariable Long courseId, @RequestBody @Valid CourseRequestDTO courseRequest){
-        return ResponseEntity.ok(courseService.updateCourse(courseId, courseRequest));
+        return ResponseEntity.ok(APIResponse.success(courseService.updateCourse(courseId, courseRequest)));
     }
 
     @Operation(summary = "Deletar Curso")
     @DeleteMapping("/{courseId}")
-    public ResponseEntity<Void> delete(@PathVariable Long courseId){
+    public ResponseEntity<APIResponse<Void>> delete(@PathVariable Long courseId){
         courseService.deleteCourse(courseId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(APIResponse.success(null));
     }
 
     @Operation(summary = "Filtrar Cursos", description = "Busca avançada de cursos")
     @PostMapping("/search") 
-    public ResponseEntity<Set<APIResponse<CourseResponseDTO>>> filterCourses(@RequestBody @Valid CourseFilterDTO request){
-        return ResponseEntity.ok(courseService.filterCourses(request));
+    public ResponseEntity<APIResponse<Set<CourseResponseDTO>>> filterCourses(@RequestBody @Valid CourseFilterDTO request){
+        return ResponseEntity.ok(APIResponse.success(courseService.filterCourses(request)));
     }
 
     @Operation(summary = "Ver Progresso", description = "Retorna o progresso do aluno logado neste curso")
     @GetMapping("/{courseId}/progress")
-    public ResponseEntity<Set<CompletedLessonResponseDTO>> progress(
+    public ResponseEntity<APIResponse<Set<CompletedLessonResponseDTO>>> progress(
         @AuthenticationPrincipal Student student, 
         @PathVariable Long courseId) {
         
         var enrollment = enrollmentService.findByStudentIdAndCourseId(student.getId(), courseId);
-        return ResponseEntity.ok(enrollmentService.calculateProgress(enrollment));
+        return ResponseEntity.ok(APIResponse.success(enrollmentService.calculateProgress(enrollment)));
     }
 }
