@@ -41,7 +41,11 @@ public class TopicService {
 
     @Transactional(readOnly = true)
     public List<TopicResponseDTO> findAllByCourse(Long courseId) {
-        return topicRepository.findByCourseId(courseId).stream() 
+        List<Topic> topics = (courseId != null)
+            ? topicRepository.findByCourseId(courseId)
+            : topicRepository.findAll();
+
+        return topics.stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }

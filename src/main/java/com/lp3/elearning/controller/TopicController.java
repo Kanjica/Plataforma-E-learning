@@ -29,11 +29,10 @@ public class TopicController {
 
     @Operation(summary = "Listar Tópicos", description = "Retorna todos os tópicos ou filtra por curso se 'courseId' for informado")
     @GetMapping
-    public ResponseEntity<APIResponse<List<TopicResponseDTO>>> getAllTopics(@RequestParam(required = false) Long courseId) {
-        if (courseId != null) {
-            return ResponseEntity.ok(APIResponse.success(topicService.findAllByCourse(courseId)));
-        }
-        return ResponseEntity.ok(APIResponse.success(topicService.findAll()));
+    public ResponseEntity<APIResponse<List<TopicResponseDTO>>> getAllTopics(
+        @RequestParam(required = false) Long courseId) {
+
+        return ResponseEntity.ok(APIResponse.success(topicService.findAllByCourse(courseId)));
     }
     
     @Operation(summary = "Criar Tópico", description = "Abre uma nova discussão no fórum")
