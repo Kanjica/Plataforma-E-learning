@@ -23,19 +23,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class CompletedLessonController {
 
     private final CompletedLessonsService service;
-    private final StudentRepository studentRepository;
 
-    public CompletedLessonController(CompletedLessonsService service, StudentRepository studentRepository){ this.service = service; this.studentRepository = studentRepository;}
+    public CompletedLessonController(CompletedLessonsService service){ 
+        this.service = service;
+    }
     
     @Operation(summary = "Concluir Aula", description = "Marca a aula como assistida e atualiza o progresso")
     @PostMapping
     public ResponseEntity<APIResponse<CompletedLessonResponseDTO>> completeLesson(
         @PathVariable Long courseId, 
         @PathVariable Long lessonId, 
-        @AuthenticationPrincipal UserDetails userDetails){
-            
-            String email = userDetails.getUsername();
-            Student student = (Student) studentRepository.findByEmail(email);
+        @AuthenticationPrincipal Student student){
         return ResponseEntity.ok(APIResponse.success(service.completeLesson(student.getId(), courseId, lessonId)));
     }
 }

@@ -38,13 +38,12 @@ public class CompletedLessonsService {
 
     @Transactional
     public CompletedLessonResponseDTO completeLesson(Long studentId, Long courseId, Long lessonId){
+
         Enrollment existingEnrollment = enrollmentService.findByStudentIdAndCourseId(studentId, courseId);
         Lesson lesson = lessonService.findById(lessonId);
 
-        // --- VALIDAÇÃO DE SEQUÊNCIA (REGRA CRÍTICA) ---
         lessonService.validateLessonAccessibility(lesson, existingEnrollment);
 
-        // Evita duplicidade
         if(isLessonCompleted(existingEnrollment, lesson)){
              throw new BusinessRuleException("Esta aula já foi concluída anteriormente.");
         }

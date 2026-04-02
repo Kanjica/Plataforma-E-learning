@@ -27,7 +27,8 @@ public class StudentController {
 
     @Operation(summary = "Meu Dashboard", description = "Retorna cursos em andamento do aluno logado")
     @GetMapping("/dashboard")
-    public ResponseEntity<APIResponse<List<EnrollmentResponseDTO>>> getMyDashboard(@AuthenticationPrincipal Student student) {
+    public ResponseEntity<APIResponse<List<EnrollmentResponseDTO>>> getMyDashboard(
+        @AuthenticationPrincipal Student student) {
         return ResponseEntity.ok(APIResponse.success(enrollmentService.getMyEnrollments(student.getId())));
     }
 }
