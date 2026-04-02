@@ -3,10 +3,15 @@ package com.lp3.elearning;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import io.github.cdimascio.dotenv.Dotenv;
+
 @SpringBootApplication
 public class ElearningApplication {
 
 	public static void main(String[] args) {
+		Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+    	dotenv.entries().forEach(e -> System.setProperty(e.getKey(), e.getValue()));
+		
 		SpringApplication.run(ElearningApplication.class, args);
 	}
 }

@@ -4,8 +4,8 @@ services:
     container_name: elearning_db
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: e_learning
     volumes:
       - postgres-data:/var/lib/postgresql/data
@@ -17,8 +17,8 @@ services:
     container_name: elearning_pgadmin
     restart: always
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@elearning.dev
-      PGADMIN_DEFAULT_PASSWORD: postgres
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
     ports:
       - "8088:80"
     depends_on:

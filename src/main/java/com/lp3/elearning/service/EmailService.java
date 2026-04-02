@@ -10,7 +10,6 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
-    // Você pode injetar o remetente a partir da configuração do application.properties
     @Value("${spring.mail.username}")
     private String remetente; 
 
