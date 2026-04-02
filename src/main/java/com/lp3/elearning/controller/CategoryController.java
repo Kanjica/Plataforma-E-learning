@@ -1,9 +1,11 @@
 package com.lp3.elearning.controller;
 
+import java.net.URI;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.course.CategoryRequestDTO;
@@ -28,10 +30,17 @@ public class CategoryController {
 
     @Operation(summary = "Criar Categoria", description = "Requer permissão de Instrutor")
     @PostMapping
-    public ResponseEntity<CategoryResponseDTO> create(
+    public ResponseEntity<APIResponse<CategoryResponseDTO>> create(
         @RequestBody @Valid CategoryRequestDTO dto,
-        @AuthenticationPrincipal Instructor instructor) {
-        return ResponseEntity.ok(categoriesService.createCategory(dto));
+        @AuthenticationPrincipal Instructor instructor){
+
+        var createdCategory = categoriesService.createCategory(dto);
+            URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
+            .path("/{id}")
+            .buildAndExpand(createdCategory.id())
+            .toUri();
+
+        return ResponseEntity.created(uri).body(APIResponse.success(createdCategory));
     }
 
     @Operation(summary = "Listar todas as categorias", description = "Acesso público")

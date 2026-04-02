@@ -1,5 +1,6 @@
 package com.lp3.elearning.controller;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Set;
 
@@ -8,10 +9,11 @@ import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.course.CourseFilterDTO;
 import com.lp3.elearning.dto.course.CourseRequestDTO;
 import com.lp3.elearning.dto.course.CourseResponseDTO;
-import org.springframework.http.HttpStatus;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.service.CourseService;
@@ -42,8 +44,17 @@ public class CourseController {
         @ApiResponse(responseCode = "400", description = "Dados inválidos")
     })
     @PostMapping 
-    public ResponseEntity<APIResponse<CourseResponseDTO>> create(@RequestBody @Valid CourseRequestDTO courseRequest){
-        return ResponseEntity.ok(APIResponse.success(courseService.createCourse(courseRequest)));
+    public ResponseEntity<APIResponse<CourseResponseDTO>> create(
+        @RequestBody @Valid CourseRequestDTO courseRequest){
+            
+        var createdCourse = courseService.createCourse(courseRequest);
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+            .path("/{id}")
+            .buildAndExpand(createdCourse.id())
+            .toUri();
+            
+        return ResponseEntity.created(location).body(APIResponse.success(createdCourse));
     }
 
     @Operation(summary = "Buscar Curso por ID")

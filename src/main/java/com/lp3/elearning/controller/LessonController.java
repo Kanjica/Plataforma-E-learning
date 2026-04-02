@@ -1,9 +1,11 @@
 package com.lp3.elearning.controller;
 
+import java.net.URI;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.course.LessonReorderRequestDTO;
@@ -32,7 +34,15 @@ public class LessonController {
         @PathVariable Long courseId,
         @PathVariable Long moduleId,
         @RequestBody LessonRequestDTO lessonRequest){
-        return ResponseEntity.ok(APIResponse.success(lessonService.create(lessonRequest, moduleId, courseId)));
+
+        var createdLesson = lessonService.create(lessonRequest, moduleId, courseId);
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+            .path("/{id}")
+            .buildAndExpand(createdLesson.id())
+            .toUri();
+            
+        return ResponseEntity.created(location).body(APIResponse.success(createdLesson));
     }
 
     @Operation(summary = "Buscar Aula", description = "Busca detalhes da aula e valida acesso do aluno")

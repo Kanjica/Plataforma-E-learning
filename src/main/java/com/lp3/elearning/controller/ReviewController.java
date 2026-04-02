@@ -1,5 +1,6 @@
 package com.lp3.elearning.controller;
 
+import java.net.URI;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.forum.ReviewRequestDTO;
@@ -42,8 +44,14 @@ public class ReviewController {
             @RequestBody @Valid ReviewRequestDTO request,
             @AuthenticationPrincipal Student student) {
         
-        ReviewResponseDTO response = reviewService.createReview(courseId, request, student);
-        return ResponseEntity.ok(APIResponse.success(response));
+        var createdReview = reviewService.createReview(courseId, request, student);
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+            .path("/{id}")
+            .buildAndExpand(createdReview.id())
+            .toUri();
+            
+        return ResponseEntity.created(location).body(APIResponse.success(createdReview));
     }
 
     @Operation(summary = "Listar Avaliações do Curso")

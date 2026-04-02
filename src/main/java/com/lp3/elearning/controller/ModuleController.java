@@ -1,8 +1,10 @@
 package com.lp3.elearning.controller;
 
+import java.net.URI;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.course.ModuleReorderRequestDTO;
@@ -26,8 +28,16 @@ public class ModuleController {
 
     @Operation(summary = "Criar Módulo", description = "Adiciona um módulo ao curso")
     @PostMapping 
-    public ResponseEntity<APIResponse<ModuleResponseDTO>> create(@PathVariable Long courseId, @RequestBody ModuleRequestDTO request){
-        return ResponseEntity.ok(APIResponse.success(moduleService.create(request, courseId)));
+    public ResponseEntity<APIResponse<ModuleResponseDTO>> create(
+        @PathVariable Long courseId, @RequestBody ModuleRequestDTO request){
+
+        var createdModule = moduleService.create(request, courseId);
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+            .path("/{id}")
+            .buildAndExpand(createdModule.id())
+            .toUri();
+        return ResponseEntity.created(location).body(APIResponse.success(createdModule));
     }
 
     @Operation(summary = "Buscar Módulo por ID")

@@ -1,16 +1,17 @@
 package com.lp3.elearning.controller;
 
+import java.net.URI;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.forum.ResponseRequestDTO;
 import com.lp3.elearning.dto.forum.ResponseResponseDTO;
 import com.lp3.elearning.entities.User;
 import com.lp3.elearning.service.ResponseService;
-import com.lp3.elearning.exception.BusinessRuleException;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,13 +34,15 @@ public class ResponseController {
         @PathVariable Long topicId,
         @RequestBody @Valid ResponseRequestDTO request,
         @AuthenticationPrincipal User user){
-
-        if(!topicId.equals(request.topicId())){
-            throw new BusinessRuleException("O ID do tópico na URL não corresponde ao ID do corpo da requisição.");
-        }
         
-        ResponseResponseDTO response = responseService.create(request, user);
-        return ResponseEntity.ok(APIResponse.success(response));
+        var createdResponse = responseService.create(request, user);
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+            .path("/{id}")
+            .buildAndExpand(createdResponse.id())
+            .toUri();
+
+        return ResponseEntity.created(location).body(APIResponse.success(createdResponse));
     }
 
     @Operation(summary = "Listar Respostas", description = "Retorna a árvore de comentários de um tópico")

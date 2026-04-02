@@ -1,11 +1,14 @@
 package com.lp3.elearning.controller;
 
+import java.net.URI;
 import java.util.List;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.enrollment.EnrollmentRequestDTO;
@@ -33,8 +36,17 @@ public class EnrollmentController {
 
     @Operation(summary = "Realizar Matrícula", description = "Inscreve o aluno em um curso")
     @PostMapping 
-    public ResponseEntity<APIResponse<EnrollmentResponseDTO>> create(@RequestBody @Valid EnrollmentRequestDTO request){
-        return ResponseEntity.ok(APIResponse.success(enrollmentService.create(request)));
+    public ResponseEntity<APIResponse<EnrollmentResponseDTO>> create(
+        @RequestBody @Valid EnrollmentRequestDTO request){
+
+        var createdEnrollment = enrollmentService.create(request);
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+            .path("/{id}")
+            .buildAndExpand(createdEnrollment.id())
+            .toUri();
+            
+        return ResponseEntity.created(location).body(APIResponse.success(createdEnrollment));
     }
 
     @Operation(summary = "Baixar Certificado", description = "Gera o PDF se o curso estiver concluído")
