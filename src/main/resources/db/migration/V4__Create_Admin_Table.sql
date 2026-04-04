@@ -1,0 +1,4 @@
+CREATE TABLE admins (
+    id BIGINT PRIMARY KEY,
+    CONSTRAINT fk_admin_user FOREIGN KEY (id) REFERENCES users(id) ON DELETE CASCADE
+);
