@@ -6,10 +6,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.lp3.elearning.dto.auth.InstructorRegisterDTO;
 import com.lp3.elearning.dto.course.CourseResponseDTO;
 import com.lp3.elearning.dto.user.InstructorResponseDTO;
 import com.lp3.elearning.entities.Instructor;
+import com.lp3.elearning.entities.UserRole;
 import com.lp3.elearning.exception.ResourceNotFoundException;
 import com.lp3.elearning.repository.InstructorRepository;
 
@@ -18,12 +21,29 @@ public class InstructorService {
 
     private final InstructorRepository instructorRepository;
     private final CourseService courseService;
+    private final AuthService authService;
 
-    public InstructorService(InstructorRepository instructorRepository, CourseService courseService) {
+    public InstructorService(InstructorRepository instructorRepository, CourseService courseService, AuthService authService) {
         this.instructorRepository = instructorRepository;
         this.courseService = courseService;
+        this.authService = authService;
     }
 
+    @Transactional(readOnly = true)
+    public InstructorResponseDTO createInstructor(InstructorRegisterDTO data) {
+        authService.validateAndPrepare(data.login());
+
+        Instructor instructor = Instructor.builder()
+                .name(data.name())
+                .email(data.login())
+                .password(authService.encodePassword(data.password()))
+                .role(UserRole.ROLE_INSTRUCTOR)
+                .build();
+
+        Instructor savedInstructor = instructorRepository.save(instructor);
+        return toResponseDTO(savedInstructor);
+    }
+    
     public InstructorResponseDTO findById(Long id) {
         Instructor instructor = findInstructorEntityById(id);
         return toResponseDTO(instructor);

@@ -16,17 +16,15 @@ public class AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
-    private final StudentRepository studentRepository;
-    private final InstructorRepository instructorRepository;
+    private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
     public AuthService(AuthenticationManager authenticationManager, TokenService tokenService,
-                       StudentRepository studentRepository, InstructorRepository instructorRepository,
+                       UserRepository userRepository,
                        BCryptPasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.tokenService = tokenService;
-        this.studentRepository = studentRepository;
-        this.instructorRepository = instructorRepository;
+        this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -36,37 +34,17 @@ public class AuthService {
         );
 
         User user = (User) auth.getPrincipal();
-        String token = tokenService.generateToken(user);
-
-        return new LoginResponseDTO(token, user.getRole().name(), user.getId(), user.getName());
+        return new LoginResponseDTO(tokenService.generateToken(user), user.getRole().name(), user.getId(), user.getName());
     }
 
     @Transactional
-    public void register(RegisterDTO data) {
-        if (studentRepository.findByEmail(data.login()) != null || instructorRepository.findByEmail(data.login()) != null) {
+    public void validateAndPrepare(String email) {
+        if (userRepository.existsByEmail(email)) {
             throw new ConflictException("Email já cadastrado!");
-        }
-
-        UserRole userRole = parseRole(data.role());
-        String encryptedPassword = passwordEncoder.encode(data.password());
-
-        if (userRole == UserRole.ROLE_STUDENT) {
-            studentRepository.save(Student.builder()
-                    .name(data.name()).email(data.login())
-                    .password(encryptedPassword).role(userRole).build());
-        }
-        else{
-            instructorRepository.save(Instructor.builder()
-                    .name(data.name()).email(data.login())
-                    .password(encryptedPassword).role(userRole).build());
         }
     }
 
-    private UserRole parseRole(String roleStr){
-        try{
-            return UserRole.valueOf("ROLE_" + roleStr.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Role inválido! Use STUDENT ou INSTRUCTOR.");
-        }
+    public String encodePassword(String password) {
+        return passwordEncoder.encode(password);
     }
 }

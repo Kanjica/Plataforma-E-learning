@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import com.lp3.elearning.entities.User;
+import com.lp3.elearning.entities.Admin;
 import com.lp3.elearning.entities.UserRole;
 import com.lp3.elearning.repository.UserRepository;
 
@@ -32,12 +32,11 @@ public class AdminSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception{
-        if(adminUsername == null || adminUsername.isEmpty()){
-            return;
-        }
+        if (adminEmail == null || adminEmail.isEmpty()) return;
 
-        if(userRepository.findByUsername(adminUsername).isEmpty()){
-            User admin = User.builder()
+        if (userRepository.findByEmail(adminEmail).isEmpty()) {
+            
+            Admin admin = Admin.builder()
                 .name(adminUsername) 
                 .email(adminEmail)
                 .password(passwordEncoder.encode(adminPassword))
@@ -45,7 +44,7 @@ public class AdminSeeder implements CommandLineRunner {
                 .build();
 
             userRepository.save(admin);
-            System.out.println(">>>> SEEDER: Usuário Admin [" + adminUsername + "] criado para ambiente local.");
+            System.out.println(">>>> SEEDER: Administrador [" + adminEmail + "] criado com sucesso.");
         }
     }
 }
