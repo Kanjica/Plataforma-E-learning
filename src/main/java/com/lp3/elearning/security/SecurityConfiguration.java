@@ -44,7 +44,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/auth/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/students/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/instructors/register").permitAll() // Público (conforme sua lógica atual)
-                        .requestMatchers("/admin/**").hasRole("ROLE_ADMIN")
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
 
                         // .requestMatchers("/v3/api-docs/**", 
                         //              "/swagger-ui/**",
