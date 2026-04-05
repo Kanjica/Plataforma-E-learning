@@ -50,6 +50,6 @@ class ReviewServiceTest {
         when(reviewRepository.findById(100L)).thenReturn(Optional.of(review));
 
         assertThrows(BusinessRuleException.class, () -> 
-            reviewService.deleteReview(1L, 100L, hacker));
+            reviewService.deleteReview(100L, hacker));
     }
 }

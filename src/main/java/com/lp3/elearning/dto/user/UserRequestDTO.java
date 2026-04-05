@@ -18,8 +18,5 @@ public record UserRequestDTO(
 
     @Schema(description = "Nova senha (opcional para update, obrigatório para create)", example = "novaSenha123")
     @Size(min = 6, message = "Senha deve ter no mínimo 6 caracteres") 
-    String password,
-
-    @Schema(description = "Role (Geralmente não editável pelo próprio usuário)", hidden = true)
-    String role
+    String password
 ) {}

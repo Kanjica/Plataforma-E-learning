@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.lp3.elearning.dto.course.CourseRequestDTO;
+import com.lp3.elearning.entities.Instructor;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.exception.ConflictException;
 import com.lp3.elearning.repository.CourseRepository;
@@ -46,7 +47,7 @@ class CourseServiceTest {
         when(categoriesService.getCategoriesByValidIds(any())).thenReturn(Collections.emptySet());
 
         assertThrows(BusinessRuleException.class, () -> {
-            courseService.createCourse(request);
+            courseService.createCourse(request, new Instructor());
         });
     }
 
@@ -61,7 +62,7 @@ class CourseServiceTest {
         when(courseRepository.existsByTitle("Java Basics")).thenReturn(true);
 
         assertThrows(ConflictException.class, () -> {
-            courseService.createCourse(request);
+            courseService.createCourse(request, Instructor.builder().id(1L).build());
         });
     }
 }

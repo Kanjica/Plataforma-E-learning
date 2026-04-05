@@ -63,7 +63,7 @@ class LessonServiceTest {
         when(lessonRepository.findById(lessonId)).thenReturn(Optional.of(lesson));
 
         // Execução
-        LessonResponseDTO result = lessonService.getLessonByIdForUser(lessonId, studentId, courseId);
+        LessonResponseDTO result = lessonService.getLessonByIdForUser(lessonId, studentId);
 
         // Verificação
         assertNotNull(result);
@@ -103,7 +103,7 @@ class LessonServiceTest {
 
         // Execução e Verificação
         BusinessRuleException exception = assertThrows(BusinessRuleException.class, () -> {
-            lessonService.getLessonByIdForUser(102L, studentId, courseId);
+            lessonService.getLessonByIdForUser(102L, studentId);
         });
 
         assertTrue(exception.getMessage().contains("concluir a aula 'Aula 1'"), "Mensagem de erro deve ser clara");
@@ -125,7 +125,7 @@ class LessonServiceTest {
         when(lessonRepository.findById(any())).thenReturn(Optional.of(lesson));
 
         assertThrows(BusinessRuleException.class, () -> {
-            lessonService.getLessonByIdForUser(1L, 1L, 2L);
+            lessonService.getLessonByIdForUser(1L, 1L);
         });
     }
 }
