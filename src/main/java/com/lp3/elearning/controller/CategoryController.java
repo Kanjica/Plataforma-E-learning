@@ -3,14 +3,13 @@ package com.lp3.elearning.controller;
 import java.net.URI;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.course.CategoryRequestDTO;
 import com.lp3.elearning.dto.course.CategoryResponseDTO;
-import com.lp3.elearning.entities.Instructor;
 import com.lp3.elearning.service.CategoriesService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,11 +27,11 @@ public class CategoryController {
         this.categoriesService = categoriesService;
     }
 
-    @Operation(summary = "Criar Categoria", description = "Requer permissão de Instrutor")
+    @Operation(summary = "Criar Categoria", description = "Requer permissão de Administrador")
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<APIResponse<CategoryResponseDTO>> create(
-        @RequestBody @Valid CategoryRequestDTO dto,
-        @AuthenticationPrincipal Instructor instructor){
+        @RequestBody @Valid CategoryRequestDTO dto){
 
         var createdCategory = categoriesService.createCategory(dto);
             URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -57,18 +56,18 @@ public class CategoryController {
 
     @Operation(summary = "Atualizar Categoria")
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<APIResponse<CategoryResponseDTO>> update(
             @PathVariable Long id,
-            @RequestBody @Valid CategoryRequestDTO dto,
-            @AuthenticationPrincipal Instructor instructor) {
+            @RequestBody @Valid CategoryRequestDTO dto) {
         return ResponseEntity.ok(APIResponse.success(categoriesService.update(id, dto)));
     }
 
     @Operation(summary = "Deletar Categoria")
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<APIResponse<Void>> delete(
-            @PathVariable Long id,
-            @AuthenticationPrincipal Instructor instructor) {
+            @PathVariable Long id) {
         categoriesService.delete(id);
         return ResponseEntity.ok(APIResponse.success(null));
     }

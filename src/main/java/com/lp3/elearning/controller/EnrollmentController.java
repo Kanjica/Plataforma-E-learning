@@ -2,18 +2,22 @@ package com.lp3.elearning.controller;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.lp3.elearning.dto.common.APIResponse;
+import com.lp3.elearning.dto.enrollment.CompletedLessonResponseDTO;
 import com.lp3.elearning.dto.enrollment.EnrollmentRequestDTO;
 import com.lp3.elearning.dto.enrollment.EnrollmentResponseDTO;
 import com.lp3.elearning.entities.Student;
+import com.lp3.elearning.entities.User;
+import com.lp3.elearning.security.anottation.CurrentUser;
 import com.lp3.elearning.service.CertificateService;
 import com.lp3.elearning.service.EnrollmentService;
 
@@ -36,8 +40,9 @@ public class EnrollmentController {
 
     @Operation(summary = "Realizar Matrícula", description = "Inscreve o aluno em um curso")
     @PostMapping 
+    @PreAuthorize("hasRole('ADMIN') or @enrollmentSecurity.isOwner(#request.enrollmentId, #user.id)")
     public ResponseEntity<APIResponse<EnrollmentResponseDTO>> create(
-        @RequestBody @Valid EnrollmentRequestDTO request){
+        @RequestBody @Valid EnrollmentRequestDTO request, @CurrentUser User user){
 
         var createdEnrollment = enrollmentService.create(request);
 
@@ -51,10 +56,12 @@ public class EnrollmentController {
 
     @Operation(summary = "Baixar Certificado", description = "Gera o PDF se o curso estiver concluído")
     @GetMapping("/{enrollmentId}/certificate")
+    @PreAuthorize("hasRole('ADMIN') or @enrollmentSecurity.isOwner(#request.enrollmentId, #user.id)")
     public ResponseEntity<APIResponse<byte[]>> getCertificate(
         @PathVariable Long enrollmentId,
-        @AuthenticationPrincipal Student student) {
+        @CurrentUser User user){
 
+        Student student = (Student) user; 
         byte[] pdfBytes = certificateService.generateCertificatePdf(enrollmentId, student);
         String filename = "certificado_matricula_" + enrollmentId + ".pdf";
 
@@ -67,7 +74,26 @@ public class EnrollmentController {
 
     @Operation(summary = "Listar por Aluno (Admin)", description = "Lista matrículas de um aluno específico")
     @GetMapping("/student/{studentId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<APIResponse<List<EnrollmentResponseDTO>>> getByStudent(@PathVariable Long studentId) {
         return ResponseEntity.ok(APIResponse.success(enrollmentService.findByStudent(studentId)));
+    }
+
+    @Operation(summary = "Meu Dashboard", description = "Cursos em que o aluno logado está matriculado")
+    @GetMapping("/me") 
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<APIResponse<List<EnrollmentResponseDTO>>> getMyEnrollments(@CurrentUser User user) {
+        return ResponseEntity.ok(APIResponse.success(enrollmentService.findByStudent(user.getId())));
+    }
+
+    @Operation(summary = "Ver Progresso", description = "Retorna as aulas concluídas de uma matrícula")
+    @GetMapping("/{enrollmentId}/progress")
+    @PreAuthorize("hasRole('ADMIN') or @enrollmentSecurity.isOwner(#request.enrollmentId, #user.id)")
+    public ResponseEntity<APIResponse<Set<CompletedLessonResponseDTO>>> getProgress(
+        @PathVariable Long enrollmentId,
+        @CurrentUser User user){
+        
+        var enrollment = enrollmentService.findById(enrollmentId);
+        return ResponseEntity.ok(APIResponse.success(enrollmentService.calculateProgress(enrollment)));
     }
 }

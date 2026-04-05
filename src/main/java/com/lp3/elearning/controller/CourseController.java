@@ -4,20 +4,19 @@ import java.net.URI;
 import java.util.List;
 import java.util.Set;
 
-import com.lp3.elearning.dto.enrollment.CompletedLessonResponseDTO;
 import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.course.CourseFilterDTO;
 import com.lp3.elearning.dto.course.CourseRequestDTO;
 import com.lp3.elearning.dto.course.CourseResponseDTO;
+import com.lp3.elearning.entities.User;
+import com.lp3.elearning.security.anottation.CurrentUser;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.service.CourseService;
-import com.lp3.elearning.service.EnrollmentService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -31,11 +30,9 @@ import jakarta.validation.Valid;
 public class CourseController {
 
     private final CourseService courseService;
-    private final EnrollmentService enrollmentService;
 
-    public CourseController(CourseService courseService, EnrollmentService enrollmentService){
+    public CourseController(CourseService courseService){
         this.courseService = courseService;
-        this.enrollmentService = enrollmentService;
     }
 
     @Operation(summary = "Criar Curso", description = "Cadastra um novo curso na plataforma")
@@ -44,10 +41,12 @@ public class CourseController {
         @ApiResponse(responseCode = "400", description = "Dados inválidos")
     })
     @PostMapping 
+    @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
     public ResponseEntity<APIResponse<CourseResponseDTO>> create(
-        @RequestBody @Valid CourseRequestDTO courseRequest){
+        @RequestBody @Valid CourseRequestDTO courseRequest,
+        @CurrentUser User user) {
             
-        var createdCourse = courseService.createCourse(courseRequest);
+        var createdCourse = courseService.createCourse(courseRequest, user);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
             .path("/{id}")
@@ -71,13 +70,15 @@ public class CourseController {
 
     @Operation(summary = "Atualizar Curso")
     @PutMapping("/{courseId}") 
-    public ResponseEntity<APIResponse<CourseResponseDTO>> update(@PathVariable Long courseId, @RequestBody @Valid CourseRequestDTO courseRequest){
+    @PreAuthorize("hasRole('ADMIN') or @courseSecurity.isInstructorOfCourse(#courseId, #user.id)")
+    public ResponseEntity<APIResponse<CourseResponseDTO>> update(@PathVariable Long courseId, @RequestBody @Valid CourseRequestDTO courseRequest, @CurrentUser User user){
         return ResponseEntity.ok(APIResponse.success(courseService.updateCourse(courseId, courseRequest)));
     }
 
     @Operation(summary = "Deletar Curso")
     @DeleteMapping("/{courseId}")
-    public ResponseEntity<APIResponse<Void>> delete(@PathVariable Long courseId){
+    @PreAuthorize("hasRole('ADMIN') or @courseSecurity.isInstructorOfCourse(#courseId, #user.id)")
+    public ResponseEntity<APIResponse<Void>> delete(@PathVariable Long courseId, @CurrentUser User user){
         courseService.deleteCourse(courseId);
         return ResponseEntity.ok(APIResponse.success(null));
     }
@@ -88,13 +89,4 @@ public class CourseController {
         return ResponseEntity.ok(APIResponse.success(courseService.filterCourses(request)));
     }
 
-    @Operation(summary = "Ver Progresso", description = "Retorna o progresso do aluno logado neste curso")
-    @GetMapping("/{courseId}/progress")
-    public ResponseEntity<APIResponse<Set<CompletedLessonResponseDTO>>> progress(
-        @AuthenticationPrincipal Student student, 
-        @PathVariable Long courseId) {
-        
-        var enrollment = enrollmentService.findByStudentIdAndCourseId(student.getId(), courseId);
-        return ResponseEntity.ok(APIResponse.success(enrollmentService.calculateProgress(enrollment)));
-    }
 }

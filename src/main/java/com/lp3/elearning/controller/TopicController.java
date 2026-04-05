@@ -2,14 +2,13 @@ package com.lp3.elearning.controller;
 
 import java.util.List;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.forum.TopicRequestDTO;
 import com.lp3.elearning.dto.forum.TopicResponseDTO;
-import com.lp3.elearning.entities.Instructor;
 import com.lp3.elearning.entities.User;
+import com.lp3.elearning.security.anottation.CurrentUser;
 import com.lp3.elearning.service.TopicService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,7 +38,7 @@ public class TopicController {
     @PostMapping
     public ResponseEntity<APIResponse<TopicResponseDTO>> createTopic(
         @RequestBody @Valid TopicRequestDTO request,
-        @AuthenticationPrincipal User user) {
+        @CurrentUser User user) {
         TopicResponseDTO response = topicService.create(request, user);
         return ResponseEntity.ok(APIResponse.success(response));
     }
@@ -52,19 +51,20 @@ public class TopicController {
 
     @Operation(summary = "Atualizar Tópico", description = "Permite editar o título ou mensagem do tópico")
     @PutMapping("/{topicId}")
+
     public ResponseEntity<APIResponse<TopicResponseDTO>> updateTopic(
         @PathVariable Long topicId, 
         @RequestBody @Valid TopicRequestDTO request,
-        @AuthenticationPrincipal Instructor instructor) {
-        return ResponseEntity.ok(APIResponse.success(topicService.update(topicId, request)));
+        @CurrentUser User user) {
+        return ResponseEntity.ok(APIResponse.success(topicService.update(topicId, request, user)));
     }
 
     @Operation(summary = "Deletar Tópico", description = "Remove o tópico e todas as suas respostas")
     @DeleteMapping("/{topicId}")
     public ResponseEntity<APIResponse<Void>> deleteTopic(
         @PathVariable Long topicId,
-        @AuthenticationPrincipal Instructor instructor) {
-        topicService.delete(topicId);
+        @CurrentUser User user) {
+        topicService.delete(topicId, user);
         return ResponseEntity.ok(APIResponse.success(null));
     }
 }

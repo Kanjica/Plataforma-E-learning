@@ -1,7 +1,7 @@
 package com.lp3.elearning.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.enrollment.CompletedLessonResponseDTO;
-import com.lp3.elearning.entities.Student;
+import com.lp3.elearning.entities.User;
+import com.lp3.elearning.security.anottation.CurrentUser;
 import com.lp3.elearning.service.CompletedLessonsService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,10 +29,11 @@ public class CompletedLessonController {
     
     @Operation(summary = "Concluir Aula", description = "Marca a aula como assistida e atualiza o progresso")
     @PostMapping
+    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<APIResponse<CompletedLessonResponseDTO>> completeLesson(
         @PathVariable Long courseId, 
         @PathVariable Long lessonId, 
-        @AuthenticationPrincipal Student student){
-        return ResponseEntity.ok(APIResponse.success(service.completeLesson(student.getId(), courseId, lessonId)));
+        @CurrentUser User user){
+        return ResponseEntity.ok(APIResponse.success(service.completeLesson(user.getId(), courseId, lessonId)));
     }
 }
