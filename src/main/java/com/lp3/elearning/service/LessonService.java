@@ -41,8 +41,10 @@ public class LessonService {
      * @throws BusinessRuleException se o módulo não pertencer ao curso informado.
      */
     @Transactional
-    public LessonResponseDTO create(LessonRequestDTO lessonRequest, Long moduleId, Long courseId) {
+    public LessonResponseDTO create(LessonRequestDTO lessonRequest, Long moduleId) {
         Module module = moduleService.findById(moduleId);
+
+        Long courseId = module.getCourse().getId();
 
         if(!module.getCourse().getId().equals(courseId)){
             throw new BusinessRuleException("Conflito: O módulo informado não pertence ao curso da URL.");
@@ -62,7 +64,10 @@ public class LessonService {
      * Garante que o aluno não pule aulas ou módulos.
      */
     @Transactional(readOnly = true)
-    public LessonResponseDTO getLessonByIdForUser(Long lessonId, Long studentId, Long courseId){
+    public LessonResponseDTO getLessonByIdForUser(Long lessonId, Long studentId){
+        Long courseId = lessonRepository.findCourseIdByLessonId(lessonId)
+            .orElseThrow(() -> new BusinessRuleException("Aula não encontrada com ID: " + lessonId));
+
         Enrollment enrollment = enrollmentService.findByStudentIdAndCourseId(studentId, courseId);
         Lesson currentLesson = findById(lessonId);
 
@@ -144,13 +149,15 @@ public class LessonService {
     }
 
     @Transactional
-    public void delete(Long lessonId, Long moduleId) {
-        Lesson lessonToDelete = lessonRepository.findByIdAndModuleId(lessonId, moduleId)
+    public void delete(Long lessonId) {
+        Lesson lessonToDelete = lessonRepository.findById(lessonId)
             .orElseThrow(() -> new BusinessRuleException("Aula não encontrada."));
 
         Integer removedOrder = lessonToDelete.getLessonOrder();
         lessonRepository.delete(lessonToDelete);
 
+        Long moduleId = lessonToDelete.getModule().getId();
+        
         // Reorganiza para não deixar "buracos" na numeração (ex: 1, 3, 4 vira 1, 2, 3)
         List<Lesson> remainingLessons = lessonRepository.findByModuleId(moduleId);
         remainingLessons.stream()
@@ -198,10 +205,12 @@ public class LessonService {
             .mapToInt(obj -> ((Long) obj[1]).intValue()).sum();
     }
     
-    public LessonResponseDTO getByLessonOrder(Long moduleId, Integer order, Long studentId, Long courseId) {
+    public LessonResponseDTO getByLessonOrder(Integer order, Long moduleId, Long studentId) {
         Lesson lesson = lessonRepository.findByModuleIdAndLessonOrder(moduleId, order)
             .orElseThrow(() -> new BusinessRuleException("Aula número " + order + " não existe neste módulo."));
         
+        Long courseId = lesson.getModule().getCourse().getId();
+
         Enrollment enrollment = enrollmentService.findByStudentIdAndCourseId(studentId, courseId);
         validateLessonAccessibility(lesson, enrollment);
         
@@ -209,8 +218,12 @@ public class LessonService {
     }
     
     @Transactional
-    public LessonResponseDTO update(Long lessonId, Long moduleId, LessonRequestDTO request) {
+    public LessonResponseDTO update(Long lessonId, LessonRequestDTO request) {
+
         Lesson lesson = findById(lessonId);
+
+        Long moduleId = lesson.getModule().getId();
+        
         if (!lesson.getLessonOrder().equals(request.lessonOrder())) {
             shiftLessonOrders(moduleId, request.lessonOrder(), lessonId);
         }

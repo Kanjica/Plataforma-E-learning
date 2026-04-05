@@ -14,6 +14,7 @@ import com.lp3.elearning.dto.forum.TopicRequestDTO;
 import com.lp3.elearning.dto.forum.TopicResponseDTO;
 import com.lp3.elearning.entities.Topic;
 import com.lp3.elearning.entities.User;
+import com.lp3.elearning.entities.UserRole;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.repository.TopicRepository;
 
@@ -25,7 +26,7 @@ public class TopicService {
     private final CourseService courseService;
     private final ResponseService responseService; 
 
-    public TopicService(TopicRepository topicRepository, CourseService courseService, UserService userService, @Lazy ResponseService responseService){
+    public TopicService(TopicRepository topicRepository, CourseService courseService, UserService userService,@Lazy ResponseService responseService){
         this.topicRepository = topicRepository;
         this.courseService = courseService;
         this.userService = userService;
@@ -59,6 +60,7 @@ public class TopicService {
 
     @Transactional
     public TopicResponseDTO create(TopicRequestDTO request, User user) {
+
         Topic newTopic = Topic.builder()
             .title(request.title())
             .content(request.content())
@@ -71,9 +73,14 @@ public class TopicService {
     }
 
     @Transactional
-    public TopicResponseDTO update(Long id, TopicRequestDTO request) {
+    public TopicResponseDTO update(Long id, TopicRequestDTO request, User user) {
+
         Topic existingTopic = topicRepository.findById(id)
                                 .orElseThrow(() -> new BusinessRuleException("Tópico não encontrado"));
+
+        if(!existingTopic.getUser().equals(user) && !(user.getRole() == UserRole.ROLE_ADMIN)){
+            throw new BusinessRuleException("Apenas o autor do tópico podem editá-lo.");
+        }
 
         existingTopic.setTitle(request.title());
         existingTopic.setContent(request.content());
@@ -82,11 +89,15 @@ public class TopicService {
     }
 
     @Transactional
-    public void delete(Long id) {
-        if (!topicRepository.existsById(id)) {
-            throw new BusinessRuleException("Tópico não encontrado.");
+    public void delete(Long topicId, User user) {
+        Topic topic = topicRepository.findById(topicId)
+            .orElseThrow(() -> new BusinessRuleException("Tópico não encontrado."));
+
+        if(!topic.getUser().equals(user) && !(user.getRole() == UserRole.ROLE_ADMIN)){
+            throw new BusinessRuleException("Apenas o autor do tópico podem excluí-lo.");
         }
-        topicRepository.deleteById(id);
+
+        topicRepository.deleteById(topicId);
     }
     
     // Converter

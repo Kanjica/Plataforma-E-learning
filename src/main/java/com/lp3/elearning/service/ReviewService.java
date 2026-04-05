@@ -11,6 +11,8 @@ import com.lp3.elearning.dto.forum.ReviewResponseDTO;
 import com.lp3.elearning.entities.Course;
 import com.lp3.elearning.entities.Review;
 import com.lp3.elearning.entities.Student;
+import com.lp3.elearning.entities.User;
+import com.lp3.elearning.entities.UserRole;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.exception.ConflictException;
 import com.lp3.elearning.exception.ResourceNotFoundException;
@@ -67,14 +69,10 @@ public class ReviewService {
     }
 
     @Transactional
-    public ReviewResponseDTO updateReview(Long courseId, Long reviewId, ReviewRequestDTO request, Student student) {
+    public ReviewResponseDTO updateReview(Long reviewId, ReviewRequestDTO request, Student student) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ResourceNotFoundException("Avaliação não encontrada"));
 
-        if (!review.getCourse().getId().equals(courseId)) {
-            throw new BusinessRuleException("A avaliação não pertence ao curso informado.");
-        }
-        
         if (!review.getStudent().getId().equals(student.getId())) {
             throw new BusinessRuleException("Você não tem permissão para editar esta avaliação.");
         }
@@ -87,11 +85,11 @@ public class ReviewService {
     }
 
     @Transactional
-    public void deleteReview(Long courseId, Long reviewId, Student student) {
+    public void deleteReview(Long reviewId, User user) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ResourceNotFoundException("Avaliação não encontrada"));
 
-        if (!review.getStudent().getId().equals(student.getId())) {
+        if (!review.getStudent().getId().equals(user.getId()) && user.getRole() == UserRole.ROLE_STUDENT) {
             throw new BusinessRuleException("Você não tem permissão para remover esta avaliação.");
         }
 

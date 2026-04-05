@@ -31,12 +31,10 @@ public class CertificateService {
     public byte[] generateCertificatePdf(Long enrollmentId, Student student) {
         Enrollment enrollment = enrollmentService.findById(enrollmentId);
 
-        // Validação de segurança: Aluno só baixa o PRÓPRIO certificado
         if(!enrollment.getStudent().getId().equals(student.getId())){
             throw new BusinessRuleException("Acesso negado: Este certificado pertence a outro aluno.");
         }
         
-        // Validação de conclusão
         if (enrollment.getStatus() != StatusEnrollment.COMPLETED && enrollment.getOverallProgress() < 1.0) {
             throw new BusinessRuleException("O certificado só pode ser emitido após 100% de conclusão do curso.");
         }

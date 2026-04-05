@@ -1,13 +1,11 @@
 package com.lp3.elearning.service;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +40,7 @@ public class CourseService {
     }
 
     @Transactional
-    public CourseResponseDTO createCourse(CourseRequestDTO request) {
+    public CourseResponseDTO createCourse(CourseRequestDTO request, User user) {
         if(courseRepository.existsByTitle(request.title())){
             throw new ConflictException("Já existe um curso com o título: " + request.title());
         }
@@ -52,18 +50,15 @@ public class CourseService {
 
         Set<Instructor> instructors = instructorService.getInstructorsByValidIds(request.instructorIds());
         
-        // Fallback: se não enviou instrutores, usa o usuário logado se for instrutor
+        if(instructors.isEmpty() && !(user instanceof Instructor)){
+            throw new BusinessRuleException("É necessário informar os instrutores do curso.");
+        }
+
         if(instructors.isEmpty()){
-            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            if (user instanceof Instructor instructor) {
-                instructors.add(instructor);
-            } else {
-                throw new BusinessRuleException("É necessário informar os instrutores do curso.");
-            }
+            instructors.add((Instructor) user);
         }
 
         Course course = toEntity(request, categories, instructors);
-        course.setModules(new ArrayList<>()); // Inicializa lista vazia para evitar NullPointer
         
         return toResponseDTO(courseRepository.save(course));
     }
@@ -93,7 +88,7 @@ public class CourseService {
     @Transactional
     public CourseResponseDTO updateCourse(Long id, CourseRequestDTO request) {
         Course existingCourse = findById(id);
-
+        
         // Verifica duplicidade de título apenas se o título mudou
         if(!existingCourse.getTitle().equals(request.title()) && courseRepository.existsByTitle(request.title())){
             throw new ConflictException("Já existe outro curso com este título.");

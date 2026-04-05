@@ -87,6 +87,33 @@ public class ModuleService {
             .map(this::toResponseDTO)
             .toList();
     }
+    
+    public ModuleResponseDTO update(Long moduleId, ModuleRequestDTO request) {
+        Module module = findById(moduleId);
+
+        // Valida duplicidade de título no mesmo curso (excluindo o próprio módulo)
+        if(moduleRepository.findByTitleAndCourseId(request.title(), module.getCourse().getId())
+            .filter(m -> !m.getId().equals(moduleId)).isPresent()){
+            throw new ConflictException("Módulo com o título '" + request.title() + "' já existe neste curso.");
+        }
+
+        // Valida duplicidade de ordem (excluindo o próprio módulo)
+        if(moduleRepository.findByModuleOrderAndCourseId(request.moduleOrder(), module.getCourse().getId())
+            .filter(m -> !m.getId().equals(moduleId)).isPresent()){
+            throw new ConflictException("Já existe um módulo na posição " + request.moduleOrder());
+        }
+
+        module.setTitle(request.title());
+        module.setDescription(request.description());
+        module.setModuleOrder(request.moduleOrder());
+        
+        return toResponseDTO(moduleRepository.save(module));
+    }
+
+    public void delete(Long moduleId) {
+        Module module = findById(moduleId);
+        moduleRepository.delete(module);
+    }
 
     @Transactional(readOnly = true)
     public List<ModuleResponseDTO> getAllByCourseId(Long courseId) {
@@ -96,16 +123,14 @@ public class ModuleService {
                 .collect(Collectors.toList());
     }
 
-    // --- Métodos Auxiliares ---
-    
     public Module findById(Long moduleId) {
         return moduleRepository.findById(moduleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Módulo não encontrado com ID: " + moduleId));
     }
     
-    public ModuleResponseDTO getById(Long moduleId, Long courseId) {
-        Module module = moduleRepository.findByIdAndCourseId(moduleId, courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("Módulo não encontrado neste curso."));
+    public ModuleResponseDTO getById(Long moduleId) {
+        Module module = moduleRepository.findById(moduleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Módulo não encontrado com ID: " + moduleId));
         return toResponseDTO(module);
     }
     
