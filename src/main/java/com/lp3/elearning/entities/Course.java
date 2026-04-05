@@ -13,6 +13,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -61,26 +63,30 @@ public class Course {
     @Column(nullable = false)
     private Integer workload;
 
+    @Builder.Default
     @ManyToMany
     @JoinTable(
             name = "course_instructor", // nome da tabela de junção
             joinColumns = @JoinColumn(name = "course_id"), // FK que referencia esta tabela
             inverseJoinColumns = @JoinColumn(name = "instructor_id") // FK que referencia a tabela instrutores
     )
-    private Set<Instructor> instructors;
+    private Set<Instructor> instructors = new HashSet<>();;
+
+    @Builder.Default
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     /*
     * CascadeType.ALL Significa que se você deletar o curso, os módulos associados a ele também serão deletados junto
     * */
-    private List<Module> modules;
+    private List<Module> modules = new ArrayList<>();
 
+    @Builder.Default
     @ManyToMany
     @JoinTable(
             name = "course_category",
             joinColumns = @JoinColumn(name = "course_id"),
             inverseJoinColumns = @JoinColumn(name = "category_id")
     )
-    private Set<Category> categories;
+    private Set<Category> categories = new HashSet<>();;
 
     @NotBlank(message = "A URL da imagem do curso não pode ser vazia.")
     @Column(name = "image_url",columnDefinition = "TEXT", nullable = false)
@@ -91,13 +97,15 @@ public class Course {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
     
+    @Builder.Default
     @NotNull
     @PositiveOrZero
     @Column(name = "old_price", nullable = false, precision = 10, scale = 2)
-    private BigDecimal oldPrice;
+    private BigDecimal oldPrice = BigDecimal.ZERO;
 
+    @Builder.Default
     @NotNull
     @Column(name = "is_best_seller", nullable = false)
-    private Boolean isBestSeller;
+    private Boolean isBestSeller = false;
 
 }
