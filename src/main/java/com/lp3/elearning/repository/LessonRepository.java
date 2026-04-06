@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.lp3.elearning.entities.Lesson;;
 
@@ -41,6 +42,7 @@ public interface LessonRepository extends JpaRepository<Lesson, Long>{
     Optional<Lesson> findFirstByModuleIdOrderByLessonOrderDesc(Long moduleId);
 
     boolean existsByIdAndModuleCourseInstructorsId(Long lessonId, Long instructorId);
-    Optional<Long> findCourseIdByLessonId(Long lessonId);
+    @Query("SELECT l.module.course.id FROM Lesson l WHERE l.id = :lessonId")
+    Optional<Long> findCourseIdById(@Param("lessonId") Long lessonId);
     
 }

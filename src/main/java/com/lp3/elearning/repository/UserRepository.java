@@ -9,7 +9,7 @@ import com.lp3.elearning.entities.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>{
-    Optional<User> findByUsername(String username);
+    Optional<User> findByName(String name);
     boolean existsByEmail(String email);
     Optional<User> findByEmail(String email);
 }

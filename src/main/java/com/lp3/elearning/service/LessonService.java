@@ -65,7 +65,7 @@ public class LessonService {
      */
     @Transactional(readOnly = true)
     public LessonResponseDTO getLessonByIdForUser(Long lessonId, Long studentId){
-        Long courseId = lessonRepository.findCourseIdByLessonId(lessonId)
+        Long courseId = lessonRepository.findCourseIdById(lessonId)
             .orElseThrow(() -> new BusinessRuleException("Aula não encontrada com ID: " + lessonId));
 
         Enrollment enrollment = enrollmentService.findByStudentIdAndCourseId(studentId, courseId);

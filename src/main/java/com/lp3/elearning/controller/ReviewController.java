@@ -28,7 +28,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/courses/{courseId}/reviews") 
+@RequestMapping("/reviews") 
 @Tag(name = "Avaliações", description = "Notas e comentários dos cursos")
 public class ReviewController {
 
