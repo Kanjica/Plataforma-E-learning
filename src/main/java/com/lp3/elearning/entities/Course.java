@@ -18,6 +18,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.hibernate.annotations.BatchSize;
+
 /**
  * Entidade que representa um Curso na plataforma de E-learning.
  * Mapeia para a tabela 'cursos' no db.
@@ -65,6 +67,7 @@ public class Course {
 
     @Builder.Default
     @ManyToMany
+    @BatchSize(size = 20)
     @JoinTable(
             name = "course_instructor", // nome da tabela de junção
             joinColumns = @JoinColumn(name = "course_id"), // FK que referencia esta tabela
@@ -74,6 +77,7 @@ public class Course {
 
     @Builder.Default
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    @BatchSize(size = 20)
     /*
     * CascadeType.ALL Significa que se você deletar o curso, os módulos associados a ele também serão deletados junto
     * */
@@ -81,6 +85,7 @@ public class Course {
 
     @Builder.Default
     @ManyToMany
+    @BatchSize(size = 20)
     @JoinTable(
             name = "course_category",
             joinColumns = @JoinColumn(name = "course_id"),

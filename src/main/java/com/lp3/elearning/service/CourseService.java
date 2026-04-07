@@ -6,10 +6,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.lp3.elearning.dto.course.CourseFilterDTO;
+import com.lp3.elearning.dto.course.CourseListDTO;
 import com.lp3.elearning.dto.course.CourseRequestDTO;
 import com.lp3.elearning.dto.course.CourseResponseDTO;
 import com.lp3.elearning.entities.Category;
@@ -137,6 +140,23 @@ public class CourseService {
 
     public List<CourseResponseDTO> getAllCourses() {
         return courseRepository.findAll().stream().map(this::toResponseDTO).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CourseListDTO> findAllPaged(Pageable pageable) {
+        // 1ª Query: Busca a página de cursos (ex: 20 registros)
+        Page<Course> coursePage = courseRepository.findAll(pageable);
+
+        // O .map() do Page mantém os metadados (total de páginas, etc)
+        return coursePage.map(course -> new CourseListDTO(
+            course.getId(),
+            course.getTitle(),
+            // Aqui o BatchSize entra em ação: 
+            // Na primeira iteração, o Hibernate busca as categorias/instrutores 
+            // de TODOS os cursos da página de uma vez.
+            course.getCategories().stream().map(Category::getName).toList(),
+            course.getInstructors().stream().map(Instructor::getName).toList()
+        ));
     }
 
     // Converters

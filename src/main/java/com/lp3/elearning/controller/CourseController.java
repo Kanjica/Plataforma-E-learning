@@ -6,11 +6,15 @@ import java.util.Set;
 
 import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.course.CourseFilterDTO;
+import com.lp3.elearning.dto.course.CourseListDTO;
 import com.lp3.elearning.dto.course.CourseRequestDTO;
 import com.lp3.elearning.dto.course.CourseResponseDTO;
 import com.lp3.elearning.entities.User;
 import com.lp3.elearning.security.anottation.CurrentUser;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -66,6 +70,13 @@ public class CourseController {
     @GetMapping
     public ResponseEntity<APIResponse<List<CourseResponseDTO>>> getAllCourses(){
         return ResponseEntity.ok(APIResponse.success(courseService.getAllCourses()));
+    }
+
+    @GetMapping
+    public ResponseEntity<APIResponse<Page<CourseListDTO>>> list(
+            @PageableDefault(size = 10, sort = "title") Pageable pageable) {
+        
+        return ResponseEntity.ok(APIResponse.success(courseService.findAllPaged(pageable)));
     }
 
     @Operation(summary = "Atualizar Curso")
