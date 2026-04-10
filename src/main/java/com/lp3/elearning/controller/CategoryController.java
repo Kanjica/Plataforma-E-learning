@@ -1,7 +1,11 @@
 package com.lp3.elearning.controller;
 
 import java.net.URI;
-import java.util.List;
+
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -44,8 +48,10 @@ public class CategoryController {
 
     @Operation(summary = "Listar todas as categorias", description = "Acesso público")
     @GetMapping
-    public ResponseEntity<APIResponse<List<CategoryResponseDTO>>> findAll() {
-        return ResponseEntity.ok(APIResponse.success(categoriesService.findAll()));
+    public ResponseEntity<APIResponse<Page<CategoryResponseDTO>>> findAll(
+            @ParameterObject @PageableDefault(page = 0, size = 10, sort = "name") Pageable pageable
+    ) {
+        return ResponseEntity.ok(APIResponse.success(categoriesService.findAllPaged(pageable)));
     }
 
     @Operation(summary = "Buscar categoria por ID")
@@ -59,15 +65,15 @@ public class CategoryController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<APIResponse<CategoryResponseDTO>> update(
             @PathVariable Long id,
-            @RequestBody @Valid CategoryRequestDTO dto) {
+            @RequestBody @Valid CategoryRequestDTO dto
+    ) {
         return ResponseEntity.ok(APIResponse.success(categoriesService.update(id, dto)));
     }
 
     @Operation(summary = "Deletar Categoria")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<APIResponse<Void>> delete(
-            @PathVariable Long id) {
+    public ResponseEntity<APIResponse<Void>> delete(@PathVariable Long id) {
         categoriesService.delete(id);
         return ResponseEntity.ok(APIResponse.success(null));
     }

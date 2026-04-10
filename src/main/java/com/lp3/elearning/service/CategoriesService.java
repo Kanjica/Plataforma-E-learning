@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +51,10 @@ public class CategoriesService {
         return categoriesRepository.findAll().stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    public Page<CategoryResponseDTO> findAllPaged(Pageable pageable) {
+        return categoriesRepository.findAll(pageable).map(this::toResponseDTO);
     }
 
     public CategoryResponseDTO findById(Long id) {

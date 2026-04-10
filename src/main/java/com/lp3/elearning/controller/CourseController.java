@@ -72,7 +72,7 @@ public class CourseController {
         return ResponseEntity.ok(APIResponse.success(courseService.getAllCourses()));
     }
 
-    @GetMapping
+    @GetMapping("/paged")
     public ResponseEntity<APIResponse<Page<CourseListDTO>>> list(
             @PageableDefault(size = 10, sort = "title") Pageable pageable) {
         
