@@ -31,9 +31,10 @@ public class CompletedLessonController {
     @PostMapping
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<APIResponse<CompletedLessonResponseDTO>> completeLesson(
-        @PathVariable Long courseId, 
-        @PathVariable Long lessonId, 
-        @CurrentUser User user){
+            @PathVariable Long courseId, 
+            @PathVariable Long lessonId, 
+            @CurrentUser User user
+    ){
         return ResponseEntity.ok(APIResponse.success(service.completeLesson(user.getId(), courseId, lessonId)));
     }
 }

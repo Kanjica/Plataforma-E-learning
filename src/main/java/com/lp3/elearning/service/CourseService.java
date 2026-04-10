@@ -138,8 +138,8 @@ public class CourseService {
         return toResponseDTO(findById(id));
     }
 
-    public List<CourseResponseDTO> getAllCourses() {
-        return courseRepository.findAll().stream().map(this::toResponseDTO).toList();
+    public Page<CourseResponseDTO> getAllCourses(Pageable pageable) {
+        return courseRepository.findAll(pageable).map(this::toResponseDTO);
     }
 
     @Transactional(readOnly = true)

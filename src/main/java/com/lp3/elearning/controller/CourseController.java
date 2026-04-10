@@ -1,7 +1,6 @@
 package com.lp3.elearning.controller;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Set;
 
 import com.lp3.elearning.dto.common.APIResponse;
@@ -12,6 +11,7 @@ import com.lp3.elearning.dto.course.CourseResponseDTO;
 import com.lp3.elearning.entities.User;
 import com.lp3.elearning.security.anottation.CurrentUser;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -48,8 +48,8 @@ public class CourseController {
     @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
     public ResponseEntity<APIResponse<CourseResponseDTO>> create(
         @RequestBody @Valid CourseRequestDTO courseRequest,
-        @CurrentUser User user) {
-            
+        @CurrentUser User user
+    ) {
         var createdCourse = courseService.createCourse(courseRequest, user);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -66,15 +66,16 @@ public class CourseController {
         return ResponseEntity.ok(APIResponse.success(courseService.getCourseByIdResponseDTO(courseId)));
     }
 
-    @Operation(summary = "Listar todos os cursos")
+    @Operation(summary = "Listar todos os cursos com paginação")
     @GetMapping
-    public ResponseEntity<APIResponse<List<CourseResponseDTO>>> getAllCourses(){
-        return ResponseEntity.ok(APIResponse.success(courseService.getAllCourses()));
+    public ResponseEntity<APIResponse<Page<CourseResponseDTO>>> getAllCourses(@ParameterObject Pageable pageable) {
+        return ResponseEntity.ok(APIResponse.success(courseService.getAllCourses(pageable)));
     }
 
     @GetMapping("/paged")
     public ResponseEntity<APIResponse<Page<CourseListDTO>>> list(
-            @PageableDefault(size = 10, sort = "title") Pageable pageable) {
+            @PageableDefault(size = 10, sort = "title") Pageable pageable
+    ) {
         
         return ResponseEntity.ok(APIResponse.success(courseService.findAllPaged(pageable)));
     }
@@ -82,14 +83,21 @@ public class CourseController {
     @Operation(summary = "Atualizar Curso")
     @PutMapping("/{courseId}") 
     @PreAuthorize("hasRole('ADMIN') or @courseSecurity.isInstructorOfCourse(#courseId, #user.id)")
-    public ResponseEntity<APIResponse<CourseResponseDTO>> update(@PathVariable Long courseId, @RequestBody @Valid CourseRequestDTO courseRequest, @CurrentUser User user){
+    public ResponseEntity<APIResponse<CourseResponseDTO>> update(
+            @PathVariable Long courseId, 
+            @RequestBody @Valid CourseRequestDTO courseRequest, 
+            @CurrentUser User user
+    ){
         return ResponseEntity.ok(APIResponse.success(courseService.updateCourse(courseId, courseRequest)));
     }
 
     @Operation(summary = "Deletar Curso")
     @DeleteMapping("/{courseId}")
     @PreAuthorize("hasRole('ADMIN') or @courseSecurity.isInstructorOfCourse(#courseId, #user.id)")
-    public ResponseEntity<APIResponse<Void>> delete(@PathVariable Long courseId, @CurrentUser User user){
+    public ResponseEntity<APIResponse<Void>> delete(
+            @PathVariable Long courseId,
+            @CurrentUser User user
+    ){
         courseService.deleteCourse(courseId);
         return ResponseEntity.ok(APIResponse.success(null));
     }
