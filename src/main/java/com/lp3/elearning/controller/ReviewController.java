@@ -45,8 +45,8 @@ public class ReviewController {
     public ResponseEntity<APIResponse<ReviewResponseDTO>> create(
             @PathVariable Long courseId,
             @RequestBody @Valid ReviewRequestDTO request,
-            @CurrentUser User user) {
-                
+            @CurrentUser User user
+    ) {
         Student student = (Student) user; 
         var createdReview = reviewService.createReview(courseId, request, student);
 

@@ -35,9 +35,9 @@ public class LessonController {
     @Operation(summary = "Buscar Aula", description = "Busca detalhes da aula e valida acesso do aluno")
     @GetMapping("/{id}")
     public ResponseEntity<APIResponse<LessonResponseDTO>> getById(
-        @PathVariable Long id,
-        @CurrentUser User user) { 
-        // O Service deve validar se o aluno tem matrícula no curso desta aula
+            @PathVariable Long id,
+            @CurrentUser User user
+    ) { 
         return ResponseEntity.ok(APIResponse.success(lessonService.getLessonByIdForUser(id, user.getId())));
     }
 
@@ -45,9 +45,10 @@ public class LessonController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or @courseSecurity.isInstructorOfLesson(#id, #user.id)")
     public ResponseEntity<APIResponse<LessonResponseDTO>> update(
-        @PathVariable Long id, 
-        @RequestBody @Valid LessonRequestDTO lessonRequest,
-        @CurrentUser User user) {
+            @PathVariable Long id, 
+            @RequestBody @Valid LessonRequestDTO lessonRequest,
+            @CurrentUser User user
+    ) {
         return ResponseEntity.ok(APIResponse.success(lessonService.update(id, lessonRequest)));
     }
 
@@ -87,17 +88,19 @@ public class LessonController {
     @PutMapping("/module/{moduleId}/reorder")
     @PreAuthorize("hasRole('ADMIN') or @courseSecurity.isInstructorOfModule(#moduleId, #user.id)")
     public ResponseEntity<APIResponse<List<LessonResponseDTO>>> reorder(
-        @PathVariable Long moduleId,
-        @RequestBody @Valid List<LessonReorderRequestDTO> requests){
+            @PathVariable Long moduleId,
+            @RequestBody @Valid List<LessonReorderRequestDTO> requests
+    ){
         return ResponseEntity.ok(APIResponse.success(lessonService.reorder(moduleId, requests)));
     }
 
     @Operation(summary = "Buscar por Ordem", description = "Navegação sequencial (ex: buscar a aula 2 do módulo X)")
     @GetMapping("/module/{moduleId}/order/{order}") 
     public ResponseEntity<APIResponse<LessonResponseDTO>> getByOrder(
-        @PathVariable Long moduleId,
-        @PathVariable Integer order,
-        @CurrentUser User user) {
+            @PathVariable Long moduleId,
+            @PathVariable Integer order,
+            @CurrentUser User user
+    ) {
         return ResponseEntity.ok(APIResponse.success(lessonService.getByLessonOrder(order, moduleId,user.getId())));
     }
 }

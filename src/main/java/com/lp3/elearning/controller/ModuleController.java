@@ -41,9 +41,10 @@ public class ModuleController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or @courseSecurity.isInstructorOfModule(#id, #user.id)")
     public ResponseEntity<APIResponse<ModuleResponseDTO>> update(
-        @PathVariable Long id,
-        @RequestBody @Valid ModuleRequestDTO request,
-        @CurrentUser User user) {
+            @PathVariable Long id,
+            @RequestBody @Valid ModuleRequestDTO request,
+            @CurrentUser User user
+    ) {
         return ResponseEntity.ok(APIResponse.success(moduleService.update(id, request)));
     }
 
@@ -65,10 +66,10 @@ public class ModuleController {
     @PostMapping("/course/{courseId}")
     @PreAuthorize("hasRole('ADMIN') or @courseSecurity.isInstructorOfCourse(#courseId, #user.id)")
     public ResponseEntity<APIResponse<ModuleResponseDTO>> create(
-        @PathVariable Long courseId, 
-        @RequestBody @Valid ModuleRequestDTO request,
-        @CurrentUser User user) {
-
+            @PathVariable Long courseId, 
+            @RequestBody @Valid ModuleRequestDTO request,
+            @CurrentUser User user
+    ) {
         var createdModule = moduleService.create(request, courseId);
 
         URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
@@ -83,9 +84,10 @@ public class ModuleController {
     @PutMapping("/course/{courseId}/reorder")
     @PreAuthorize("hasRole('ADMIN') or @courseSecurity.isInstructorOfCourse(#courseId, #user.id)")
     public ResponseEntity<APIResponse<List<ModuleResponseDTO>>> reorder(
-        @PathVariable Long courseId, 
-        @RequestBody @Valid List<ModuleReorderRequestDTO> requests,
-        @CurrentUser User user) {
+            @PathVariable Long courseId, 
+            @RequestBody @Valid List<ModuleReorderRequestDTO> requests,
+            @CurrentUser User user
+    ) {
         return ResponseEntity.ok(APIResponse.success(moduleService.reorder(courseId, requests)));
     }
 }
