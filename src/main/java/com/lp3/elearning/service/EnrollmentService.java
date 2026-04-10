@@ -5,6 +5,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -106,8 +108,9 @@ public class EnrollmentService {
         return enrollmentRepository.findById(id).orElseThrow(() -> new BusinessRuleException("Matrícula não encontrada."));
     }
     
-    public List<EnrollmentResponseDTO> findByStudent(Long studentId) {
-        return enrollmentRepository.findByStudentId(studentId).stream().map(this::toResponseDTO).toList();
+    public Page<EnrollmentResponseDTO> findByStudent(Long studentId, Pageable pageable) {
+        return enrollmentRepository.findByStudentId(studentId, pageable)
+                .map(this::toResponseDTO);
     }
     
     public Set<CompletedLessonResponseDTO> calculateProgress(Enrollment enrollment){

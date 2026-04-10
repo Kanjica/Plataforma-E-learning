@@ -1,9 +1,11 @@
 package com.lp3.elearning.controller;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Set;
 
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -42,8 +44,9 @@ public class EnrollmentController {
     @PostMapping 
     @PreAuthorize("hasRole('ADMIN') or @enrollmentSecurity.isOwner(#request.enrollmentId, #user.id)")
     public ResponseEntity<APIResponse<EnrollmentResponseDTO>> create(
-        @RequestBody @Valid EnrollmentRequestDTO request, @CurrentUser User user){
-
+            @RequestBody @Valid EnrollmentRequestDTO request,
+            @CurrentUser User user
+    ){
         var createdEnrollment = enrollmentService.create(request);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -58,9 +61,9 @@ public class EnrollmentController {
     @GetMapping("/{enrollmentId}/certificate")
     @PreAuthorize("hasRole('ADMIN') or @enrollmentSecurity.isOwner(#request.enrollmentId, #user.id)")
     public ResponseEntity<APIResponse<byte[]>> getCertificate(
-        @PathVariable Long enrollmentId,
-        @CurrentUser User user){
-
+            @PathVariable Long enrollmentId,
+            @CurrentUser User user
+    ){
         Student student = (Student) user; 
         byte[] pdfBytes = certificateService.generateCertificatePdf(enrollmentId, student);
         String filename = "certificado_matricula_" + enrollmentId + ".pdf";
@@ -75,15 +78,21 @@ public class EnrollmentController {
     @Operation(summary = "Listar por Aluno (Admin)", description = "Lista matrículas de um aluno específico")
     @GetMapping("/student/{studentId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<APIResponse<List<EnrollmentResponseDTO>>> getByStudent(@PathVariable Long studentId) {
-        return ResponseEntity.ok(APIResponse.success(enrollmentService.findByStudent(studentId)));
+    public ResponseEntity<APIResponse<Page<EnrollmentResponseDTO>>> getByStudent(
+            @ParameterObject Pageable pageable,
+            @PathVariable Long studentId
+    ) {
+        return ResponseEntity.ok(APIResponse.success(enrollmentService.findByStudent(studentId, pageable)));
     }
 
-    @Operation(summary = "Meu Dashboard", description = "Cursos em que o aluno logado está matriculado")
+    @Operation(summary = "Meu Dashboard", description = "Cursos em que o aluno logado está matriculado (Paginado)")
     @GetMapping("/me") 
     @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<APIResponse<List<EnrollmentResponseDTO>>> getMyEnrollments(@CurrentUser User user) {
-        return ResponseEntity.ok(APIResponse.success(enrollmentService.findByStudent(user.getId())));
+    public ResponseEntity<APIResponse<Page<EnrollmentResponseDTO>>> getMyEnrollments(
+            @CurrentUser User user, 
+            @ParameterObject Pageable pageable
+    ) {
+        return ResponseEntity.ok(APIResponse.success(enrollmentService.findByStudent(user.getId(), pageable)));
     }
 
     @Operation(summary = "Ver Progresso", description = "Retorna as aulas concluídas de uma matrícula")
