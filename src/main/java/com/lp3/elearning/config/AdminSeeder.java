@@ -21,13 +21,13 @@ public class AdminSeeder implements CommandLineRunner {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Value("${app.admin.username}")
+    @Value("${app.admin.username:abc}")
     private String adminUsername;
 
-    @Value("${app.admin.password}")
+    @Value("${app.admin.password:123}")
     private String adminPassword;
 
-    @Value("${app.admin.email}")
+    @Value("${app.admin.email:abc@gmail.com}")
     private String adminEmail;
 
     @Override

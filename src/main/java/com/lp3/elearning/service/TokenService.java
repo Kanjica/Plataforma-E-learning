@@ -15,7 +15,7 @@ import com.lp3.elearning.entities.User;
 @Service
 public class TokenService {
 
-    @Value("${api.security.token.secret}")
+    @Value("${api.security.token.secret:234}")
     private String secret;
 
     public String generateToken(UserDetails userDetails) {
