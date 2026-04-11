@@ -1,7 +1,7 @@
 package com.lp3.elearning.service;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.lp3.elearning.dto.user.UserResponseDTO;
@@ -38,10 +38,8 @@ public class UserService {
         return toResponseDTO(userRepository.save(user));
     }
 
-    public List<UserResponseDTO> findAll() {
-        return userRepository.findAll().stream()
-            .map(this::toResponseDTO)
-            .toList();
+    public Page<UserResponseDTO> findAll(Pageable pageable) {
+        return userRepository.findAll(pageable).map(this::toResponseDTO);
     }
 
     public UserResponseDTO toResponseDTO(User user){

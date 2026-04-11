@@ -1,11 +1,12 @@
 package com.lp3.elearning.service;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,21 +35,12 @@ public class TopicService {
     }
 
     @Transactional(readOnly = true)
-    public List<TopicResponseDTO> findAll() {
-        return topicRepository.findAll().stream()
-                .map(this::toResponseDTO)
-                .collect(Collectors.toList());
-    }
+    public Page<TopicResponseDTO> findAll(Long courseId, Pageable pageable) {
+        Page<Topic> topicPage = (courseId != null)
+                ? topicRepository.findByCourseId(courseId, pageable)
+                : topicRepository.findAll(pageable);
 
-    @Transactional(readOnly = true)
-    public List<TopicResponseDTO> findAllByCourse(Long courseId) {
-        List<Topic> topics = (courseId != null)
-            ? topicRepository.findByCourseId(courseId)
-            : topicRepository.findAll();
-
-        return topics.stream()
-                .map(this::toResponseDTO)
-                .collect(Collectors.toList());
+        return topicPage.map(this::toResponseDTO);
     }
 
     @Transactional(readOnly = true)

@@ -1,6 +1,8 @@
 package com.lp3.elearning.controller;
 
-import java.util.List;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -39,11 +41,11 @@ public class UserController {
         return ResponseEntity.ok(APIResponse.success(userService.updateProfile(user.getId(), request)));
     }
 
-    @Operation(summary = "Listar Usuários (Admin)")
+    @Operation(summary = "Listar Usuários (Admin)", description = "Retorna todos os usuários do sistema com paginação")
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<APIResponse<List<UserResponseDTO>>> getAll() {
-        return ResponseEntity.ok(APIResponse.success(userService.findAll()));
+    public ResponseEntity<APIResponse<Page<UserResponseDTO>>> getAll(@ParameterObject Pageable pageable) {
+        return ResponseEntity.ok(APIResponse.success(userService.findAll(pageable)));
     }
 
     @Operation(summary = "Buscar Usuário por ID")

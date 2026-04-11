@@ -1,6 +1,8 @@
 package com.lp3.elearning.controller;
 
-import java.util.List;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,19 +28,21 @@ public class TopicController {
         this.topicService = topicService;
     }
 
-    @Operation(summary = "Listar Tópicos", description = "Retorna todos os tópicos ou filtra por curso se 'courseId' for informado")
+    @Operation(summary = "Listar Tópicos", description = "Retorna tópicos paginados, com filtro opcional por curso")
     @GetMapping
-    public ResponseEntity<APIResponse<List<TopicResponseDTO>>> getAllTopics(
-        @RequestParam(required = false) Long courseId) {
-
-        return ResponseEntity.ok(APIResponse.success(topicService.findAllByCourse(courseId)));
+    public ResponseEntity<APIResponse<Page<TopicResponseDTO>>> getAllTopics(
+            @RequestParam(required = false) Long courseId,
+            @ParameterObject Pageable pageable
+    ) {
+        return ResponseEntity.ok(APIResponse.success(topicService.findAll(courseId, pageable)));
     }
     
     @Operation(summary = "Criar Tópico", description = "Abre uma nova discussão no fórum")
     @PostMapping
     public ResponseEntity<APIResponse<TopicResponseDTO>> createTopic(
-        @RequestBody @Valid TopicRequestDTO request,
-        @CurrentUser User user) {
+            @RequestBody @Valid TopicRequestDTO request,
+            @CurrentUser User user
+    ) {
         TopicResponseDTO response = topicService.create(request, user);
         return ResponseEntity.ok(APIResponse.success(response));
     }
@@ -51,19 +55,20 @@ public class TopicController {
 
     @Operation(summary = "Atualizar Tópico", description = "Permite editar o título ou mensagem do tópico")
     @PutMapping("/{topicId}")
-
     public ResponseEntity<APIResponse<TopicResponseDTO>> updateTopic(
-        @PathVariable Long topicId, 
-        @RequestBody @Valid TopicRequestDTO request,
-        @CurrentUser User user) {
+            @PathVariable Long topicId, 
+            @RequestBody @Valid TopicRequestDTO request,
+            @CurrentUser User user
+    ) {
         return ResponseEntity.ok(APIResponse.success(topicService.update(topicId, request, user)));
     }
 
     @Operation(summary = "Deletar Tópico", description = "Remove o tópico e todas as suas respostas")
     @DeleteMapping("/{topicId}")
     public ResponseEntity<APIResponse<Void>> deleteTopic(
-        @PathVariable Long topicId,
-        @CurrentUser User user) {
+            @PathVariable Long topicId,
+            @CurrentUser User user
+    ) {
         topicService.delete(topicId, user);
         return ResponseEntity.ok(APIResponse.success(null));
     }
