@@ -1,8 +1,10 @@
 package com.lp3.elearning.controller;
 
 import java.net.URI;
-import java.util.List;
 
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -58,10 +60,13 @@ public class ReviewController {
         return ResponseEntity.created(location).body(APIResponse.success(createdReview));
     }
 
-    @Operation(summary = "Listar Avaliações do Curso")
+    @Operation(summary = "Listar Avaliações do Curso (Paginado)")
     @GetMapping("/course/{courseId}")
-    public ResponseEntity<APIResponse<List<ReviewResponseDTO>>> listByCourse(@PathVariable Long courseId) {
-        return ResponseEntity.ok(APIResponse.success(reviewService.listByCourse(courseId)));
+    public ResponseEntity<APIResponse<Page<ReviewResponseDTO>>> listByCourse(
+            @PathVariable Long courseId,
+            @ParameterObject Pageable pageable
+    ) {
+        return ResponseEntity.ok(APIResponse.success(reviewService.listByCourse(courseId, pageable)));
     }
     
     @Operation(summary = "Atualizar Avaliação")
@@ -81,8 +86,8 @@ public class ReviewController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<APIResponse<Void>> delete(
             @PathVariable Long id,
-            @CurrentUser User user) {
-        
+            @CurrentUser User user
+    ) {
         reviewService.deleteReview(id, user);
         return ResponseEntity.ok(APIResponse.success(null));
     }

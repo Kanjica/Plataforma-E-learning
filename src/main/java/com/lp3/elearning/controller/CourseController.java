@@ -72,6 +72,7 @@ public class CourseController {
         return ResponseEntity.ok(APIResponse.success(courseService.getAllCourses(pageable)));
     }
 
+    @Operation(summary = "Listar cursos com menos dados com paginação e ordenação")
     @GetMapping("/paged")
     public ResponseEntity<APIResponse<Page<CourseListDTO>>> list(
             @PageableDefault(size = 10, sort = "title") Pageable pageable
