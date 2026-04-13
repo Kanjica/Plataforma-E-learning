@@ -23,11 +23,11 @@ public class StudentService {
 
     @Transactional
     public void createStudent(StudentRegisterDTO data) {
-        authService.validateAndPrepare(data.login());
+        authService.validateAndPrepare(data.email());
 
         Student student = Student.builder()
-                .name(data.name())
-                .email(data.login())
+                .name(data.username())
+                .email(data.email())
                 .password(authService.encodePassword(data.password()))
                 .role(UserRole.ROLE_STUDENT)
                 .build();

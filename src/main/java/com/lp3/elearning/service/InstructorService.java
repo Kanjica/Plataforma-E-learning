@@ -31,11 +31,11 @@ public class InstructorService {
 
     @Transactional(readOnly = true)
     public InstructorResponseDTO createInstructor(InstructorRegisterDTO data) {
-        authService.validateAndPrepare(data.login());
+        authService.validateAndPrepare(data.email());
 
         Instructor instructor = Instructor.builder()
-                .name(data.name())
-                .email(data.login())
+                .name(data.username())
+                .email(data.email())
                 .password(authService.encodePassword(data.password()))
                 .role(UserRole.ROLE_INSTRUCTOR)
                 .build();

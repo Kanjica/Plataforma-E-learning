@@ -30,11 +30,11 @@ public class AuthService {
 
     public LoginResponseDTO login(AuthenticationDTO data) {
         Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(data.login(), data.password())
+                new UsernamePasswordAuthenticationToken(data.email(), data.password())
         );
 
         User user = (User) auth.getPrincipal();
-        return new LoginResponseDTO(tokenService.generateToken(user), user.getRole().name(), user.getId(), user.getName());
+        return new LoginResponseDTO(tokenService.generateToken(user), user.getRole().name(), user.getId(), user.getUsername());
     }
 
     @Transactional
