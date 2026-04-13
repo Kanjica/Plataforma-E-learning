@@ -13,7 +13,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.course.CategoryRequestDTO;
 import com.lp3.elearning.dto.course.CategoryResponseDTO;
-import com.lp3.elearning.service.CategoriesService;
+import com.lp3.elearning.service.CategoryService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,9 +24,9 @@ import jakarta.validation.Valid;
 @Tag(name = "Categorias", description = "Gerenciamento de categorias para organização dos cursos")
 public class CategoryController {
 
-    private final CategoriesService categoriesService;
+    private final CategoryService categoriesService;
 
-    public CategoryController(CategoriesService categoriesService) {
+    public CategoryController(CategoryService categoriesService) {
         this.categoriesService = categoriesService;
     }
 

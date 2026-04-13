@@ -14,13 +14,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.lp3.elearning.exception.ResourceNotFoundException;
-import com.lp3.elearning.repository.CategoriesRepository;
+import com.lp3.elearning.repository.CategoryRepository;
 
 @ExtendWith(MockitoExtension.class)
-class CategoriesServiceTest {
+class CategoryServiceTest {
 
-    @InjectMocks private CategoriesService categoriesService;
-    @Mock private CategoriesRepository categoriesRepository;
+    @InjectMocks private CategoryService categoriesService;
+    @Mock private CategoryRepository categoriesRepository;
 
     @Test
     void shouldThrowException_WhenCategoryIdsNotFound() {

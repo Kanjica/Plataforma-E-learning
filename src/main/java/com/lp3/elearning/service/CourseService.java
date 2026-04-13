@@ -22,6 +22,7 @@ import com.lp3.elearning.entities.User;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.exception.ConflictException;
 import com.lp3.elearning.exception.ResourceNotFoundException;
+import com.lp3.elearning.mapper.CategoryMapper;
 import com.lp3.elearning.repository.CourseRepository;
 
 @Service
@@ -29,17 +30,20 @@ public class CourseService {
 
     private final ModuleService moduleService;
     private final CourseRepository courseRepository;
-    private final CategoriesService categoriesService;
+    private final CategoryService categoriesService;
     private final InstructorService instructorService;
+    private final CategoryMapper categoryMapper;
 
     public CourseService(CourseRepository courseRepository, 
-        CategoriesService categoriesService, 
+        CategoryService categoriesService, 
         @Lazy InstructorService instructorService, 
-        @Lazy ModuleService moduleService) {
+        @Lazy ModuleService moduleService,
+        CategoryMapper categoryMapper) {
         this.courseRepository = courseRepository;
         this.categoriesService = categoriesService;
         this.instructorService = instructorService;
-        this.moduleService = moduleService;
+        this.moduleService = moduleService,
+        this.categoryMapper = categoryMapper;
     }
 
     @Transactional
@@ -163,7 +167,7 @@ public class CourseService {
     public CourseResponseDTO toResponseDTO(Course course) {
         return new CourseResponseDTO(
             course.getId(), course.getTitle(), course.getDescription(), course.getWorkload(),
-            course.getCategories().stream().map(categoriesService::toResponseDTO).collect(Collectors.toSet()),
+            course.getCategories().stream().map(categoryMapper::toResponseDTO).collect(Collectors.toSet()),
             course.getInstructors().stream().map(instructorService::toResponseDTO).collect(Collectors.toSet()),
             course.getImageUrl(),
             course.getModules() != null ? course.getModules().stream().map(moduleService::toResponseDTO).collect(Collectors.toSet()) : Collections.emptySet(),

@@ -14,55 +14,54 @@ import com.lp3.elearning.dto.course.CategoryRequestDTO;
 import com.lp3.elearning.dto.course.CategoryResponseDTO;
 import com.lp3.elearning.entities.Category;
 import com.lp3.elearning.exception.ResourceNotFoundException;
-import com.lp3.elearning.repository.CategoriesRepository;
+import com.lp3.elearning.mapper.CategoryMapper;
+import com.lp3.elearning.repository.CategoryRepository;
 
 @Service
-public class CategoriesService {
+public class CategoryService {
 
-    private final CategoriesRepository categoriesRepository;
+    private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
 
-    public CategoriesService(CategoriesRepository categoriesRepository) {
-        this.categoriesRepository = categoriesRepository;
+    public CategoryService(CategoryRepository categoryRepository, CategoryMapper categoryMapper) {
+        this.categoryRepository = categoryRepository;
+        this.categoryMapper = categoryMapper;
     }
     
     @Transactional
     public CategoryResponseDTO createCategory(CategoryRequestDTO dto) {
-        Category category = Category.builder().name(dto.name()).build();
-        return toResponseDTO(categoriesRepository.save(category));
+        Category category = categoryMapper.toEntity(dto);
+        category = categoryRepository.save(category);
+        return categoryMapper.toResponseDTO(category);
     }
     
     @Transactional
     public CategoryResponseDTO update(Long id, CategoryRequestDTO dto) {
         Category category = findCategoryEntityById(id);
         category.setName(dto.name());
-        return toResponseDTO(categoriesRepository.save(category));
+
+        category = categoryRepository.save(category);
+        return categoryMapper.toResponseDTO(category);
     }
 
     @Transactional
     public void delete(Long id) {
-        if (!categoriesRepository.existsById(id)) {
+        if (!categoryRepository.existsById(id)) {
             throw new ResourceNotFoundException("Categoria não encontrada.");
         }
-        categoriesRepository.deleteById(id);
-    }
-
-    @Transactional(readOnly = true)
-    public List<CategoryResponseDTO> findAll() {
-        return categoriesRepository.findAll().stream()
-                .map(this::toResponseDTO)
-                .collect(Collectors.toList());
+        categoryRepository.deleteById(id);
     }
 
     public Page<CategoryResponseDTO> findAllPaged(Pageable pageable) {
-        return categoriesRepository.findAll(pageable).map(this::toResponseDTO);
+        return categoryRepository.findAll(pageable).map(categoryMapper::toResponseDTO);
     }
 
     public CategoryResponseDTO findById(Long id) {
-        return toResponseDTO(findCategoryEntityById(id));
+        return categoryMapper.toResponseDTO(findCategoryEntityById(id));
     }
 
     public Category findCategoryEntityById(Long id) {
-        return categoriesRepository.findById(id)
+        return categoryRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada com o ID: " + id));
     }
 
@@ -73,7 +72,7 @@ public class CategoriesService {
     public Set<Category> getCategoriesByValidIds(Set<Long> ids) {
         if (ids == null || ids.isEmpty()) return new HashSet<>();
         
-        List<Category> foundCategories = categoriesRepository.findAllById(ids);
+        List<Category> foundCategories = categoryRepository.findAllById(ids);
         
         if (foundCategories.size() != ids.size()) {
             Set<Long> foundIds = foundCategories.stream().map(Category::getId).collect(Collectors.toSet());
@@ -82,9 +81,5 @@ public class CategoriesService {
             throw new ResourceNotFoundException("IDs de Categoria inválidos: " + missingIds);
         }
         return new HashSet<>(foundCategories);
-    }
-
-    public CategoryResponseDTO toResponseDTO(Category category) {
-        return new CategoryResponseDTO(category.getId(), category.getName());
     }
 }

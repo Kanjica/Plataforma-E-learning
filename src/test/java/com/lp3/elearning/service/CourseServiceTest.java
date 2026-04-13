@@ -29,7 +29,7 @@ class CourseServiceTest {
     @Mock
     private CourseRepository courseRepository;
     @Mock
-    private CategoriesService categoriesService;
+    private CategoryService categoriesService;
     @Mock
     private InstructorService instructorService;
 
