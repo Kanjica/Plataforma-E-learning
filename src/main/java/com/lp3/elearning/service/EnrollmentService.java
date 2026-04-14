@@ -28,18 +28,15 @@ public class EnrollmentService {
     private final StudentService studentService;
     private final CourseService courseService;
     private final CompletedLessonsService completedLessonsService;
-    private final LessonService lessonService;
 
     public EnrollmentService(EnrollmentRepository enrollmentRepository, 
                              StudentService studentService, 
                              CourseService courseService, 
-                             @Lazy CompletedLessonsService completedLessonsService, // Lazy para evitar ciclo
-                             @Lazy LessonService lessonService) {
+                             @Lazy CompletedLessonsService completedLessonsService) {
         this.enrollmentRepository = enrollmentRepository;
         this.studentService = studentService;
         this.courseService = courseService;
         this.completedLessonsService = completedLessonsService;
-        this.lessonService = lessonService;
     }
 
     @Transactional
@@ -58,16 +55,7 @@ public class EnrollmentService {
      * Calcula o progresso (0 a 1) do aluno baseado nas aulas concluídas vs total.
      */
     public Double calculateOverallProgress(Enrollment enrollment){
-        Integer totalLessons = lessonService.countLessonsInCourse(enrollment.getCourse().getId());
-        
-        if (totalLessons == 0) return 1.0; // Curso sem aulas é automaticamente "completo" ou 0, depende da regra. 1.0 evita divisão por zero.
-
-        Integer completedCount = completedLessonsService.countByEnrollment(enrollment);
-        
-        double progress = (double) completedCount / totalLessons;
-        
-        // Arredonda para 2 casas decimais e garante teto de 100%
-        return Math.min(Math.round(progress * 100.0) / 100.0, 1.0);
+        return enrollmentRepository.getProgress(enrollment.getId(), enrollment.getCourse().getId());
     }
     
     @Transactional(readOnly = true)
@@ -103,7 +91,6 @@ public class EnrollmentService {
         );
     }
     
-    // Métodos extras mantidos...
     public Enrollment findById(Long id) {
         return enrollmentRepository.findById(id).orElseThrow(() -> new BusinessRuleException("Matrícula não encontrada."));
     }

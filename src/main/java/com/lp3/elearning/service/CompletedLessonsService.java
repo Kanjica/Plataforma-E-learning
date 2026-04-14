@@ -15,6 +15,7 @@ import com.lp3.elearning.entities.Enrollment;
 import com.lp3.elearning.entities.Lesson;
 import com.lp3.elearning.entities.StatusEnrollment;
 import com.lp3.elearning.exception.BusinessRuleException;
+import com.lp3.elearning.mapper.CompletedLessonMapper;
 import com.lp3.elearning.repository.CompletedLessonRepository;
 
 @Service 
@@ -25,15 +26,19 @@ public class CompletedLessonsService {
     private final CompletedLessonRepository completedLessonRepository;
     private final EnrollmentService enrollmentService;
     private final LessonService lessonService;
+    private final CompletedLessonMapper completedLessonMapper;
 
     public CompletedLessonsService(
             CompletedLessonRepository completedLessonRepository, 
             LessonService lessonService, 
-            @Lazy EnrollmentService enrollmentService, EnrollmentRepository enrollmentRepository) {
+            @Lazy EnrollmentService enrollmentService, 
+            EnrollmentRepository enrollmentRepository, 
+            CompletedLessonMapper completedLessonMapper) {
         this.completedLessonRepository = completedLessonRepository;
         this.lessonService = lessonService;
         this.enrollmentService = enrollmentService;
         this.enrollmentRepository = enrollmentRepository;
+        this.completedLessonMapper = completedLessonMapper;
     }
 
     @Transactional
@@ -65,7 +70,7 @@ public class CompletedLessonsService {
         }
         enrollmentRepository.save(existingEnrollment);
 
-        return toResponseDTO(savedLesson);
+        return completedLessonMapper.toResponseDTO(savedLesson);
     }
 
     public boolean isLessonCompleted(Enrollment enrollment, Lesson lesson) {
@@ -81,15 +86,6 @@ public class CompletedLessonsService {
     }
 
     private Set<CompletedLessonResponseDTO> toResponseDTOs(List<CompletedLesson> completedLessons){
-        return completedLessons.stream().map(this::toResponseDTO).collect(Collectors.toSet());
-    }
-
-    private CompletedLessonResponseDTO toResponseDTO(CompletedLesson completedLesson){
-        return new CompletedLessonResponseDTO(
-            completedLesson.getId(),
-            lessonService.toResponseDTO(completedLesson.getLesson()),
-            completedLesson.getCompletionDate().toString(),
-            enrollmentService.calculateOverallProgress(completedLesson.getEnrollment()) // Pode ser otimizado pegando direto da matrícula
-        );
+        return completedLessons.stream().map(completedLessonMapper::toResponseDTO).collect(Collectors.toSet());
     }
 }
