@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.Collections;
 
 @Entity
 @Table(name = "topics")
@@ -44,6 +45,7 @@ public class Topic {
     private User user;
 
     // Relação 1:N com as Respostas (Comentários)
+    @Builder.Default
     @OneToMany(mappedBy = "topic", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Response> responses;
+    private Set<Response> responses = Collections.emptySet();
 }

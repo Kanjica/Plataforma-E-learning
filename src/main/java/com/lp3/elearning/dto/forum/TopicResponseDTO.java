@@ -3,7 +3,6 @@ package com.lp3.elearning.dto.forum;
 import com.lp3.elearning.dto.user.UserResponseDTO;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 
 public record TopicResponseDTO(
     Long id,
@@ -13,5 +12,5 @@ public record TopicResponseDTO(
     Long courseId,
     String courseTitle,
     UserResponseDTO user,
-    Set<ResponseResponseDTO> responses
+    Integer responseCount
 ) {}
