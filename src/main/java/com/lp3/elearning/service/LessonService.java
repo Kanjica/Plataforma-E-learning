@@ -5,9 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // Importante: use o do Spring
+import org.springframework.transaction.annotation.Transactional;
 
 import com.lp3.elearning.dto.course.LessonReorderRequestDTO;
 import com.lp3.elearning.dto.course.LessonRequestDTO;
@@ -19,26 +18,17 @@ import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.mapper.LessonMapper;
 import com.lp3.elearning.repository.LessonRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class LessonService {
     
     private final LessonRepository lessonRepository;
     private final ModuleService moduleService;
-    private final CompletedLessonsService completedLessonsService;
     private final EnrollmentService enrollmentService;
     private final LessonMapper lessonMapper;
-
-    public LessonService(LessonRepository lessonRepository, 
-            ModuleService moduleService, 
-            @Lazy CompletedLessonsService completedLessonsService,
-            @Lazy EnrollmentService enrollmentService,
-            LessonMapper lessonMapper) {
-        this.lessonRepository = lessonRepository;
-        this.moduleService = moduleService;
-        this.completedLessonsService = completedLessonsService;
-        this.enrollmentService = enrollmentService;
-        this.lessonMapper = lessonMapper;
-    }
+    private final LearningProgressService learningProgressService;
 
     /**
      * Cria uma nova aula e ajusta a ordenação se necessário.
@@ -63,6 +53,10 @@ public class LessonService {
         return lessonMapper.toResponseDTO(lessonRepository.save(lesson));
     }
 
+    public Lesson findByModuleAndOrder(Long moduleId, Integer lessonOrder) {
+        return lessonRepository.findByModuleIdAndLessonOrder(moduleId, lessonOrder)
+            .orElseThrow(() -> new BusinessRuleException("Aula número " + lessonOrder + " não existe neste módulo."));
+    }
     /**
      * Busca uma aula para consumo do aluno, validando regras de acesso e sequência.
      * Garante que o aluno não pule aulas ou módulos.
@@ -75,49 +69,9 @@ public class LessonService {
         Enrollment enrollment = enrollmentService.findByStudentIdAndCourseId(studentId, courseId);
         Lesson currentLesson = findById(lessonId);
 
-        validateLessonAccessibility(currentLesson, enrollment);
+        learningProgressService.validateLessonAccessibility(currentLesson, enrollment);
         
         return lessonMapper.toResponseDTO(currentLesson);
-    }
-
-    /**
-     * Valida se o aluno pode assistir a aula atual baseada no seu progresso.
-     * Regra 1: Deve estar matriculado.
-     * Regra 2: Se não for a primeira aula, a anterior deve estar concluída.
-     * Regra 3: Se for a primeira aula de um módulo novo, o módulo anterior deve estar finalizado.
-     */
-    public void validateLessonAccessibility(Lesson currentLesson, Enrollment enrollment) {
-        if (!enrollment.getCourse().getId().equals(currentLesson.getModule().getCourse().getId())) {
-            throw new BusinessRuleException("Acesso negado: Esta aula não pertence ao curso matriculado.");
-        }
-
-        Integer currentOrder = currentLesson.getLessonOrder();
-        Long moduleId = currentLesson.getModule().getId();
-
-        // CENÁRIO A: Sequência dentro do mesmo módulo
-        if (currentOrder > 1) {
-            Lesson previous = lessonRepository.findByModuleIdAndLessonOrder(moduleId, currentOrder - 1)
-                .orElseThrow(() -> new BusinessRuleException("Erro de integridade: Aula anterior não encontrada."));
-            
-            if (!completedLessonsService.isLessonCompleted(enrollment, previous)) {
-                throw new BusinessRuleException("Bloqueado: Você precisa concluir a aula '" + previous.getTitle() + "' antes de avançar.");
-            }
-        } 
-        // CENÁRIO B: Transição entre módulos (Primeira aula do módulo X exige fim do módulo X-1)
-        else if (currentOrder == 1 && currentLesson.getModule().getModuleOrder() > 1) {
-            Module previousModule = moduleService.findByCourseIdAndModuleOrder(
-                currentLesson.getModule().getCourse().getId(), 
-                currentLesson.getModule().getModuleOrder() - 1
-            );
-
-            // Busca a última aula do módulo anterior
-            lessonRepository.findFirstByModuleIdOrderByLessonOrderDesc(previousModule.getId())
-                .ifPresent(lastLessonOfPrevModule -> {
-                    if (!completedLessonsService.isLessonCompleted(enrollment, lastLessonOfPrevModule)) {
-                        throw new BusinessRuleException("Bloqueado: Complete o módulo '" + previousModule.getTitle() + "' antes de iniciar este.");
-                    }
-                });
-        }
     }
 
     @Transactional
@@ -206,7 +160,7 @@ public class LessonService {
         Long courseId = lesson.getModule().getCourse().getId();
 
         Enrollment enrollment = enrollmentService.findByStudentIdAndCourseId(studentId, courseId);
-        validateLessonAccessibility(lesson, enrollment);
+        learningProgressService.validateLessonAccessibility(lesson, enrollment);
         
         return lessonMapper.toResponseDTO(lesson);
     }

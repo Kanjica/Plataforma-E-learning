@@ -11,22 +11,22 @@ import com.lp3.elearning.dto.common.APIResponse;
 import com.lp3.elearning.dto.enrollment.CompletedLessonResponseDTO;
 import com.lp3.elearning.entities.User;
 import com.lp3.elearning.security.anottation.CurrentUser;
-import com.lp3.elearning.service.CompletedLessonsService;
+// import com.lp3.elearning.service.CompletedLessonsService;
+import com.lp3.elearning.service.LearningProgressService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/courses/{courseId}/modules/{moduleId}/lessons/{lessonId}/completed")
 @Tag(name = "Progresso de Aulas", description = "Marcação de aulas como concluídas")
+@RequiredArgsConstructor
 public class CompletedLessonController {
 
-    private final CompletedLessonsService service;
+    // private final CompletedLessonsService completedLessonsService;
+    private final LearningProgressService learningProgressService;
 
-    public CompletedLessonController(CompletedLessonsService service){ 
-        this.service = service;
-    }
-    
     @Operation(summary = "Concluir Aula", description = "Marca a aula como assistida e atualiza o progresso")
     @PostMapping
     @PreAuthorize("hasRole('STUDENT')")
@@ -35,6 +35,6 @@ public class CompletedLessonController {
             @PathVariable Long lessonId, 
             @CurrentUser User user
     ){
-        return ResponseEntity.ok(APIResponse.success(service.completeLesson(user.getId(), courseId, lessonId)));
+        return ResponseEntity.ok(APIResponse.success(learningProgressService.completeLesson(user.getId(), courseId, lessonId)));
     }
 }
