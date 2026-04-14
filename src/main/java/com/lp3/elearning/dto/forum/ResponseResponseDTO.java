@@ -1,10 +1,8 @@
 package com.lp3.elearning.dto.forum;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import com.lp3.elearning.dto.user.UserResponseDTO;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 public record ResponseResponseDTO(
     Long id,
@@ -13,6 +11,6 @@ public record ResponseResponseDTO(
     UserResponseDTO user,
     Long topicId, 
     Long responseParentId, 
-    @Schema(description = "Respostas filhas (Threads)")
-    List<ResponseResponseDTO> childResponses 
+    boolean hasChildren, // indica se existem respostas abaixo desta
+    Integer childrenCount
 ) {}

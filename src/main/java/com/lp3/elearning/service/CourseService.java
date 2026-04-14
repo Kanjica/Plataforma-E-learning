@@ -42,7 +42,7 @@ public class CourseService {
         this.courseRepository = courseRepository;
         this.categoriesService = categoriesService;
         this.instructorService = instructorService;
-        this.moduleService = moduleService,
+        this.moduleService = moduleService;
         this.categoryMapper = categoryMapper;
     }
 

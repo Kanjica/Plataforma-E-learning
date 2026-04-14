@@ -1,34 +1,32 @@
 package com.lp3.elearning.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.lp3.elearning.dto.forum.ResponseRequestDTO;
 import com.lp3.elearning.dto.forum.ResponseResponseDTO;
-import com.lp3.elearning.dto.user.UserResponseDTO;
 import com.lp3.elearning.entities.Response;
 import com.lp3.elearning.entities.Topic;
 import com.lp3.elearning.entities.User;
 import com.lp3.elearning.exception.BusinessRuleException;
+import com.lp3.elearning.mapper.ResponseMapper;
 import com.lp3.elearning.repository.ResponseRepository;
 import com.lp3.elearning.repository.TopicRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class ResponseService {
 
     private final ResponseRepository responseRepository;
     private final TopicRepository topicRepository;
-    private final UserService userService;
-
-    public ResponseService(ResponseRepository responseRepository, TopicRepository topicRepository, UserService userService) {
-        this.responseRepository = responseRepository;
-        this.topicRepository = topicRepository;
-        this.userService = userService;
-    }
+    private final ResponseMapper responseMapper;
 
     /**
      * Cria uma resposta em um tópico ou um reply para outra resposta.
@@ -54,16 +52,25 @@ public class ResponseService {
             .topic(topic)
             .user(user)
             .responseParent(parentResponse)
-            .creationDate(LocalDateTime.now())
             .build();
         
-        return toResponseResponseDTO(responseRepository.save(newResponse));
+        return responseMapper.toResponseDTO(responseRepository.save(newResponse));
     }
 
     @Transactional(readOnly = true)
-    public List<ResponseResponseDTO> findRootResponsesByTopic(Long topicId) {
-        return responseRepository.findByTopicIdAndResponseParentIsNull(topicId).stream()
-            .map(this::toResponseResponseDTO)
+    public Page<ResponseResponseDTO> findRootResponsesByTopic(Long topicId, Pageable pageable) {
+        // 1. Busca do banco já paginada
+        Page<Response> roots = responseRepository.findByTopicIdAndResponseParentIsNull(topicId, pageable);
+        
+        // 2. O próprio objeto Page tem o método .map() que funciona perfeitamente com o MapStruct
+        return roots.map(responseMapper::toResponseDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ResponseResponseDTO> findChildren(Long parentId) {
+        // Para as "filhas", geralmente não paginamos (a menos que a thread seja gigante)
+        return responseRepository.findByResponseParentId(parentId).stream()
+            .map(responseMapper::toResponseDTO)
             .collect(Collectors.toList());
     }
     
@@ -89,26 +96,7 @@ public class ResponseService {
         }
         
         response.setContent(newContent);
-        return toResponseResponseDTO(responseRepository.save(response));
+        return responseMapper.toResponseDTO(responseRepository.save(response));
     }
 
-    // Conversão Recursiva para montar a árvore de comentários
-    public ResponseResponseDTO toResponseResponseDTO(Response response) {
-        List<ResponseResponseDTO> childDTOs = response.getChildResponses() == null ? List.of() :
-            response.getChildResponses().stream()
-                .map(this::toResponseResponseDTO) // Recursão
-                .collect(Collectors.toList());
-
-        UserResponseDTO userDTO = userService.toResponseDTO(response.getUser());
-        
-        return new ResponseResponseDTO(
-            response.getId(),
-            response.getContent(),
-            response.getCreationDate(),
-            userDTO,
-            response.getTopic().getId(),
-            response.getResponseParent() != null ? response.getResponseParent().getId() : null,
-            childDTOs
-        );
-    }
 }

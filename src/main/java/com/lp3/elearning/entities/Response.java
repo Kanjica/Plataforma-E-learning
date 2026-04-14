@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Set;
 
 @Entity
@@ -46,6 +47,7 @@ public class Response {
     private Response responseParent; // Referência para a resposta que ela está respondendo
 
     // Relação 1:N com as Respostas-Filhas (para buscar o thread)
+    @Builder.Default
     @OneToMany(mappedBy = "responseParent", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Response> childResponses;
+    private Set<Response> childResponses = Collections.emptySet();
 }

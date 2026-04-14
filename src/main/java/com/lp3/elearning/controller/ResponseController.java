@@ -2,6 +2,10 @@ package com.lp3.elearning.controller;
 
 import java.net.URI;
 import java.util.List;
+
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -45,9 +49,18 @@ public class ResponseController {
     }
 
     @Operation(summary = "Listar Respostas", description = "Retorna a árvore de comentários de um tópico")
-    @GetMapping("/topic/{topicId}")
-    public ResponseEntity<APIResponse<List<ResponseResponseDTO>>> getRootResponsesByTopic(@PathVariable Long topicId) {
-        return ResponseEntity.ok(APIResponse.success(responseService.findRootResponsesByTopic(topicId)));
+    @GetMapping("/topic/{topicId}/roots")
+    public ResponseEntity<Page<ResponseResponseDTO>> getRoots(
+            @PathVariable Long topicId, 
+            @ParameterObject Pageable pageable
+    ) { 
+        return ResponseEntity.ok(responseService.findRootResponsesByTopic(topicId, pageable));
+    }
+
+    @Operation(summary = "Listar Replies", description = "Retorna as respostas filhas de um comentário específico")
+    @GetMapping("/{parentId}/children")
+    public ResponseEntity<List<ResponseResponseDTO>> getChildResponse(@PathVariable Long parentId) {
+        return ResponseEntity.ok(responseService.findChildren(parentId));
     }
     
     @Operation(summary = "Deletar Resposta", description = "Remove um comentário (apenas autor ou admin)")
