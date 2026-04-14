@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.SoftDelete;
 
 /**
  * Entidade que representa um Curso na plataforma de E-learning.
@@ -37,6 +38,7 @@ import org.hibernate.annotations.BatchSize;
 @Entity
 @Table(name = "courses")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@SoftDelete
 @Builder
 public class Course {
 
@@ -113,4 +115,15 @@ public class Course {
     @Column(name = "is_best_seller", nullable = false)
     private Boolean isBestSeller = false;
 
+    @Builder.Default
+    @NotNull
+    @PositiveOrZero
+    @Column(name = "average_rating", nullable = false, precision = 3, scale = 2)
+    private BigDecimal averageRating = BigDecimal.ZERO;
+
+    @Builder.Default
+    @NotNull
+    @PositiveOrZero
+    @Column(name = "total_reviews", nullable = false)
+    private Integer totalReviews = 0;
 }

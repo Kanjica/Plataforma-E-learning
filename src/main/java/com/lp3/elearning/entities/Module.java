@@ -13,10 +13,13 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+import org.hibernate.annotations.SoftDelete;
+
 @Entity
 @Table(name = "modules")
 @Data @AllArgsConstructor @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@SoftDelete
 @Builder
 public class Module {
 
