@@ -34,7 +34,7 @@ public class InstructorService {
         authService.validateAndPrepare(data.email());
 
         Instructor instructor = Instructor.builder()
-                .name(data.username())
+                .name(data.name())
                 .email(data.email())
                 .password(authService.encodePassword(data.password()))
                 .role(UserRole.ROLE_INSTRUCTOR)

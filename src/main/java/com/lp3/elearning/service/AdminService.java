@@ -25,7 +25,7 @@ public class AdminService {
         authService.validateAndPrepare(data.email());
 
         Admin newAdmin = Admin.builder()
-            .name(data.username())
+            .name(data.name())
             .email(data.email())
             .password(authService.encodePassword(data.password()))
             .role(UserRole.ROLE_ADMIN)

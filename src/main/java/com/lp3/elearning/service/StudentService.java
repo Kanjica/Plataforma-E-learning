@@ -25,7 +25,7 @@ public class StudentService {
         authService.validateAndPrepare(data.email());
 
         Student student = Student.builder()
-                .name(data.username())
+                .name(data.name())
                 .email(data.email())
                 .password(authService.encodePassword(data.password()))
                 .role(UserRole.ROLE_STUDENT)

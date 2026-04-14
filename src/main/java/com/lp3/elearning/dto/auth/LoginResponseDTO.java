@@ -14,5 +14,5 @@ public record LoginResponseDTO(
     Long userId,
     
     @Schema(description = "Nome do usuário")
-    String username
+    String name
 ) {}
