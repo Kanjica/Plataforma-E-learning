@@ -16,6 +16,7 @@ import com.lp3.elearning.entities.Enrollment;
 import com.lp3.elearning.entities.Lesson;
 import com.lp3.elearning.entities.Module;
 import com.lp3.elearning.exception.BusinessRuleException;
+import com.lp3.elearning.mapper.LessonMapper;
 import com.lp3.elearning.repository.LessonRepository;
 
 @Service
@@ -25,15 +26,18 @@ public class LessonService {
     private final ModuleService moduleService;
     private final CompletedLessonsService completedLessonsService;
     private final EnrollmentService enrollmentService;
+    private final LessonMapper lessonMapper;
 
     public LessonService(LessonRepository lessonRepository, 
             ModuleService moduleService, 
             @Lazy CompletedLessonsService completedLessonsService,
-            @Lazy EnrollmentService enrollmentService) {
+            @Lazy EnrollmentService enrollmentService,
+            LessonMapper lessonMapper) {
         this.lessonRepository = lessonRepository;
         this.moduleService = moduleService;
         this.completedLessonsService = completedLessonsService;
         this.enrollmentService = enrollmentService;
+        this.lessonMapper = lessonMapper;
     }
 
     /**
@@ -56,7 +60,7 @@ public class LessonService {
         }
 
         Lesson lesson = toEntity(lessonRequest, module);
-        return toResponseDTO(lessonRepository.save(lesson));
+        return lessonMapper.toResponseDTO(lessonRepository.save(lesson));
     }
 
     /**
@@ -73,7 +77,7 @@ public class LessonService {
 
         validateLessonAccessibility(currentLesson, enrollment);
         
-        return toResponseDTO(currentLesson);
+        return lessonMapper.toResponseDTO(currentLesson);
     }
 
     /**
@@ -137,7 +141,7 @@ public class LessonService {
         
         return lessonRepository.saveAll(currentLessons).stream()
             .sorted(Comparator.comparing(Lesson::getLessonOrder))
-            .map(this::toResponseDTO)
+            .map(lessonMapper::toResponseDTO)
             .toList();
     }
 
@@ -177,16 +181,6 @@ public class LessonService {
         lessonRepository.saveAll(lessons);
     }
 
-    // Métodos de conversão e leitura simples mantidos...
-    public LessonResponseDTO toResponseDTO(Lesson lesson){
-        return new LessonResponseDTO(
-            lesson.getId(), lesson.getTitle(), lesson.getContent(),
-            lesson.getLessonOrder(), lesson.getVideoUrl(),
-            lesson.getModule().getId(), lesson.getModule().getTitle(),
-            lesson.getModule().getCourse().getId(), lesson.getModule().getCourse().getTitle()
-        );
-    }
-
     public Lesson toEntity(LessonRequestDTO request, Module module) {
         return Lesson.builder()
             .title(request.title()).content(request.content())
@@ -197,7 +191,7 @@ public class LessonService {
     public List<LessonResponseDTO> getAllByModuleId(Long moduleId) {
         return lessonRepository.findByModuleId(moduleId).stream()
             .sorted(Comparator.comparing(Lesson::getLessonOrder))
-            .map(this::toResponseDTO).toList();
+            .map(lessonMapper::toResponseDTO).toList();
     }
 
     public Integer countLessonsInCourse(Long courseId) {
@@ -214,7 +208,7 @@ public class LessonService {
         Enrollment enrollment = enrollmentService.findByStudentIdAndCourseId(studentId, courseId);
         validateLessonAccessibility(lesson, enrollment);
         
-        return toResponseDTO(lesson);
+        return lessonMapper.toResponseDTO(lesson);
     }
     
     @Transactional
@@ -231,6 +225,6 @@ public class LessonService {
         lesson.setContent(request.content());
         lesson.setVideoUrl(request.videoUrl());
         lesson.setLessonOrder(request.lessonOrder());
-        return toResponseDTO(lessonRepository.save(lesson));
+        return lessonMapper.toResponseDTO(lessonRepository.save(lesson));
     }
 }

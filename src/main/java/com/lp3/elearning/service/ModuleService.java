@@ -1,12 +1,10 @@
 package com.lp3.elearning.service;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,35 +17,26 @@ import com.lp3.elearning.entities.Module;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.exception.ConflictException;
 import com.lp3.elearning.exception.ResourceNotFoundException;
+import com.lp3.elearning.mapper.ModuleMapper;
 import com.lp3.elearning.repository.CourseRepository;
 import com.lp3.elearning.repository.LessonRepository;
 import com.lp3.elearning.repository.ModuleRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class ModuleService {
 
-    private final CourseService courseService;
     private final ModuleRepository moduleRepository;
     private final LessonRepository lessonRepository;
     private final CourseRepository courseRepository;
-    private final LessonService lessonService;
-
-    public ModuleService(
-        @Lazy CourseService courseService, 
-        ModuleRepository moduleRepository, 
-        LessonRepository lessonRepository, 
-        CourseRepository courseRepository, 
-        @Lazy LessonService lessonService) {
-        this.courseService = courseService;
-        this.moduleRepository = moduleRepository;
-        this.lessonRepository = lessonRepository;
-        this.courseRepository = courseRepository;
-        this.lessonService = lessonService;
-    }
+    private final ModuleMapper moduleMapper;
     
     @Transactional
     public ModuleResponseDTO create(ModuleRequestDTO request, Long courseId){
-        Course course = courseService.findById(courseId);
+        Course course = courseRepository.findById(courseId)
+            .orElseThrow(() -> new ResourceNotFoundException("Curso não encontrado."));
 
         // Valida duplicidade de título no mesmo curso
         if(moduleRepository.findByTitleAndCourseId(request.title(), courseId).isPresent()){
@@ -61,7 +50,7 @@ public class ModuleService {
         }
 
         Module module = toEntity(request, course);
-        return toResponseDTO(moduleRepository.save(module));
+        return moduleMapper.toResponseDTO(moduleRepository.save(module));
     }
 
     @Transactional
@@ -84,7 +73,7 @@ public class ModuleService {
         
         return moduleRepository.saveAll(currentModules).stream()
             .sorted(Comparator.comparing(Module::getModuleOrder)) 
-            .map(this::toResponseDTO)
+            .map(moduleMapper::toResponseDTO)
             .toList();
     }
     
@@ -107,7 +96,7 @@ public class ModuleService {
         module.setDescription(request.description());
         module.setModuleOrder(request.moduleOrder());
         
-        return toResponseDTO(moduleRepository.save(module));
+        return moduleMapper.toResponseDTO(moduleRepository.save(module));
     }
 
     public void delete(Long moduleId) {
@@ -119,7 +108,7 @@ public class ModuleService {
     public List<ModuleResponseDTO> getAllByCourseId(Long courseId) {
         return moduleRepository.findByCourseId(courseId).stream()
                 .sorted(Comparator.comparing(Module::getModuleOrder))
-                .map(this::toResponseDTO)
+                .map(moduleMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
@@ -131,7 +120,7 @@ public class ModuleService {
     public ModuleResponseDTO getById(Long moduleId) {
         Module module = moduleRepository.findById(moduleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Módulo não encontrado com ID: " + moduleId));
-        return toResponseDTO(module);
+        return moduleMapper.toResponseDTO(module);
     }
     
     public boolean existsById(Long id) { return moduleRepository.existsById(id); }
@@ -151,13 +140,5 @@ public class ModuleService {
         return Module.builder()
                 .title(request.title()).description(request.description())
                 .course(course).moduleOrder(request.moduleOrder()).build();
-    }
-    
-    public ModuleResponseDTO toResponseDTO(Module module) {
-        return new ModuleResponseDTO(
-                module.getId(), module.getTitle(), module.getDescription(),
-                module.getModuleOrder(), module.getCourse().getId(), module.getCourse().getTitle(),
-                module.getLessons() != null ? module.getLessons().stream().map(lessonService::toResponseDTO).collect(Collectors.toSet()) : Collections.emptySet()
-        );
     }
 }

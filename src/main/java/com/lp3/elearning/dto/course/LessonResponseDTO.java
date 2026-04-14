@@ -11,13 +11,11 @@ public record LessonResponseDTO(
     String content,
     
     @Schema(description = "Número da aula na sequência")
-    Integer order,
+    Integer lessonOrder,
     
     @Schema(description = "URL do vídeo")
     String videoUrl,
     
     Long moduleId,
-    String moduleTitle,
-    Long courseId,
-    String courseTitle
+    String moduleTitle
 ) {}

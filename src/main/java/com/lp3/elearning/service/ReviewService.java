@@ -1,5 +1,6 @@
 package com.lp3.elearning.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import org.springframework.data.domain.Page;
@@ -58,7 +59,22 @@ public class ReviewService {
                 .reviewDate(LocalDateTime.now()) // Garante a data atual
                 .build();
 
+        updateCourseStats(courseId);
+        
         return reviewMapper.toResponseDTO(reviewRepository.save(review));
+    }
+
+    private void updateCourseStats(Long courseId) {
+        Course course = courseRepository.findById(courseId).orElseThrow();
+        
+        // Busca a média e o total direto do Repository de Reviews
+        Double avg = reviewRepository.getAverageRating(courseId);
+        Integer total = reviewRepository.countByCourseId(courseId);
+        
+        course.setAverageRating(BigDecimal.valueOf(avg != null ? avg : 0.0));
+        course.setTotalReviews(total);
+        
+        courseRepository.save(course);
     }
 
     @Transactional(readOnly = true)

@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,29 +21,19 @@ import com.lp3.elearning.entities.User;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.exception.ConflictException;
 import com.lp3.elearning.exception.ResourceNotFoundException;
-import com.lp3.elearning.mapper.CategoryMapper;
+import com.lp3.elearning.mapper.CourseMapper;
 import com.lp3.elearning.repository.CourseRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class CourseService {
 
-    private final ModuleService moduleService;
     private final CourseRepository courseRepository;
     private final CategoryService categoriesService;
     private final InstructorService instructorService;
-    private final CategoryMapper categoryMapper;
-
-    public CourseService(CourseRepository courseRepository, 
-        CategoryService categoriesService, 
-        @Lazy InstructorService instructorService, 
-        @Lazy ModuleService moduleService,
-        CategoryMapper categoryMapper) {
-        this.courseRepository = courseRepository;
-        this.categoriesService = categoriesService;
-        this.instructorService = instructorService;
-        this.moduleService = moduleService;
-        this.categoryMapper = categoryMapper;
-    }
+    private final CourseMapper courseMapper;
 
     @Transactional
     public CourseResponseDTO createCourse(CourseRequestDTO request, User user) {
@@ -67,7 +56,7 @@ public class CourseService {
 
         Course course = toEntity(request, categories, instructors);
         
-        return toResponseDTO(courseRepository.save(course));
+        return courseMapper.toResponseDTO(courseRepository.save(course));
     }
 
     /**
@@ -89,9 +78,16 @@ public class CourseService {
             courses = courseRepository.findByTitleContainingIgnoreCaseAndCategories_IdIn(title, categoryIds);
         }
         
-        return courses.stream().map(this::toResponseDTO).collect(Collectors.toSet());
+        return courses.stream().map(courseMapper::toResponseDTO).collect(Collectors.toSet());
     }
 
+    public Set<CourseResponseDTO> findCoursesByInstructorId(Long instructorId) {
+        Instructor instructor = instructorService.findInstructorEntityById(instructorId);
+        return instructor.getCourses().stream()
+            .map(course -> courseMapper.toResponseDTO(course))
+            .collect(Collectors.toSet());
+    }
+    
     @Transactional
     public CourseResponseDTO updateCourse(Long id, CourseRequestDTO request) {
         Course existingCourse = findById(id);
@@ -109,7 +105,7 @@ public class CourseService {
         }
 
         updateCourseData(existingCourse, request, categories, instructors);
-        return toResponseDTO(courseRepository.save(existingCourse));
+        return courseMapper.toResponseDTO(courseRepository.save(existingCourse));
     }
 
     private void updateCourseData(Course course, CourseRequestDTO request, Set<Category> cats, Set<Instructor> insts) {
@@ -139,11 +135,11 @@ public class CourseService {
     }
 
     public CourseResponseDTO getCourseByIdResponseDTO(Long id) {
-        return toResponseDTO(findById(id));
+        return courseMapper.toResponseDTO(findById(id));
     }
 
     public Page<CourseResponseDTO> getAllCourses(Pageable pageable) {
-        return courseRepository.findAll(pageable).map(this::toResponseDTO);
+        return courseRepository.findAll(pageable).map(courseMapper::toResponseDTO);
     }
 
     @Transactional(readOnly = true)
@@ -161,18 +157,6 @@ public class CourseService {
             course.getCategories().stream().map(Category::getName).toList(),
             course.getInstructors().stream().map(Instructor::getName).toList()
         ));
-    }
-
-    // Converters
-    public CourseResponseDTO toResponseDTO(Course course) {
-        return new CourseResponseDTO(
-            course.getId(), course.getTitle(), course.getDescription(), course.getWorkload(),
-            course.getCategories().stream().map(categoryMapper::toResponseDTO).collect(Collectors.toSet()),
-            course.getInstructors().stream().map(instructorService::toResponseDTO).collect(Collectors.toSet()),
-            course.getImageUrl(),
-            course.getModules() != null ? course.getModules().stream().map(moduleService::toResponseDTO).collect(Collectors.toSet()) : Collections.emptySet(),
-            course.getPrice(), course.getOldPrice(), course.getIsBestSeller()
-        );
     }
 
     private Course toEntity(CourseRequestDTO request, Set<Category> categories, Set<Instructor> instructors) {

@@ -109,4 +109,9 @@ public class CourseController {
         return ResponseEntity.ok(APIResponse.success(courseService.filterCourses(request)));
     }
 
+    @Operation(summary = "Cursos do Instrutor", description = "Lista todos os cursos ministrados por este instrutor")
+    @GetMapping("/instructors/{instructorId}/my-courses")
+    public ResponseEntity<APIResponse<Set<CourseResponseDTO>>> getInstructorCourses(@PathVariable Long instructorId) {
+        return ResponseEntity.ok(APIResponse.success(courseService.findCoursesByInstructorId(instructorId)));
+    }
 }

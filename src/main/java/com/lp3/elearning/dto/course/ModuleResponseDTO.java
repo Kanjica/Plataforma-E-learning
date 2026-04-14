@@ -1,7 +1,5 @@
 package com.lp3.elearning.dto.course;
 
-import java.util.Set;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Dados do Módulo")
@@ -14,8 +12,5 @@ public record ModuleResponseDTO(
     Integer moduleOrder,
     
     Long courseId,
-    String courseTitle,
-    
-    @Schema(description = "Lista de aulas deste módulo")
-    Set<LessonResponseDTO> lessons
+    String courseTitle
 ) {}

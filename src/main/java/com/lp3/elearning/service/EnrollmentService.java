@@ -19,6 +19,7 @@ import com.lp3.elearning.entities.StatusEnrollment;
 import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.exception.ConflictException;
+import com.lp3.elearning.mapper.EnrollmentMapper;
 import com.lp3.elearning.repository.EnrollmentRepository;
 
 @Service
@@ -27,16 +28,19 @@ public class EnrollmentService {
     private final EnrollmentRepository enrollmentRepository;
     private final StudentService studentService;
     private final CourseService courseService;
-    private final CompletedLessonsService completedLessonsService;
+    private final CompletedLessonsService completedLessonsService;  
+    private final EnrollmentMapper enrollmentMapper;
 
     public EnrollmentService(EnrollmentRepository enrollmentRepository, 
                              StudentService studentService, 
                              CourseService courseService, 
-                             @Lazy CompletedLessonsService completedLessonsService) {
+                             @Lazy CompletedLessonsService completedLessonsService,
+                             EnrollmentMapper enrollmentMapper) {
         this.enrollmentRepository = enrollmentRepository;
         this.studentService = studentService;
         this.courseService = courseService;
         this.completedLessonsService = completedLessonsService;
+        this.enrollmentMapper = enrollmentMapper;
     }
 
     @Transactional
@@ -48,7 +52,7 @@ public class EnrollmentService {
         Enrollment enrollment = toEntity(request);
         enrollment.setStatus(StatusEnrollment.IN_PROGRESS); // Define status inicial explícito
         
-        return toResponseDTO(enrollmentRepository.save(enrollment));
+        return enrollmentMapper.toResponseDTO(enrollmentRepository.save(enrollment));
     }
 
     /**
@@ -67,7 +71,7 @@ public class EnrollmentService {
     @Transactional(readOnly = true)
     public List<EnrollmentResponseDTO> getMyEnrollments(Long studentId) {
         return enrollmentRepository.findByStudentIdOrderByEnrollmentDateDesc(studentId).stream()
-                .map(this::toResponseDTO)
+                .map(enrollmentMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
@@ -78,18 +82,6 @@ public class EnrollmentService {
         Course course = courseService.findById(request.courseId());
         return Enrollment.builder().student(student).course(course).build();
     }
-
-    public EnrollmentResponseDTO toResponseDTO(Enrollment enrollment){
-        return new EnrollmentResponseDTO(
-            enrollment.getId(),
-            studentService.findByIdResponseDTO(enrollment.getStudent().getId()),
-            courseService.getCourseByIdResponseDTO(enrollment.getCourse().getId()).id(),
-            courseService.getCourseByIdResponseDTO(enrollment.getCourse().getId()).title(),
-            calculateOverallProgress(enrollment),
-            enrollment.getStatus(),
-            completedLessonsService.findByEnrollment(enrollment)
-        );
-    }
     
     public Enrollment findById(Long id) {
         return enrollmentRepository.findById(id).orElseThrow(() -> new BusinessRuleException("Matrícula não encontrada."));
@@ -97,7 +89,7 @@ public class EnrollmentService {
     
     public Page<EnrollmentResponseDTO> findByStudent(Long studentId, Pageable pageable) {
         return enrollmentRepository.findByStudentId(studentId, pageable)
-                .map(this::toResponseDTO);
+                .map(enrollmentMapper::toResponseDTO);
     }
     
     public Set<CompletedLessonResponseDTO> calculateProgress(Enrollment enrollment){

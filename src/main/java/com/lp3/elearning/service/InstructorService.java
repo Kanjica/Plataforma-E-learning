@@ -9,26 +9,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.lp3.elearning.dto.auth.InstructorRegisterDTO;
-import com.lp3.elearning.dto.course.CourseResponseDTO;
 import com.lp3.elearning.dto.user.InstructorResponseDTO;
 import com.lp3.elearning.entities.Instructor;
 import com.lp3.elearning.entities.UserRole;
 import com.lp3.elearning.exception.ResourceNotFoundException;
+import com.lp3.elearning.mapper.InstructorMapper;
 import com.lp3.elearning.repository.InstructorRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class InstructorService {
 
     private final InstructorRepository instructorRepository;
-    private final CourseService courseService;
     private final AuthService authService;
-
-    public InstructorService(InstructorRepository instructorRepository, CourseService courseService, AuthService authService) {
-        this.instructorRepository = instructorRepository;
-        this.courseService = courseService;
-        this.authService = authService;
-    }
-
+    private final InstructorMapper instructorMapper;
+    
     @Transactional(readOnly = true)
     public InstructorResponseDTO createInstructor(InstructorRegisterDTO data) {
         authService.validateAndPrepare(data.email());
@@ -41,20 +38,14 @@ public class InstructorService {
                 .build();
 
         Instructor savedInstructor = instructorRepository.save(instructor);
-        return toResponseDTO(savedInstructor);
+        return instructorMapper.toResponseDTO(savedInstructor);
     }
     
     public InstructorResponseDTO findById(Long id) {
         Instructor instructor = findInstructorEntityById(id);
-        return toResponseDTO(instructor);
+        return instructorMapper.toResponseDTO(instructor);
     }
 
-    public Set<CourseResponseDTO> findCoursesByInstructorId(Long instructorId) {
-        Instructor instructor = findInstructorEntityById(instructorId);
-        return instructor.getCourses().stream()
-            .map(course -> courseService.toResponseDTO(course))
-            .collect(Collectors.toSet());
-    }
     public Instructor findInstructorEntityById(Long id) {
         return instructorRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Instrutor não encontrado com o ID: " + id));
@@ -87,30 +78,4 @@ public class InstructorService {
         return new HashSet<>(foundInstructors);
     }
 
-    public Set<InstructorResponseDTO> toResponseDTOs(Set<Instructor> instructors) {
-        return instructors.stream()
-            .map(instructor -> new InstructorResponseDTO(
-                instructor.getId(),
-                instructor.getName(),
-                instructor.getEmail()
-            ))
-            .collect(Collectors.toSet());
-    }
-
-    public Set<Instructor> toEntitys(Set<Long> ids) {
-        Set<Instructor> instructors = new HashSet<>();
-        for (Long id : ids) {
-            Instructor instructor = findInstructorEntityById(id);
-            instructors.add(instructor);
-        }
-        return instructors;
-    }
-    
-    public InstructorResponseDTO toResponseDTO(Instructor instructor) {
-        return new InstructorResponseDTO(
-            instructor.getId(),
-            instructor.getName(),
-            instructor.getEmail()
-        );
-    }
 }
