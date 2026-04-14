@@ -17,22 +17,21 @@ import com.lp3.elearning.entities.UserRole;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.exception.ConflictException;
 import com.lp3.elearning.exception.ResourceNotFoundException;
+import com.lp3.elearning.mapper.ReviewMapper;
 import com.lp3.elearning.repository.CourseRepository;
 import com.lp3.elearning.repository.EnrollmentRepository;
 import com.lp3.elearning.repository.ReviewRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class ReviewService {
 
     private final EnrollmentRepository enrollmentRepository;
     private final ReviewRepository reviewRepository;
     private final CourseRepository courseRepository;
-
-    public ReviewService(ReviewRepository reviewRepository, CourseRepository courseRepository, EnrollmentRepository enrollmentRepository) {
-        this.reviewRepository = reviewRepository;
-        this.courseRepository = courseRepository;
-        this.enrollmentRepository = enrollmentRepository;
-    }
+    private final ReviewMapper reviewMapper;
 
     /**
      * Cria uma nova avaliação para um curso.
@@ -59,13 +58,13 @@ public class ReviewService {
                 .reviewDate(LocalDateTime.now()) // Garante a data atual
                 .build();
 
-        return toDTO(reviewRepository.save(review));
+        return reviewMapper.toResponseDTO(reviewRepository.save(review));
     }
 
     @Transactional(readOnly = true)
     public Page<ReviewResponseDTO> listByCourse(Long courseId, Pageable pageable) {
         return reviewRepository.findByCourseIdOrderByReviewDateDesc(courseId, pageable)
-                .map(this::toDTO);
+                .map(reviewMapper::toResponseDTO);
     }
 
     @Transactional
@@ -81,7 +80,7 @@ public class ReviewService {
         review.setComment(request.comment());
         // Data de atualização poderia ser setada aqui se tiver campo updatedAt
 
-        return toDTO(reviewRepository.save(review));
+        return reviewMapper.toResponseDTO(reviewRepository.save(review));
     }
 
     @Transactional
@@ -94,15 +93,5 @@ public class ReviewService {
         }
 
         reviewRepository.delete(review);
-    }
-
-    private ReviewResponseDTO toDTO(Review review) {
-        return new ReviewResponseDTO(
-            review.getId(),
-            review.getStudent().getName(),
-            review.getRating(),
-            review.getComment(),
-            review.getReviewDate()
-        );
     }
 }

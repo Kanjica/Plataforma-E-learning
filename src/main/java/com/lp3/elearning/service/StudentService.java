@@ -6,20 +6,19 @@ import com.lp3.elearning.dto.auth.StudentRegisterDTO;
 import com.lp3.elearning.dto.user.StudentResponseDTO;
 import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.entities.UserRole;
+import com.lp3.elearning.mapper.StudentMapper;
 import com.lp3.elearning.repository.StudentRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class StudentService {
     
     private final StudentRepository studentRepository;
     private final AuthService authService;
-
-    public StudentService(StudentRepository studentRepository, AuthService authService) {
-        this.studentRepository = studentRepository;
-        this.authService = authService;
-    }
+    private final StudentMapper studentMapper;
 
     @Transactional
     public void createStudent(StudentRegisterDTO data) {
@@ -42,18 +41,6 @@ public class StudentService {
 
     public StudentResponseDTO findByIdResponseDTO(Long id) {
         Student student = findById(id);
-        return new StudentResponseDTO(
-            student.getId(),
-            student.getName(),
-            student.getEmail()
-        );
-    }
-
-    public StudentResponseDTO toResponseDTO(Student student){
-        return new StudentResponseDTO(
-            student.getId(),
-            student.getName(),
-            student.getEmail()
-        );
+        return studentMapper.toResponseDTO(student);
     }
 }
