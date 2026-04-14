@@ -16,6 +16,10 @@ public record APIResponse<T>(
         return new APIResponse<>(true, dados, "Sucesso", Instant.now(), null);
     }
 
+    public static <T> APIResponse<T> success(T dados, String mensagem) {
+        return new APIResponse<>(true, dados, mensagem, Instant.now(), null);
+    }
+
     public static <T> APIResponse<T> error(String mensagem, Object detalhesErro) {
         return new APIResponse<>(false, null, mensagem, Instant.now(), detalhesErro);
     }
