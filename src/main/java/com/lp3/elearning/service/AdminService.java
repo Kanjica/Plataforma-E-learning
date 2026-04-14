@@ -8,16 +8,14 @@ import com.lp3.elearning.entities.Admin;
 import com.lp3.elearning.entities.UserRole;
 import com.lp3.elearning.repository.AdminRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service   
+@RequiredArgsConstructor
 public class AdminService {
 
     private final AdminRepository adminRepository;
     private final AuthService authService;
-
-    public AdminService(AdminRepository adminRepository, AuthService authService) {
-        this.adminRepository = adminRepository;
-        this.authService = authService;
-    }   
 
     @Transactional(readOnly = true)
     public void createAdmin(AdminRegisterDTO data) {

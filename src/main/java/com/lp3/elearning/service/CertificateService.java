@@ -19,14 +19,13 @@ import com.lp3.elearning.entities.StatusEnrollment;
 import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.exception.BusinessRuleException;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class CertificateService {
 
     private final EnrollmentService enrollmentService;
-
-    public CertificateService(EnrollmentService enrollmentService) {
-        this.enrollmentService = enrollmentService;
-    }
 
     public byte[] generateCertificatePdf(Long enrollmentId, Student student) {
         Enrollment enrollment = enrollmentService.findById(enrollmentId);

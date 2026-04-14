@@ -12,17 +12,14 @@ import com.lp3.elearning.mapper.UserMapper;
 import com.lp3.elearning.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
     
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-
-    public UserService(UserRepository userRepository, UserMapper userMapper) {
-        this.userRepository = userRepository;
-        this.userMapper = userMapper;
-    }
 
     public UserResponseDTO findById(Long id) {
         User user = userRepository.findById(id)

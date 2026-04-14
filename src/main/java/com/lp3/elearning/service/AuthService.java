@@ -4,6 +4,9 @@ import com.lp3.elearning.dto.auth.*;
 import com.lp3.elearning.entities.*;
 import com.lp3.elearning.exception.ConflictException;
 import com.lp3.elearning.repository.*;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -12,21 +15,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
-
-    public AuthService(AuthenticationManager authenticationManager, TokenService tokenService,
-                       UserRepository userRepository,
-                       BCryptPasswordEncoder passwordEncoder) {
-        this.authenticationManager = authenticationManager;
-        this.tokenService = tokenService;
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     public LoginResponseDTO login(AuthenticationDTO data) {
         Authentication auth = authenticationManager.authenticate(

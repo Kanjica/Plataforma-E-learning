@@ -17,17 +17,15 @@ import com.lp3.elearning.exception.ResourceNotFoundException;
 import com.lp3.elearning.mapper.CategoryMapper;
 import com.lp3.elearning.repository.CategoryRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
 
-    public CategoryService(CategoryRepository categoryRepository, CategoryMapper categoryMapper) {
-        this.categoryRepository = categoryRepository;
-        this.categoryMapper = categoryMapper;
-    }
-    
     @Transactional
     public CategoryResponseDTO createCategory(CategoryRequestDTO dto) {
         Category category = categoryMapper.toEntity(dto);
