@@ -31,7 +31,7 @@ public class InstructorController {
     @Operation(summary = "Registrar Instrutor", description = "Permite que um novo instrutor se registre na plataforma")
     @PostMapping("/register")
     public ResponseEntity<APIResponse<String>> register(@RequestBody @Valid InstructorRegisterDTO data){
-        instructorService.createInstructor(data);
+        instructorService.create(data);
         return ResponseEntity.ok(APIResponse.success("Instrutor registrado com sucesso"));
     }
 

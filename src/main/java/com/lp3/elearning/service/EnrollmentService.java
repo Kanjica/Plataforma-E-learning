@@ -18,6 +18,7 @@ import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.exception.ConflictException;
 import com.lp3.elearning.mapper.EnrollmentMapper;
 import com.lp3.elearning.repository.EnrollmentRepository;
+import com.lp3.elearning.security.anottation.Auditable;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,6 +31,7 @@ public class EnrollmentService {
     private final EnrollmentMapper enrollmentMapper;
 
     @Transactional
+    @Auditable(action = "CRIAR_MATRICULA")
     public EnrollmentResponseDTO create(EnrollmentRequestDTO request){
         if(enrollmentRepository.existsByStudentIdAndCourseId(request.studentId(), request.courseId())){
             throw new ConflictException("O aluno já possui matrícula ativa neste curso.");

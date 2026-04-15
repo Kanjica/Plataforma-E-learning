@@ -16,6 +16,7 @@ import com.lp3.elearning.entities.Category;
 import com.lp3.elearning.exception.ResourceNotFoundException;
 import com.lp3.elearning.mapper.CategoryMapper;
 import com.lp3.elearning.repository.CategoryRepository;
+import com.lp3.elearning.security.anottation.Auditable;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,6 +28,7 @@ public class CategoryService {
     private final CategoryMapper categoryMapper;
 
     @Transactional
+    @Auditable(action = "CRIAR_CATEGORIA")
     public CategoryResponseDTO createCategory(CategoryRequestDTO dto) {
         Category category = categoryMapper.toEntity(dto);
         category = categoryRepository.save(category);
@@ -34,6 +36,7 @@ public class CategoryService {
     }
     
     @Transactional
+    @Auditable(action = "ATUALIZAR_CATEGORIA")
     public CategoryResponseDTO update(Long id, CategoryRequestDTO dto) {
         Category category = findCategoryEntityById(id);
         category.setName(dto.name());
@@ -43,6 +46,7 @@ public class CategoryService {
     }
 
     @Transactional
+    @Auditable(action = "DELETAR_CATEGORIA")
     public void delete(Long id) {
         if (!categoryRepository.existsById(id)) {
             throw new ResourceNotFoundException("Categoria não encontrada.");

@@ -5,6 +5,8 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import com.lp3.elearning.security.anottation.Auditable;
+
 @Service
 public class EmailService {
 
@@ -23,6 +25,7 @@ public class EmailService {
      * @param assunto O assunto do email.
      * @param corpo O corpo (conteúdo) do email.
      */
+    @Auditable(action = "ENVIAR_EMAIL")
     public void sendSimpleMail(String destinatario, String assunto, String corpo) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();

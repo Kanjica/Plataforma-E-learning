@@ -18,6 +18,7 @@ import com.lp3.elearning.entities.Enrollment;
 import com.lp3.elearning.entities.StatusEnrollment;
 import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.exception.BusinessRuleException;
+import com.lp3.elearning.security.anottation.Auditable;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,6 +28,7 @@ public class CertificateService {
 
     private final EnrollmentService enrollmentService;
 
+    @Auditable(action = "GERAR_CERTIFICADO")
     public byte[] generateCertificatePdf(Long enrollmentId, Student student) {
         Enrollment enrollment = enrollmentService.findById(enrollmentId);
 

@@ -22,6 +22,7 @@ import com.lp3.elearning.mapper.ReviewMapper;
 import com.lp3.elearning.repository.CourseRepository;
 import com.lp3.elearning.repository.EnrollmentRepository;
 import com.lp3.elearning.repository.ReviewRepository;
+import com.lp3.elearning.security.anottation.Auditable;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,6 +40,7 @@ public class ReviewService {
      * @throws BusinessRuleException se o aluno não for matriculado ou já tiver avaliado.
      */
     @Transactional
+    @Auditable(action = "CRIAR_AVALIAÇÃO")
     public ReviewResponseDTO createReview(Long courseId, ReviewRequestDTO request, Student student) {
         if(!enrollmentRepository.existsByStudentIdAndCourseId(student.getId(), courseId)){
             throw new BusinessRuleException("Acesso negado: Você precisa estar matriculado para avaliar este curso.");
@@ -84,6 +86,7 @@ public class ReviewService {
     }
 
     @Transactional
+    @Auditable(action = "ATUALIZAR_AVALIAÇÃO")
     public ReviewResponseDTO updateReview(Long reviewId, ReviewRequestDTO request, Student student) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ResourceNotFoundException("Avaliação não encontrada"));
@@ -100,6 +103,7 @@ public class ReviewService {
     }
 
     @Transactional
+    @Auditable(action = "DELETAR_REVIEW")
     public void deleteReview(Long reviewId, User user) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ResourceNotFoundException("Avaliação não encontrada"));

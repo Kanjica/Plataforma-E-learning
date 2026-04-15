@@ -23,6 +23,7 @@ import com.lp3.elearning.exception.ConflictException;
 import com.lp3.elearning.exception.ResourceNotFoundException;
 import com.lp3.elearning.mapper.CourseMapper;
 import com.lp3.elearning.repository.CourseRepository;
+import com.lp3.elearning.security.anottation.Auditable;
 
 import lombok.RequiredArgsConstructor;
 
@@ -36,6 +37,7 @@ public class CourseService {
     private final CourseMapper courseMapper;
 
     @Transactional
+    @Auditable(action = "CRIAR_CURSO")
     public CourseResponseDTO createCourse(CourseRequestDTO request, User user) {
         if(courseRepository.existsByTitle(request.title())){
             throw new ConflictException("Já existe um curso com o título: " + request.title());
@@ -54,7 +56,9 @@ public class CourseService {
             instructors.add((Instructor) user);
         }
 
-        Course course = toEntity(request, categories, instructors);
+        Course course = courseMapper.toEntity(request);
+        course.setCategories(categories);
+        course.setInstructors(instructors);
         
         return courseMapper.toResponseDTO(courseRepository.save(course));
     }
@@ -89,6 +93,7 @@ public class CourseService {
     }
     
     @Transactional
+    @Auditable(action = "ATUALIZAR_CURSO")
     public CourseResponseDTO updateCourse(Long id, CourseRequestDTO request) {
         Course existingCourse = findById(id);
         
@@ -104,29 +109,20 @@ public class CourseService {
             throw new BusinessRuleException("Categorias e Instrutores não podem ser vazios.");
         }
 
-        updateCourseData(existingCourse, request, categories, instructors);
-        return courseMapper.toResponseDTO(courseRepository.save(existingCourse));
-    }
+        Course course = courseMapper.updateCourseFromRequestDTO(request, existingCourse);
 
-    private void updateCourseData(Course course, CourseRequestDTO request, Set<Category> cats, Set<Instructor> insts) {
-        course.setTitle(request.title());
-        course.setDescription(request.description());
-        course.setWorkload(request.workload());
-        course.setImageUrl(request.imageUrl());
-        course.setPrice(request.price());
-        course.setOldPrice(request.oldPrice());
-        course.setIsBestSeller(request.isBestSeller());
-        course.setCategories(cats);
-        course.setInstructors(insts);
+        course.setCategories(categories);
+        course.setInstructors(instructors);
+
+        return courseMapper.toResponseDTO(courseRepository.save(course));
     }
-    
-    // --- Métodos Auxiliares ---
 
     public Course findById(Long id) {
         return courseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Curso não encontrado com ID: " + id));
     }
 
+    @Auditable(action = "DELETAR_CURSO")
     public void deleteCourse(Long id) {
         if (!courseRepository.existsById(id)) {
             throw new ResourceNotFoundException("Curso não encontrado.");
@@ -157,14 +153,5 @@ public class CourseService {
             course.getCategories().stream().map(Category::getName).toList(),
             course.getInstructors().stream().map(Instructor::getName).toList()
         ));
-    }
-
-    private Course toEntity(CourseRequestDTO request, Set<Category> categories, Set<Instructor> instructors) {
-        return Course.builder()
-            .title(request.title()).description(request.description())
-            .workload(request.workload()).imageUrl(request.imageUrl())
-            .price(request.price()).oldPrice(request.oldPrice())
-            .isBestSeller(request.isBestSeller())
-            .categories(categories).instructors(instructors).build();
     }
 }

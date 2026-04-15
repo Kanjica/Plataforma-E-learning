@@ -13,6 +13,7 @@ import com.lp3.elearning.entities.UserRole;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.mapper.TopicMapper;
 import com.lp3.elearning.repository.TopicRepository;
+import com.lp3.elearning.security.anottation.Auditable;
 
 import lombok.RequiredArgsConstructor;
 
@@ -41,6 +42,7 @@ public class TopicService {
     }
 
     @Transactional
+    @Auditable(action = "CRIAR_TÓPICO")
     public TopicResponseDTO create(TopicRequestDTO request, User user) {
 
         Topic newTopic = topicMapper.toEntity(request);
@@ -50,6 +52,7 @@ public class TopicService {
     }
 
     @Transactional
+    @Auditable(action = "ATUALIZAR_TÓPICO")
     public TopicResponseDTO update(Long id, TopicRequestDTO request, User user) {
 
         Topic existingTopic = topicRepository.findById(id)
@@ -66,6 +69,7 @@ public class TopicService {
     }
 
     @Transactional
+    @Auditable(action = "DELETAR_TÓPICO")
     public void delete(Long topicId, User user) {
         Topic topic = topicRepository.findById(topicId)
             .orElseThrow(() -> new BusinessRuleException("Tópico não encontrado."));

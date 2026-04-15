@@ -17,6 +17,7 @@ import com.lp3.elearning.entities.Module;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.mapper.LessonMapper;
 import com.lp3.elearning.repository.LessonRepository;
+import com.lp3.elearning.security.anottation.Auditable;
 
 import lombok.RequiredArgsConstructor;
 
@@ -35,6 +36,7 @@ public class LessonService {
      * @throws BusinessRuleException se o módulo não pertencer ao curso informado.
      */
     @Transactional
+    @Auditable(action = "CRIAR_AULA")
     public LessonResponseDTO create(LessonRequestDTO lessonRequest, Long moduleId) {
         Module module = moduleService.findById(moduleId);
 
@@ -49,7 +51,9 @@ public class LessonService {
             shiftLessonOrders(moduleId, lessonRequest.lessonOrder(), null);
         }
 
-        Lesson lesson = toEntity(lessonRequest, module);
+        Lesson lesson = lessonMapper.toEntity(lessonRequest);
+        lesson.setModule(module);
+        
         return lessonMapper.toResponseDTO(lessonRepository.save(lesson));
     }
 
@@ -75,6 +79,7 @@ public class LessonService {
     }
 
     @Transactional
+    @Auditable(action = "REORDENAR_AULAS")
     public List<LessonResponseDTO> reorder(Long moduleId, List<LessonReorderRequestDTO> requests) {
         if(!moduleService.existsById(moduleId)){
             throw new BusinessRuleException("Módulo não encontrado.");
@@ -107,6 +112,7 @@ public class LessonService {
     }
 
     @Transactional
+    @Auditable(action = "DELETAR_AULA")
     public void delete(Long lessonId) {
         Lesson lessonToDelete = lessonRepository.findById(lessonId)
             .orElseThrow(() -> new BusinessRuleException("Aula não encontrada."));
@@ -135,13 +141,6 @@ public class LessonService {
         lessonRepository.saveAll(lessons);
     }
 
-    public Lesson toEntity(LessonRequestDTO request, Module module) {
-        return Lesson.builder()
-            .title(request.title()).content(request.content())
-            .lessonOrder(request.lessonOrder()).videoUrl(request.videoUrl())
-            .module(module).build();
-    }
-
     public List<LessonResponseDTO> getAllByModuleId(Long moduleId) {
         return lessonRepository.findByModuleId(moduleId).stream()
             .sorted(Comparator.comparing(Lesson::getLessonOrder))
@@ -166,6 +165,7 @@ public class LessonService {
     }
     
     @Transactional
+    @Auditable(action = "ATUALIZAR_AULA")
     public LessonResponseDTO update(Long lessonId, LessonRequestDTO request) {
 
         Lesson lesson = findById(lessonId);

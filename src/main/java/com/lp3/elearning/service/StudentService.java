@@ -8,6 +8,7 @@ import com.lp3.elearning.entities.Student;
 import com.lp3.elearning.entities.UserRole;
 import com.lp3.elearning.mapper.StudentMapper;
 import com.lp3.elearning.repository.StudentRepository;
+import com.lp3.elearning.security.anottation.Auditable;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class StudentService {
     private final StudentMapper studentMapper;
 
     @Transactional
+    @Auditable(action = "CRIAR_ALUNO")
     public void createStudent(StudentRegisterDTO data) {
         authService.validateAndPrepare(data.email());
 

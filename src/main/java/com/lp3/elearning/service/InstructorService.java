@@ -15,6 +15,7 @@ import com.lp3.elearning.entities.UserRole;
 import com.lp3.elearning.exception.ResourceNotFoundException;
 import com.lp3.elearning.mapper.InstructorMapper;
 import com.lp3.elearning.repository.InstructorRepository;
+import com.lp3.elearning.security.anottation.Auditable;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,7 +28,8 @@ public class InstructorService {
     private final InstructorMapper instructorMapper;
     
     @Transactional(readOnly = true)
-    public InstructorResponseDTO createInstructor(InstructorRegisterDTO data) {
+    @Auditable(action = "CRIAR_INSTRUTOR")
+    public InstructorResponseDTO create(InstructorRegisterDTO data) {
         authService.validateAndPrepare(data.email());
 
         Instructor instructor = Instructor.builder()

@@ -7,6 +7,7 @@ import com.lp3.elearning.dto.auth.AdminRegisterDTO;
 import com.lp3.elearning.entities.Admin;
 import com.lp3.elearning.entities.UserRole;
 import com.lp3.elearning.repository.AdminRepository;
+import com.lp3.elearning.security.anottation.Auditable;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,6 +19,7 @@ public class AdminService {
     private final AuthService authService;
 
     @Transactional(readOnly = true)
+    @Auditable(action = "CRIAR_ADMIN")
     public void createAdmin(AdminRegisterDTO data) {
 
         authService.validateAndPrepare(data.email());

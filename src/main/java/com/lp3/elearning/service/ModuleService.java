@@ -21,6 +21,7 @@ import com.lp3.elearning.mapper.ModuleMapper;
 import com.lp3.elearning.repository.CourseRepository;
 import com.lp3.elearning.repository.LessonRepository;
 import com.lp3.elearning.repository.ModuleRepository;
+import com.lp3.elearning.security.anottation.Auditable;
 
 import lombok.RequiredArgsConstructor;
 
@@ -34,6 +35,7 @@ public class ModuleService {
     private final ModuleMapper moduleMapper;
     
     @Transactional
+    @Auditable(action = "CRIAR_MÓDULO")
     public ModuleResponseDTO create(ModuleRequestDTO request, Long courseId){
         Course course = courseRepository.findById(courseId)
             .orElseThrow(() -> new ResourceNotFoundException("Curso não encontrado."));
@@ -49,11 +51,13 @@ public class ModuleService {
             throw new ConflictException("Já existe um módulo na posição " + request.moduleOrder());
         }
 
-        Module module = toEntity(request, course);
+        Module module = moduleMapper.toEntity(request);
+        module.setCourse(course);
         return moduleMapper.toResponseDTO(moduleRepository.save(module));
     }
 
     @Transactional
+    @Auditable(action = "REORDENAR_MÓDULOS")
     public List<ModuleResponseDTO> reorder(Long courseId, List<ModuleReorderRequestDTO> requests) {
         if(!courseRepository.existsById(courseId)){
             throw new ResourceNotFoundException("Curso não encontrado.");
@@ -77,6 +81,8 @@ public class ModuleService {
             .toList();
     }
     
+    @Transactional
+    @Auditable(action = "ATUALIZAR_MÓDULO")
     public ModuleResponseDTO update(Long moduleId, ModuleRequestDTO request) {
         Module module = findById(moduleId);
 
@@ -99,6 +105,8 @@ public class ModuleService {
         return moduleMapper.toResponseDTO(moduleRepository.save(module));
     }
 
+    @Transactional
+    @Auditable(action = "DELETAR_MÓDULO")
     public void delete(Long moduleId) {
         Module module = findById(moduleId);
         moduleRepository.delete(module);
@@ -136,9 +144,4 @@ public class ModuleService {
             .toList();
     }
     
-    public Module toEntity(ModuleRequestDTO request, Course course) {
-        return Module.builder()
-                .title(request.title()).description(request.description())
-                .course(course).moduleOrder(request.moduleOrder()).build();
-    }
 }

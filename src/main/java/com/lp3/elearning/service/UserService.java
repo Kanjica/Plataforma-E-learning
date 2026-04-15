@@ -10,6 +10,7 @@ import com.lp3.elearning.entities.User;
 import com.lp3.elearning.exception.BusinessRuleException;
 import com.lp3.elearning.mapper.UserMapper;
 import com.lp3.elearning.repository.UserRepository;
+import com.lp3.elearning.security.anottation.Auditable;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class UserService {
     }
 
     @Transactional
+    @Auditable(action = "ATUALIZAR_PERFIL")
     public UserResponseDTO updateProfile(Long userId, UserUpdateRequestDTO request) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new BusinessRuleException("Usuário não encontrado"));
