@@ -29,6 +29,7 @@ public class EnrollmentService {
     private final EnrollmentRepository enrollmentRepository;
     private final CompletedLessonsService completedLessonsService;  
     private final EnrollmentMapper enrollmentMapper;
+    private final ProgressService progressService;
 
     @Transactional
     @Auditable(action = "CRIAR_MATRICULA")
@@ -43,13 +44,6 @@ public class EnrollmentService {
         return enrollmentMapper.toResponseDTO(enrollmentRepository.save(enrollment));
     }
 
-    /**
-     * Calcula o progresso (0 a 1) do aluno baseado nas aulas concluídas vs total.
-     */
-    public Double calculateOverallProgress(Enrollment enrollment){
-        return enrollmentRepository.getProgress(enrollment.getId(), enrollment.getCourse().getId());
-    }
-    
     @Transactional(readOnly = true)
     public Enrollment findByStudentIdAndCourseId(Long studentId, Long courseId) {
         return enrollmentRepository.findByStudentIdAndCourseId(studentId, courseId)
@@ -63,6 +57,10 @@ public class EnrollmentService {
                 .collect(Collectors.toList());
     }
 
+    public Double calculateOverallProgress(Enrollment enrollment){
+        return progressService.calculateOverallProgress(enrollment.getId(), enrollment.getCourse().getId());
+    }
+    
     // --- Métodos de Conversão e Auxiliares ---
     
     public Enrollment findById(Long id) {

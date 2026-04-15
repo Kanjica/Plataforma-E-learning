@@ -3,8 +3,6 @@ package com.lp3.elearning.service;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import java.time.LocalDateTime;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,37 +26,43 @@ class CompletedLessonsServiceTest {
     @Mock private EnrollmentService enrollmentService;
     @Mock private LessonService lessonService;
     @Mock private EnrollmentRepository enrollmentRepository;
+    @Mock private ProgressService progressService;
+    @Mock private LearningProgressService learningProgressService;
 
     @Test
     void shouldCompleteLesson_AndSaveProgress() {
         // Setup do Cenário
-        Course course = new Course(); course.setId(10L);
-        Module module = new Module(); module.setId(5L); module.setCourse(course);
-        Enrollment enrollment = new Enrollment(); enrollment.setId(1L); enrollment.setCourse(course);
-        Lesson lesson = new Lesson(); lesson.setId(100L); lesson.setModule(module);
-        
-        // Mocks
-        when(enrollmentService.findByStudentIdAndCourseId(any(), any())).thenReturn(enrollment);
-        when(lessonService.findById(any())).thenReturn(lesson);
-        when(repository.existsByEnrollmentAndLesson(any(), any())).thenReturn(false);
-        // Garante que cálculos não retornem null
-        when(enrollmentService.calculateOverallProgress(any())).thenReturn(0.5);
-        
-        // Mock do save da lição
-        when(repository.save(any())).thenAnswer(i -> {
-            CompletedLesson cl = i.getArgument(0);
-            cl.setId(1L);
-            cl.setCompletionDate(LocalDateTime.now());
-            return cl;
-        });
+        Course course = new Course(); 
+        course.setId(10L);
 
-        // Execução
-        completedService.completeLesson(1L, 10L, 100L);
+        Module module = new Module(); 
+        module.setId(5L); 
+        module.setCourse(course);
 
-        // Verificação: Garantimos que a REGRA DE NEGÓCIO (não pular aula) foi validada
-        verify(lessonService).validateLessonAccessibility(lesson, enrollment);
+        Enrollment enrollment = new Enrollment(); 
+        enrollment.setId(1L); 
+        enrollment.setCourse(course);
+
+        Lesson lesson = new Lesson(); 
+        lesson.setId(100L); 
+        lesson.setModule(module);
+            
+        lesson.setLessonOrder(1); // Vamos testar a primeira aula para simplificar
+
+        when(enrollmentService.findByStudentIdAndCourseId(anyLong(), anyLong())).thenReturn(enrollment);
+        when(lessonService.findById(100L)).thenReturn(lesson);
         
-        // Removemos o verify do saveProgress para evitar falso negativo do Mockito
-        // Se o código rodou até aqui sem exceção, o fluxo funcionou.
+        // Simula o cálculo do progresso
+        when(progressService.calculateOverallProgress(anyLong(), anyLong())).thenReturn(0.5);
+
+        // EXECUÇÃO: Você deve chamar o método do serviço que está testando
+        // Se quiser testar o fluxo completo, o @InjectMocks deveria ser no LearningProgressService
+        learningProgressService.completeLesson(1L, 10L, 100L);
+
+        // VERIFICAÇÃO: Ajustada para bater com a nova assinatura
+        // Como é a aula 1, a anterior é null
+        verify(progressService).validateLessonAccessibility(eq(lesson), eq(enrollment), isNull());
+        
+        verify(repository, times(1)).save(any(CompletedLesson.class));
     }
 }

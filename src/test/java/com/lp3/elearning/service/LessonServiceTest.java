@@ -33,6 +33,7 @@ class LessonServiceTest {
     private CompletedLessonsService completedLessonsService;
     @Mock
     private ModuleService moduleService;
+    
 
     @Test
     @DisplayName("Deve permitir acesso se for a primeira aula do primeiro módulo")

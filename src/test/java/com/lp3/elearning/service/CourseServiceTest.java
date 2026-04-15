@@ -62,7 +62,7 @@ class CourseServiceTest {
         when(courseRepository.existsByTitle("Java Basics")).thenReturn(true);
 
         assertThrows(ConflictException.class, () -> {
-            courseService.createCourse(request, Instructor.builder().id(1L).build());
+            courseService.createCourse(request, Instructor.builder().id(1L).name("João").build());
         });
     }
 }

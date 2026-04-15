@@ -29,7 +29,7 @@ public class LessonService {
     private final ModuleService moduleService;
     private final EnrollmentService enrollmentService;
     private final LessonMapper lessonMapper;
-    private final LearningProgressService learningProgressService;
+    private final ProgressService progressService; 
 
     /**
      * Cria uma nova aula e ajusta a ordenação se necessário.
@@ -73,7 +73,12 @@ public class LessonService {
         Enrollment enrollment = enrollmentService.findByStudentIdAndCourseId(studentId, courseId);
         Lesson currentLesson = findById(lessonId);
 
-        learningProgressService.validateLessonAccessibility(currentLesson, enrollment);
+        Lesson previous = null;
+        if (currentLesson.getLessonOrder() > 1) {
+            previous = findByModuleAndOrder(currentLesson.getModule().getId(), currentLesson.getLessonOrder() - 1);
+        }
+
+        progressService.validateLessonAccessibility(currentLesson, enrollment, previous);
         
         return lessonMapper.toResponseDTO(currentLesson);
     }
@@ -157,13 +162,21 @@ public class LessonService {
             .orElseThrow(() -> new BusinessRuleException("Aula número " + order + " não existe neste módulo."));
         
         Long courseId = lesson.getModule().getCourse().getId();
-
         Enrollment enrollment = enrollmentService.findByStudentIdAndCourseId(studentId, courseId);
-        learningProgressService.validateLessonAccessibility(lesson, enrollment);
+
+        // 1. Busca a aula anterior se não for a primeira
+        Lesson previous = null;
+        if (order > 1) {
+            previous = lessonRepository.findByModuleIdAndLessonOrder(moduleId, order - 1)
+                .orElse(null); // Se não achar a anterior, o validador cuida do erro
+        }
+
+        // 2. Valida usando o ProgressService (sem dependência circular)
+        progressService.validateLessonAccessibility(lesson, enrollment, previous);
         
         return lessonMapper.toResponseDTO(lesson);
     }
-    
+        
     @Transactional
     @Auditable(action = "ATUALIZAR_AULA")
     public LessonResponseDTO update(Long lessonId, LessonRequestDTO request) {
