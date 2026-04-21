@@ -1,6 +1,7 @@
 package com.lp3.elearning.entities;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -36,5 +37,6 @@ public class AuditLog {
     private String ipAddress;
 
     @Column(nullable = false)
-    private OffsetDateTime timestamp;
+    @Builder.Default
+    private OffsetDateTime timestamp = OffsetDateTime.now(ZoneOffset.UTC);
 }

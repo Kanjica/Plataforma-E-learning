@@ -1,5 +1,7 @@
 package com.lp3.elearning.entities;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.List;
 
@@ -20,6 +22,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -62,6 +65,10 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private UserRole role; 
     
+    @Builder.Default
+    @Column(name = "registered_at", nullable = false, updatable = false)
+    private OffsetDateTime registeredAt = OffsetDateTime.now(ZoneOffset.UTC);  
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(this.role.name()));
