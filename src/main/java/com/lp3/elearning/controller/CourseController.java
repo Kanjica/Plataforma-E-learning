@@ -105,8 +105,11 @@ public class CourseController {
 
     @Operation(summary = "Filtrar Cursos", description = "Busca avançada de cursos")
     @PostMapping("/search") 
-    public ResponseEntity<APIResponse<Set<CourseResponseDTO>>> filterCourses(@RequestBody @Valid CourseFilterDTO request){
-        return ResponseEntity.ok(APIResponse.success(courseService.filterCourses(request)));
+    public ResponseEntity<APIResponse<Page<CourseListDTO>>> filterCourses(
+            @RequestBody @Valid CourseFilterDTO request,
+            @ParameterObject Pageable pageable
+    ){
+        return ResponseEntity.ok(APIResponse.success(courseService.filterCourses(request, pageable)));
     }
 
     @Operation(summary = "Cursos do Instrutor", description = "Lista todos os cursos ministrados por este instrutor")

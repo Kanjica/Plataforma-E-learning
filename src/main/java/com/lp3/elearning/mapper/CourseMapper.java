@@ -3,6 +3,7 @@ package com.lp3.elearning.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import com.lp3.elearning.dto.course.CourseListDTO;
 import com.lp3.elearning.dto.course.CourseRequestDTO;
 import com.lp3.elearning.dto.course.CourseResponseDTO;
 import com.lp3.elearning.entities.Course;
@@ -18,6 +19,10 @@ public interface CourseMapper {
     Course toEntity(CourseRequestDTO courseRequestDTO);
 
     CourseResponseDTO toResponseDTO(Course course);
+
+    @Mapping(target = "categoryNames", expression = "java(course.getCategories().stream().map(c -> c.getName()).toList())")
+    @Mapping(target = "instructorNames", expression = "java(course.getInstructors().stream().map(i -> i.getName()).toList())")
+    CourseListDTO toListDTO(Course course);
 
     @Mapping(target = "title" , source = "courseRequestDTO.title")
     @Mapping(target = "description" , source = "courseRequestDTO.description")

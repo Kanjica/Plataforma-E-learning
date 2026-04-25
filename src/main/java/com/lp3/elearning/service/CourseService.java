@@ -1,12 +1,11 @@
 package com.lp3.elearning.service;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +23,7 @@ import com.lp3.elearning.exception.ResourceNotFoundException;
 import com.lp3.elearning.mapper.CourseMapper;
 import com.lp3.elearning.repository.CourseRepository;
 import com.lp3.elearning.security.anottation.Auditable;
+import com.lp3.elearning.specification.CourseSpecification;
 
 import lombok.RequiredArgsConstructor;
 
@@ -68,21 +68,15 @@ public class CourseService {
      * Implementação otimizada para evitar N+1 selects.
      */
     @Transactional(readOnly = true)
-    public Set<CourseResponseDTO> filterCourses(CourseFilterDTO request){
-        String title = request.title() != null ? request.title() : "";
-        Set<Long> categoryIds = request.categoryIds() != null ? request.categoryIds() : Collections.emptySet();
-        
-        List<Course> courses;
+    public Page<CourseListDTO> filterCourses(CourseFilterDTO request, Pageable pageable) {
 
-        if(categoryIds.isEmpty()){
-            courses = courseRepository.findByTitleContainingIgnoreCase(title);
-        } else if (title.isEmpty()){
-            courses = courseRepository.findByCategories_IdIn(categoryIds);
-        } else {
-            courses = courseRepository.findByTitleContainingIgnoreCaseAndCategories_IdIn(title, categoryIds);
-        }
+        Specification<Course> spec = Specification.allOf(
+                    CourseSpecification.hasTitle(request.title()),
+                    CourseSpecification.hasCategoryIds(request.categoryIds())
+                );
         
-        return courses.stream().map(courseMapper::toResponseDTO).collect(Collectors.toSet());
+        return courseRepository.findAll(spec,pageable)
+            .map(courseMapper::toListDTO);
     }
 
     public Set<CourseResponseDTO> findCoursesByInstructorId(Long instructorId) {
