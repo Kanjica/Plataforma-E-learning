@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@CacheConfig(cacheNames = "categories")
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
@@ -37,6 +38,9 @@ public class CategoryService {
     
     @Transactional
     @Auditable(action = "ATUALIZAR_CATEGORIA")
+
+    @CachePut(key = "#id")
+    @CacheEvict(cacheNames = "courses", allEntries = true) 
     public CategoryResponseDTO update(Long id, CategoryRequestDTO dto) {
         Category category = findCategoryEntityById(id);
         category.setName(dto.name());
@@ -47,6 +51,8 @@ public class CategoryService {
 
     @Transactional
     @Auditable(action = "DELETAR_CATEGORIA")
+    @CacheEvict(key = "#id")
+    @CacheEvict(cacheNames = "courses", allEntries = true)
     public void delete(Long id) {
         if (!categoryRepository.existsById(id)) {
             throw new ResourceNotFoundException("Categoria não encontrada.");
@@ -54,10 +60,12 @@ public class CategoryService {
         categoryRepository.deleteById(id);
     }
 
+    @Cacheable(key = "#pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<CategoryResponseDTO> findAllPaged(Pageable pageable) {
         return categoryRepository.findAll(pageable).map(categoryMapper::toResponseDTO);
     }
 
+    @Cacheable(key = "#id")
     public CategoryResponseDTO findById(Long id) {
         return categoryMapper.toResponseDTO(findCategoryEntityById(id));
     }

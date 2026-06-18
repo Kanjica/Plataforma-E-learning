@@ -1,7 +1,8 @@
 package com.lp3.elearning.dto.course;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-
+import java.io.Serializable;
+    
 @Schema(description = "Dados do Módulo")
 public record ModuleResponseDTO(
     Long id,
@@ -13,4 +14,4 @@ public record ModuleResponseDTO(
     
     Long courseId,
     String courseTitle
-) {}
+) implements Serializable{}

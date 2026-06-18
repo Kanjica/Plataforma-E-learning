@@ -3,6 +3,10 @@ package com.lp3.elearning.service;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -29,12 +33,14 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@CacheConfig(cacheNames = "courses")
 public class CourseService {
 
     private final CourseRepository courseRepository;
     private final CategoryService categoriesService;
     private final InstructorService instructorService;
     private final CourseMapper courseMapper;
+    private final CacheManager cacheManager;
 
     @Transactional
     @Auditable(action = "CRIAR_CURSO")
@@ -68,6 +74,7 @@ public class CourseService {
      * Implementação otimizada para evitar N+1 selects.
      */
     @Transactional(readOnly = true)
+    @Cacheable(key = "#request.toString() + '-' + #pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<CourseListDTO> filterCourses(CourseFilterDTO request, Pageable pageable) {
 
         Specification<Course> spec = Specification.allOf(
@@ -108,9 +115,12 @@ public class CourseService {
         course.setCategories(categories);
         course.setInstructors(instructors);
 
-        return courseMapper.toResponseDTO(courseRepository.save(course));
+        CourseResponseDTO courseResponse = courseMapper.toResponseDTO(courseRepository.save(course));
+        cacheManager.getCache("courses").put(id, courseResponse);
+        return courseResponse;
     }
 
+    @Cacheable(key = "#id")
     public Course findById(Long id) {
         return courseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Curso não encontrado com ID: " + id));
@@ -122,17 +132,20 @@ public class CourseService {
             throw new ResourceNotFoundException("Curso não encontrado.");
         }
         courseRepository.deleteById(id);
+        cacheManager.getCache("courses").evict(id);
     }
 
     public CourseResponseDTO getCourseByIdResponseDTO(Long id) {
         return courseMapper.toResponseDTO(findById(id));
     }
 
+    @Cacheable(key = "#pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<CourseResponseDTO> getAllCourses(Pageable pageable) {
         return courseRepository.findAll(pageable).map(courseMapper::toResponseDTO);
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(key = "#pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<CourseListDTO> findAllPaged(Pageable pageable) {
         // 1ª Query: Busca a página de cursos (ex: 20 registros)
         Page<Course> coursePage = courseRepository.findAll(pageable);

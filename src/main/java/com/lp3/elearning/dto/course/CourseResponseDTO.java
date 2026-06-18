@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.lp3.elearning.dto.user.InstructorResponseDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 
 @Schema(description = "Detalhes completos do curso para exibição")
 public record CourseResponseDTO(
@@ -40,4 +41,4 @@ public record CourseResponseDTO(
     
     @Schema(description = "Flag de destaque")
     Boolean isBestSeller
-) {}
+) implements Serializable{}

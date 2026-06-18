@@ -27,13 +27,15 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@CacheConfig(cacheNames = "modules")
 public class ModuleService {
 
     private final ModuleRepository moduleRepository;
     private final LessonRepository lessonRepository;
     private final CourseRepository courseRepository;
     private final ModuleMapper moduleMapper;
-    
+    private final CacheManager cacheManager;
+
     @Transactional
     @Auditable(action = "CRIAR_MÓDULO")
     public ModuleResponseDTO create(ModuleRequestDTO request, Long courseId){
@@ -58,6 +60,10 @@ public class ModuleService {
 
     @Transactional
     @Auditable(action = "REORDENAR_MÓDULOS")
+    @Caching(evict = {
+        @CacheEvict(cacheNames = "modules", allEntries = true),
+        @CacheEvict(cacheNames = "courses", allEntries = true)
+    })
     public List<ModuleResponseDTO> reorder(Long courseId, List<ModuleReorderRequestDTO> requests) {
         if(!courseRepository.existsById(courseId)){
             throw new ResourceNotFoundException("Curso não encontrado.");
@@ -75,6 +81,11 @@ public class ModuleService {
             if(module != null) module.setModuleOrder(req.newOrder());
         });
         
+
+        
+        currentModules.forEach(m -> cacheManager.getCache("modules").evict(m.getId()));
+        cacheManager.getCache("courses").evict(courseId);
+
         return moduleRepository.saveAll(currentModules).stream()
             .sorted(Comparator.comparing(Module::getModuleOrder)) 
             .map(moduleMapper::toResponseDTO)
@@ -101,8 +112,13 @@ public class ModuleService {
         module.setTitle(request.title());
         module.setDescription(request.description());
         module.setModuleOrder(request.moduleOrder());
-        
-        return moduleMapper.toResponseDTO(moduleRepository.save(module));
+
+        ModuleResponseDTO moduleResponse = moduleMapper.toResponseDTO(moduleRepository.save(module));
+
+        cacheManager.getCache("modules").put(module.getId(), moduleResponse);
+        cacheManager.getCache("courses").evict(module.getCourse().getId());
+
+        return moduleResponse;
     }
 
     @Transactional
@@ -110,9 +126,13 @@ public class ModuleService {
     public void delete(Long moduleId) {
         Module module = findById(moduleId);
         moduleRepository.delete(module);
+
+        cacheManager.getCache("modules").evict(moduleId);
+        cacheManager.getCache("courses").evict(module.getCourse().getId());
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(key = "'course-' + #courseId")
     public List<ModuleResponseDTO> getAllByCourseId(Long courseId) {
         return moduleRepository.findByCourseId(courseId).stream()
                 .sorted(Comparator.comparing(Module::getModuleOrder))
@@ -125,6 +145,7 @@ public class ModuleService {
                 .orElseThrow(() -> new ResourceNotFoundException("Módulo não encontrado com ID: " + moduleId));
     }
     
+    @Cacheable(key = "#moduleId")
     public ModuleResponseDTO getById(Long moduleId) {
         Module module = moduleRepository.findById(moduleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Módulo não encontrado com ID: " + moduleId));

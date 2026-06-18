@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@CacheConfig(cacheNames = "lessons")
 public class LessonService {
     
     private final LessonRepository lessonRepository;
@@ -30,6 +31,7 @@ public class LessonService {
     private final EnrollmentService enrollmentService;
     private final LessonMapper lessonMapper;
     private final ProgressService progressService; 
+    private final CacheManager cacheManager; 
 
     /**
      * Cria uma nova aula e ajusta a ordenação se necessário.
@@ -103,6 +105,10 @@ public class LessonService {
             if (lesson != null) lesson.setLessonOrder(req.newOrder());
         });
         
+        currentLessons.forEach(l -> cacheManager.getCache("lessons").evict(l.getId()));
+        Module module = moduleService.findById(moduleId);
+        cacheManager.getCache("courses").evict(module.getCourse().getId());
+
         return lessonRepository.saveAll(currentLessons).stream()
             .sorted(Comparator.comparing(Lesson::getLessonOrder))
             .map(lessonMapper::toResponseDTO)
@@ -134,6 +140,12 @@ public class LessonService {
             .forEach(l -> l.setLessonOrder(l.getLessonOrder() - 1));
         
         lessonRepository.saveAll(remainingLessons);
+
+        cacheManager.getCache("lessons").evict(lessonId);
+        Module module = moduleService.findById(moduleId);
+        cacheManager.getCache("modules").evict(moduleId);
+        Course course = module.getCourse();
+        cacheManager.getCache("courses").evict(course.getId());
     }
 
     private void shiftLessonOrders(Long moduleId, Integer startOrder, Long ignoreLessonId) {
@@ -144,8 +156,15 @@ public class LessonService {
             .forEach(l -> l.setLessonOrder(l.getLessonOrder() + 1));
         
         lessonRepository.saveAll(lessons);
+
+        lessons.forEach(l -> cacheManager.getCache("lessons").evict(l.getId()));
+        Module module = moduleService.findById(moduleId);
+        cacheManager.getCache("modules").evict(moduleId);
+        Course course = module.getCourse();
+        cacheManager.getCache("courses").evict(course.getId());
     }
 
+    @Cacheable(key = "#moduleId")
     public List<LessonResponseDTO> getAllByModuleId(Long moduleId) {
         return lessonRepository.findByModuleId(moduleId).stream()
             .sorted(Comparator.comparing(Lesson::getLessonOrder))
@@ -192,6 +211,13 @@ public class LessonService {
         lesson.setContent(request.content());
         lesson.setVideoUrl(request.videoUrl());
         lesson.setLessonOrder(request.lessonOrder());
+
+        cacheManager.getCache("lessons").evict(lessonId);
+        Module module = moduleService.findById(moduleId);
+        cacheManager.getCache("modules").evict(moduleId);
+        Course course = module.getCourse();
+        cacheManager.getCache("courses").evict(course.getId());
+        
         return lessonMapper.toResponseDTO(lessonRepository.save(lesson));
     }
 }
