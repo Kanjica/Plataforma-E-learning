@@ -5,6 +5,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,6 +33,7 @@ public class CategoryService {
     private final CategoryMapper categoryMapper;
 
     @Transactional
+    @CacheEvict(cacheNames = "courses", allEntries = true)
     @Auditable(action = "CRIAR_CATEGORIA")
     public CategoryResponseDTO createCategory(CategoryRequestDTO dto) {
         Category category = categoryMapper.toEntity(dto);
@@ -38,29 +43,26 @@ public class CategoryService {
     
     @Transactional
     @Auditable(action = "ATUALIZAR_CATEGORIA")
-
-    @CachePut(key = "#id")
-    @CacheEvict(cacheNames = "courses", allEntries = true) 
     public CategoryResponseDTO update(Long id, CategoryRequestDTO dto) {
         Category category = findCategoryEntityById(id);
         category.setName(dto.name());
 
-        category = categoryRepository.save(category);
-        return categoryMapper.toResponseDTO(category);
+        CategoryResponseDTO response = categoryMapper.toResponseDTO(categoryRepository.save(category));
+        this.executeEvictCategory(id);
+        return response;
     }
 
     @Transactional
     @Auditable(action = "DELETAR_CATEGORIA")
-    @CacheEvict(key = "#id")
-    @CacheEvict(cacheNames = "courses", allEntries = true)
     public void delete(Long id) {
         if (!categoryRepository.existsById(id)) {
             throw new ResourceNotFoundException("Categoria não encontrada.");
         }
         categoryRepository.deleteById(id);
+        this.executeEvictCategory(id);
     }
 
-    @Cacheable(key = "#pageable.pageNumber + '-' + #pageable.pageSize")
+    @Cacheable(key = "'paged-'#pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<CategoryResponseDTO> findAllPaged(Pageable pageable) {
         return categoryRepository.findAll(pageable).map(categoryMapper::toResponseDTO);
     }
@@ -92,4 +94,11 @@ public class CategoryService {
         }
         return new HashSet<>(foundCategories);
     }
+
+    @Caching(evict = {
+        @CacheEvict(key = "#id"),
+        @CacheEvict(allEntries = true),
+        @CacheEvict(cacheNames = "courses", allEntries = true)
+    })
+    public void executeEvictCategory(Long id) {}
 }

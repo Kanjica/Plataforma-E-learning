@@ -5,6 +5,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,10 +38,10 @@ public class ModuleService {
     private final LessonRepository lessonRepository;
     private final CourseRepository courseRepository;
     private final ModuleMapper moduleMapper;
-    private final CacheManager cacheManager;
 
     @Transactional
     @Auditable(action = "CRIAR_MÓDULO")
+    @CacheEvict(cacheNames = "courses", key = "#courseId") 
     public ModuleResponseDTO create(ModuleRequestDTO request, Long courseId){
         Course course = courseRepository.findById(courseId)
             .orElseThrow(() -> new ResourceNotFoundException("Curso não encontrado."));
@@ -55,14 +59,15 @@ public class ModuleService {
 
         Module module = moduleMapper.toEntity(request);
         module.setCourse(course);
+
         return moduleMapper.toResponseDTO(moduleRepository.save(module));
     }
 
     @Transactional
     @Auditable(action = "REORDENAR_MÓDULOS")
     @Caching(evict = {
-        @CacheEvict(cacheNames = "modules", allEntries = true),
-        @CacheEvict(cacheNames = "courses", allEntries = true)
+        @CacheEvict(cacheNames = "modules", key = "'courseId-' + #courseId"),
+        @CacheEvict(cacheNames = "courses", key = "#courseId")
     })
     public List<ModuleResponseDTO> reorder(Long courseId, List<ModuleReorderRequestDTO> requests) {
         if(!courseRepository.existsById(courseId)){
@@ -81,10 +86,6 @@ public class ModuleService {
             if(module != null) module.setModuleOrder(req.newOrder());
         });
         
-
-        
-        currentModules.forEach(m -> cacheManager.getCache("modules").evict(m.getId()));
-        cacheManager.getCache("courses").evict(courseId);
 
         return moduleRepository.saveAll(currentModules).stream()
             .sorted(Comparator.comparing(Module::getModuleOrder)) 
@@ -113,12 +114,12 @@ public class ModuleService {
         module.setDescription(request.description());
         module.setModuleOrder(request.moduleOrder());
 
-        ModuleResponseDTO moduleResponse = moduleMapper.toResponseDTO(moduleRepository.save(module));
+        Long courseId = module.getCourse().getId();
 
-        cacheManager.getCache("modules").put(module.getId(), moduleResponse);
-        cacheManager.getCache("courses").evict(module.getCourse().getId());
+        ModuleResponseDTO response =  moduleMapper.toResponseDTO(module); 
+        this.executeEvictModule(moduleId, courseId);
 
-        return moduleResponse;
+        return response;
     }
 
     @Transactional
@@ -127,12 +128,20 @@ public class ModuleService {
         Module module = findById(moduleId);
         moduleRepository.delete(module);
 
-        cacheManager.getCache("modules").evict(moduleId);
-        cacheManager.getCache("courses").evict(module.getCourse().getId());
+        // Reorganiza para não deixar "buracos" na numeração (ex: 1, 3, 4 vira 1, 2, 3)
+        List<Module> remainingModules = moduleRepository.findByCourseId(module.getCourse().getId());
+        remainingModules.stream()
+            .filter(m -> m.getModuleOrder() > module.getModuleOrder())
+            .forEach(m -> m.setModuleOrder(m.getModuleOrder() - 1));
+
+        Long courseId = module.getCourse().getId();
+        moduleRepository.saveAll(remainingModules);
+        
+        this.executeEvictModule(moduleId, courseId);
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(key = "'course-' + #courseId")
+    @Cacheable(key = "'courseId-' + #courseId")
     public List<ModuleResponseDTO> getAllByCourseId(Long courseId) {
         return moduleRepository.findByCourseId(courseId).stream()
                 .sorted(Comparator.comparing(Module::getModuleOrder))
@@ -164,5 +173,12 @@ public class ModuleService {
             .map(obj -> new ModuleLessonCountDTO((Long) obj[0], (Long) obj[1]))
             .toList();
     }
+
+    @Caching(evict = {
+        @CacheEvict(key = "#moduleId"),
+        @CacheEvict(key = "'courseId-' + #courseId"), 
+        @CacheEvict(cacheNames="courses", key = "#courseId")
+    })
+    public void executeEvictModule(Long moduleId, Long courseId) {}
     
 }

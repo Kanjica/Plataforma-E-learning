@@ -62,8 +62,8 @@ public class CourseController {
 
     @Operation(summary = "Buscar Curso por ID")
     @GetMapping("/{courseId}")
-    public ResponseEntity<APIResponse<CourseResponseDTO>> getCourseById(@PathVariable Long courseId){
-        return ResponseEntity.ok(APIResponse.success(courseService.getCourseByIdResponseDTO(courseId)));
+    public ResponseEntity<APIResponse<CourseResponseDTO>> getById(@PathVariable Long courseId){
+        return ResponseEntity.ok(APIResponse.success(courseService.getById(courseId)));
     }
 
     @Operation(summary = "Listar todos os cursos com paginação")
@@ -89,7 +89,7 @@ public class CourseController {
             @RequestBody @Valid CourseRequestDTO courseRequest, 
             @CurrentUser User user
     ){
-        return ResponseEntity.ok(APIResponse.success(courseService.updateCourse(courseId, courseRequest)));
+        return ResponseEntity.ok(APIResponse.success(courseService.update(courseId, courseRequest)));
     }
 
     @Operation(summary = "Deletar Curso")

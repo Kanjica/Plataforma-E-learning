@@ -5,8 +5,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -40,10 +40,10 @@ public class CourseService {
     private final CategoryService categoriesService;
     private final InstructorService instructorService;
     private final CourseMapper courseMapper;
-    private final CacheManager cacheManager;
 
     @Transactional
     @Auditable(action = "CRIAR_CURSO")
+    @CacheEvict(allEntries = true)
     public CourseResponseDTO createCourse(CourseRequestDTO request, User user) {
         if(courseRepository.existsByTitle(request.title())){
             throw new ConflictException("Já existe um curso com o título: " + request.title());
@@ -74,7 +74,7 @@ public class CourseService {
      * Implementação otimizada para evitar N+1 selects.
      */
     @Transactional(readOnly = true)
-    @Cacheable(key = "#request.toString() + '-' + #pageable.pageNumber + '-' + #pageable.pageSize")
+    @Cacheable(key = "'filter-' + #request.title + '-' + T(java.util.Objects).hashCode(#request.categoryIds) + '-' + #pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<CourseListDTO> filterCourses(CourseFilterDTO request, Pageable pageable) {
 
         Specification<Course> spec = Specification.allOf(
@@ -95,7 +95,7 @@ public class CourseService {
     
     @Transactional
     @Auditable(action = "ATUALIZAR_CURSO")
-    public CourseResponseDTO updateCourse(Long id, CourseRequestDTO request) {
+    public CourseResponseDTO update(Long id, CourseRequestDTO request) {
         Course existingCourse = findById(id);
         
         // Verifica duplicidade de título apenas se o título mudou
@@ -115,12 +115,11 @@ public class CourseService {
         course.setCategories(categories);
         course.setInstructors(instructors);
 
-        CourseResponseDTO courseResponse = courseMapper.toResponseDTO(courseRepository.save(course));
-        cacheManager.getCache("courses").put(id, courseResponse);
-        return courseResponse;
+        CourseResponseDTO response = courseMapper.toResponseDTO(courseRepository.save(course));
+        this.executeEvictCourse(id);
+        return response;
     }
 
-    @Cacheable(key = "#id")
     public Course findById(Long id) {
         return courseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Curso não encontrado com ID: " + id));
@@ -132,20 +131,21 @@ public class CourseService {
             throw new ResourceNotFoundException("Curso não encontrado.");
         }
         courseRepository.deleteById(id);
-        cacheManager.getCache("courses").evict(id);
+        this.executeEvictCourse(id);
     }
 
-    public CourseResponseDTO getCourseByIdResponseDTO(Long id) {
+    @Cacheable(key = "#id")
+    public CourseResponseDTO getById(Long id) {
         return courseMapper.toResponseDTO(findById(id));
     }
 
-    @Cacheable(key = "#pageable.pageNumber + '-' + #pageable.pageSize")
+    @Cacheable(key = "'paged-' + #pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<CourseResponseDTO> getAllCourses(Pageable pageable) {
         return courseRepository.findAll(pageable).map(courseMapper::toResponseDTO);
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(key = "#pageable.pageNumber + '-' + #pageable.pageSize")
+    @Cacheable(key = "'list-' + #pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<CourseListDTO> findAllPaged(Pageable pageable) {
         // 1ª Query: Busca a página de cursos (ex: 20 registros)
         Page<Course> coursePage = courseRepository.findAll(pageable);
@@ -161,4 +161,10 @@ public class CourseService {
             course.getInstructors().stream().map(Instructor::getName).toList()
         ));
     }
+
+    @Caching(evict = {
+        @CacheEvict(key = "#id"),
+        @CacheEvict(allEntries = true)
+    })
+    public void executeEvictCourse(Long id) {}
 }

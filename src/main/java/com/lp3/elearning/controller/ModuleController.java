@@ -30,7 +30,6 @@ public class ModuleController {
         this.moduleService = moduleService;
     }
 
-
     @Operation(summary = "Buscar Módulo por ID")
     @GetMapping("/{id}")
     public ResponseEntity<APIResponse<ModuleResponseDTO>> getById(@PathVariable Long id) {

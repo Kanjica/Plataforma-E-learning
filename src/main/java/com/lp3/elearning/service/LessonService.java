@@ -5,6 +5,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +35,6 @@ public class LessonService {
     private final EnrollmentService enrollmentService;
     private final LessonMapper lessonMapper;
     private final ProgressService progressService; 
-    private final CacheManager cacheManager; 
 
     /**
      * Cria uma nova aula e ajusta a ordenação se necessário.
@@ -41,12 +44,7 @@ public class LessonService {
     @Auditable(action = "CRIAR_AULA")
     public LessonResponseDTO create(LessonRequestDTO lessonRequest, Long moduleId) {
         Module module = moduleService.findById(moduleId);
-
         Long courseId = module.getCourse().getId();
-
-        if(!module.getCourse().getId().equals(courseId)){
-            throw new BusinessRuleException("Conflito: O módulo informado não pertence ao curso da URL.");
-        }
 
         // Se a ordem já existe, empurra as outras para frente para abrir espaço
         if(lessonRepository.existsByLessonOrderAndModuleId(lessonRequest.lessonOrder(), moduleId)) {
@@ -55,8 +53,11 @@ public class LessonService {
 
         Lesson lesson = lessonMapper.toEntity(lessonRequest);
         lesson.setModule(module);
+
+        LessonResponseDTO response = lessonMapper.toResponseDTO(lessonRepository.save(lesson));
+        this.executeEvictLessons(null, moduleId, courseId);
         
-        return lessonMapper.toResponseDTO(lessonRepository.save(lesson));
+        return response;
     }
 
     public Lesson findByModuleAndOrder(Long moduleId, Integer lessonOrder) {
@@ -104,15 +105,18 @@ public class LessonService {
             Lesson lesson = lessonMap.get(req.lessonId());
             if (lesson != null) lesson.setLessonOrder(req.newOrder());
         });
-        
-        currentLessons.forEach(l -> cacheManager.getCache("lessons").evict(l.getId()));
-        Module module = moduleService.findById(moduleId);
-        cacheManager.getCache("courses").evict(module.getCourse().getId());
 
-        return lessonRepository.saveAll(currentLessons).stream()
+        Module module = moduleService.findById(moduleId);
+        Long courseId = module.getCourse().getId();
+        
+        List<LessonResponseDTO> updatedLessons = lessonRepository.saveAll(currentLessons).stream()
             .sorted(Comparator.comparing(Lesson::getLessonOrder))
             .map(lessonMapper::toResponseDTO)
             .toList();
+
+        this.executeEvictLessons(null, moduleId, courseId);
+
+        return updatedLessons;
     }
 
     // --- Métodos Auxiliares e CRUD Simples ---
@@ -139,13 +143,12 @@ public class LessonService {
             .filter(l -> l.getLessonOrder() > removedOrder)
             .forEach(l -> l.setLessonOrder(l.getLessonOrder() - 1));
         
+        Module module = moduleService.findById(moduleId);
+        Long courseId = module.getCourse().getId();
+
         lessonRepository.saveAll(remainingLessons);
 
-        cacheManager.getCache("lessons").evict(lessonId);
-        Module module = moduleService.findById(moduleId);
-        cacheManager.getCache("modules").evict(moduleId);
-        Course course = module.getCourse();
-        cacheManager.getCache("courses").evict(course.getId());
+        this.executeEvictLessons(lessonId, moduleId, courseId);
     }
 
     private void shiftLessonOrders(Long moduleId, Integer startOrder, Long ignoreLessonId) {
@@ -156,15 +159,9 @@ public class LessonService {
             .forEach(l -> l.setLessonOrder(l.getLessonOrder() + 1));
         
         lessonRepository.saveAll(lessons);
-
-        lessons.forEach(l -> cacheManager.getCache("lessons").evict(l.getId()));
-        Module module = moduleService.findById(moduleId);
-        cacheManager.getCache("modules").evict(moduleId);
-        Course course = module.getCourse();
-        cacheManager.getCache("courses").evict(course.getId());
     }
 
-    @Cacheable(key = "#moduleId")
+    @Cacheable(key = "'moduleId-' + #moduleId")
     public List<LessonResponseDTO> getAllByModuleId(Long moduleId) {
         return lessonRepository.findByModuleId(moduleId).stream()
             .sorted(Comparator.comparing(Lesson::getLessonOrder))
@@ -212,12 +209,21 @@ public class LessonService {
         lesson.setVideoUrl(request.videoUrl());
         lesson.setLessonOrder(request.lessonOrder());
 
-        cacheManager.getCache("lessons").evict(lessonId);
         Module module = moduleService.findById(moduleId);
-        cacheManager.getCache("modules").evict(moduleId);
-        Course course = module.getCourse();
-        cacheManager.getCache("courses").evict(course.getId());
+        Long courseId = module.getCourse().getId();
+
+        LessonResponseDTO response = lessonMapper.toResponseDTO(lessonRepository.save(lesson));
         
-        return lessonMapper.toResponseDTO(lessonRepository.save(lesson));
+        this.executeEvictLessons(lessonId, moduleId, courseId);
+
+        return response;
     }
+
+    @Caching(evict = {
+        @CacheEvict(key = "#lessonId", condition = "#lessonId != null"),
+        @CacheEvict(key = "'moduleId-' + #moduleId"), 
+        @CacheEvict(cacheNames = "modules", key = "#moduleId"),
+        @CacheEvict(cacheNames = "courses", key = "#courseId")
+    })
+    public void executeEvictLessons(Long lessonId, Long moduleId, Long courseId) {}
 }
