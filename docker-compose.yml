@@ -26,6 +26,16 @@ services:
     volumes:
       - pgadmin-data:/var/lib/pgadmin
 
+  redis:
+    image: redis:7-alpine
+    container_name: elearning_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
 volumes:
   pgadmin-data:
   postgres-data:
+  redis-data:
